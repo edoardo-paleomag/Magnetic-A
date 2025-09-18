@@ -8,7 +8,7 @@ Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using 
 
 A dedicated publication is under preparation!
 
-#### If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally (offline). To run Magnetic-A locally on your own computer follow the steps below.
+#### If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally. To run Magnetic-A locally on your own computer follow the steps below.
 
 ### Download both R and R-studio to your computer. Instructions for downloads can be found at:
 * R = https://www.r-project.org/
