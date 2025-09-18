@@ -37,8 +37,8 @@ ui <- fluidPage(
                ),
                mainPanel(
                  fluidRow(
-                   column(12,h4("In case of overloading (failing bootstrap, etc) please use also ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA2/", 
-                                                                                                          "Magnetic-A2")))
+                   column(12,h4("Online version: ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
+                                                                                                          "Magnetic-A")))
                  ),
                  br(),
                  fluidRow(
