@@ -35,20 +35,12 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 
 ### 2.STARTING WITH MAGNETIC-A
 
-UPLOAD THE REQUIRE PACKAGES: 
+After installation, all packages hould be automatically called by Magnetic-A. To start type this:
 
-After installation, all packages must be called before starting Magnetic-A. Type all these commands in sequence:
-
-* library(plyr)
-* library(dplyr)
-* library(shiny)
-* library(shinyWidgets)
-* library(DT)
-* library(shinyhelper)
-* library(stats)
-* library(glue)
-* library(tidyverse)
-* library(PmagDiR)
 * shiny::runGitHub("Magnetic-A", "edoardo-paleomag")
+
+For help and inquiries, please contact me: 
+
+* edoardo.dallanave@unimi.it
 
 
