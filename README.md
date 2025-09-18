@@ -15,7 +15,7 @@ If you will be processing a large amount of data using Magnetic-A - it is advent
 * R studio = https://www.rstudio.com/products/rstudio/download/
 * Open R-Studio
 
-### INSTALLING THE REQUIRED PACKAGES (SKIP IF ALREADY DONE): 
+### 1.INSTALLING THE REQUIRED PACKAGES (SKIP to 2 IF ALREADY DONE ONCE): 
 all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be downloaded by typing in the console:
 
 * install.packages("plyr")
@@ -33,11 +33,11 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 * library(devtools)
 * install_github("edoardo-paleomag/PmagDiR")
 
-### STARTING WITH MAGNETIC-A
+### 2.STARTING WITH MAGNETIC-A
 
 UPLOAD THE REQUIRE PACKAGES: 
 
-After installation, they must be called before starting Magnetic-A with these commands:
+After installation, all packages must be called before starting Magnetic-A. Type all these commands in sequence:
 
 * library(plyr)
 * library(dplyr)
@@ -49,9 +49,6 @@ After installation, they must be called before starting Magnetic-A with these co
 * library(glue)
 * library(tidyverse)
 * library(PmagDiR)
-
-Magnetic-A is then opened by:
-
 * shiny::runGitHub("Magnetic-A", "edoardo-paleomag")
 
 
