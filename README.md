@@ -1,4 +1,4 @@
-# Magnetic-A
+# Magnetic-A - How to run locally
 
 The documents and data within this git-hub folder form the basis for the Magnetic-A application available online at https://edoardodallanave.shinyapps.io/MagneticA/. The code for the application can be found in the documents “server.R” and “ui.R”. 
 
@@ -8,7 +8,7 @@ Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using 
 
 A dedicated publication is under preparation!
 
-If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally (offline). To run Magnetic-A locally on your own computer follow the steps below.
+#### If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally. To run Magnetic-A locally on your own computer follow the steps below.
 
 ### Download both R and R-studio to your computer. Instructions for downloads can be found at:
 * R = https://www.r-project.org/
