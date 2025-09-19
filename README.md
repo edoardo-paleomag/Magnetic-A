@@ -1,4 +1,4 @@
-# Magnetic-A
+# Magnetic-A - How to run locally
 
 The documents and data within this git-hub folder form the basis for the Magnetic-A application available online at https://edoardodallanave.shinyapps.io/MagneticA/. The code for the application can be found in the documents “server.R” and “ui.R”. 
 
