@@ -2411,7 +2411,9 @@ server <- function(input, output){
     pID <- min(pI, pD)
     H <- ifelse(A2I < 3.07 && A2D < 3.07, 0, 1)
     
-    V2dec <- pars[["vectors"]][["V2dec"]]
+    #must remove the declination deviation from V2 dec
+    V2dec <- (pars[["vectors"]][["V2dec"]]-pars[["vectors"]][["V1dec"]])%%360
+    #V2dec <- (V2dec-fpars$dec)%%360
     if (V2dec < 90 || V2dec > 270) V2dec <- (V2dec-180)%%360
     E <- pars[["values"]][2] / pars[["values"]][3]
     N <- nrow(DIc)                                           
