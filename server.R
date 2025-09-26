@@ -1,5 +1,4 @@
 
-
 library(PmagDiR)
 library(plyr)
 library(dplyr)
@@ -10,6 +9,7 @@ library(shinyhelper)
 library(stats)
 library(glue)
 library(tidyverse)
+library(pracma)
 
 
 
@@ -2249,8 +2249,13 @@ server <- function(input, output){
     for (D in D0) {
       Dc <- c(Dc, sum(DI[,1] <= D) / n)
     }  
-    Icdf <- splinefun(I0*pi/180, Ic, method="monoH.FC")
-    Dcdf <- splinefun(D0*pi/180, Dc, method="monoH.FC")
+    
+    Icdf <-  pracma::pchipfun(I0*pi/180, Ic)
+    Dcdf <-  pracma::pchipfun(D0*pi/180, Dc)
+    
+    
+    # Icdf <- splinefun(I0*pi/180, Ic, method="monoH.FC")
+    # Dcdf <- splinefun(D0*pi/180, Dc, method="monoH.FC")
     
     return(list(Icdf=Icdf, Dcdf=Dcdf))
   }   
@@ -2282,7 +2287,8 @@ server <- function(input, output){
     # 
     # It is important to note that this function assumes the input inclinations are in degrees and converts them to radians internally for consistency with the CDF function.
     
-    Is <- sort(Is * pi / 180)  # ordina e converte in radianti
+    Is <- sort(Is)
+    Is <- (Is * pi/180)  # ordina e converte in radianti
     ns <- length(Is)
     
     C <- Icdf(Is)  # valori CDF per i dati ordinati
@@ -2384,7 +2390,7 @@ server <- function(input, output){
     #   fpars$dec <- (fpars$dec-180)%%360
     # }
     rot_block <- data.frame(matrix(ncol = 2,nrow = nrow(DI)))
-    rot_block[,1] <- (DIc[,1]-fpars$dec)%%360
+    rot_block[,1] <- (DIc[,1]-pars[["vectors"]][["V1dec"]])%%360
     rot_block[,2] <- DIc[,2]
     
     DI <- rot_block
@@ -2395,7 +2401,7 @@ server <- function(input, output){
     n <- nrow(DI)
     if (n < 5) stop("Insufficient data: N must be ≥ 5")
     
-    if(is.na(lat)) {lat <- PmagDiR::findlat(fpars[1,2])}
+    if(is.na(lat)) {lat <- PmagDiR::findlat(pars[["vectors"]][["V1inc"]])}
     
     # Get empirical CDFs from GGP model
     cdfs <- GGP_vMF_cdfs(GGPmodel=model_name, lat=lat, degree=degree, kappa = kappa)  
@@ -2713,7 +2719,7 @@ server <- function(input, output){
     #downleft, A2D and A2I vs flattening
     par(fig=c(0,0.5,0,0.5),new=TRUE)
     par(mar=c(4,4, 4, 4))
-    plot(NA,xlim=c(max(flats),min(flats)),
+    plot(NA,xlim=c(max(results$flat),min(results$flat)),
          ylim=c(0,max(c(results$A2D,results$A2I))),
          xlab="Flattening factor",ylab="A2D (red),A2I (blue)")
     abline(h = 3.07, lty=2)
@@ -2721,8 +2727,8 @@ server <- function(input, output){
                                 xright = good_flats[nrow(good_flats),1],
                                 ytop = max(c(results$A2D,results$A2I)),
                                 col = rgb(1,0,0,0.25), border = NA)
-    lines(x=flats,y = results$A2D, lwd=2, col="red")
-    lines(x=flats,y = results$A2I, lwd=2, col="blue")
+    lines(x=results$flat,y = results$A2D, lwd=2, col="red")
+    lines(x=results$flat,y = results$A2I, lwd=2, col="blue")
     
     #downright, pID and inc vs flattening
     par(fig=c(0.5,1,0,0.5),new=TRUE)
