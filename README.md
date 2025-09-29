@@ -2,7 +2,7 @@
 
 The documents and data within this git-hub folder form the basis for the Magnetic-A application available online at https://edoardodallanave.shinyapps.io/MagneticA/. The code for the application can be found in the documents “server.R” and “ui.R”. 
 
-Anyone using this code should acknowledge and cite (for now):
+If you use this code for publication purposes, please cite (for now):
 
 Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using the R package PmagDiR. Scientific Reports, 14(1666). https://doi.org/10.1038/s41598-024-52001-x
 
