@@ -399,7 +399,7 @@ server <- function(input, output){
   #read file if present, reset if requested
   #reads three formats for now: Web-DiR, Lamont, Bremen (.cor, one coordinate system)
   sample_list <- reactive({
-    if (is.null(input$All_Zijd) && input$Zijd_f_type!=6){
+    if (is.null(input$All_Zijd) && input$Zijd_f_type!=7){
       return(NULL)
     }
     if(input$Zijd_f_type==1){
@@ -453,7 +453,7 @@ server <- function(input, output){
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
       for(i in 1:length(input$All_Zijd[,1])){
-        #read first and row and count columns
+        #read first and second row and count columns
         f_row <- read.table(input$All_Zijd[[i, 'datapath']],header = F,skip = 2,nrows = 1)
         s_row <- read.table(input$All_Zijd[[i, 'datapath']],header = F,skip = 3,nrows = 1)
         if(ncol(f_row)<ncol(s_row)){
@@ -474,6 +474,28 @@ server <- function(input, output){
       }
       return(dat_PmagDiR)
     }else if(input$Zijd_f_type==6){
+      dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
+      colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
+      #must read all selected file
+      for(i in 1:length(input$All_Zijd[,1])){
+        #read name from first row
+        first_row <- read.table(input$All_Zijd[[i, 'datapath']],header = F,skip = 1,nrows = 1)
+        specimen <- first_row[1,1]
+        #read demag file
+        dat <- read.table(input$All_Zijd[[i, 'datapath']],header = F,skip = 3)
+        #create temp converted file
+        temp_file <- data.frame(matrix(ncol = 11,nrow = nrow(dat)))
+        colnames(temp_file) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
+        #populate temp_fil
+        temp_file[,1] <- rep(specimen)
+        temp_file[,2] <- dat[,1]
+        temp_file[,3:5] <- PmagDiR::s2c(DI = dat[,6:7],J = dat[,5])
+        temp_file[,6:8] <- PmagDiR::s2c(DI = dat[,6:7],J = dat[,5])
+        temp_file[,9:11] <- PmagDiR::s2c(DI = dat[,8:9],J = dat[,5])
+        dat_PmagDiR <- rbind(dat_PmagDiR,temp_file)
+      }
+      return(dat_PmagDiR)
+    }else if(input$Zijd_f_type==7){
       return(PmagDiR::Ardo_diRs_example)
     }
   })

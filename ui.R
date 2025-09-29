@@ -56,7 +56,7 @@ ui <- fluidPage(
                                        fluidRow(
                                          column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
                                          column(6,selectInput("Zijd_f_type",label = "File type",
-                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"Example data"=6),selected = 2) %>%
+                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 2) %>%
                                                   helper(type = "inline",
                                                          title = "Format file",
                                                          content = c(
