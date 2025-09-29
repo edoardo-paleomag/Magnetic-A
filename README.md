@@ -15,7 +15,7 @@ A dedicated publication is under preparation!
 * R studio = https://www.rstudio.com/products/rstudio/download/
 * Open R-Studio
 
-### 1.INSTALLING THE REQUIRED PACKAGES (SKIP to 2 IF ALREADY DONE ONCE): 
+### 1.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
 all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be downloaded by typing in the console:
 
 * install.packages("plyr")
