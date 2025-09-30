@@ -137,7 +137,16 @@ ui <- fluidPage(
                           )
                         )
                ),
-               tabPanel("All saved samples",
+               tabPanel("Export figure with all diagrams",
+                        mainPanel(
+                          fluidRow(
+                            column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
+                            column(10,h4("Please define Units, Ticks & Tags in the Vector end-points interpolation page to visualize the diagrams"))
+                          ),
+                          column(12,plotOutput(outputId = "All_VEP_diagrams")),
+                        )
+               ),
+               tabPanel("All saved directions",
                         sidebarLayout(
                           sidebarPanel(width = 6,
                                        fluidRow(
@@ -163,17 +172,8 @@ ui <- fluidPage(
                                              actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot")),
                                     plotOutput("saved_interpol_EA"))
                         )
-               ),
-               tabPanel("Figure with all diagrams",
-                        mainPanel(
-                          fluidRow(
-                            column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
-                            column(10,h5("Please define Units, Ticks & Tags in the Vector end-points interpolation page to visualize the diagrams"))
-                          ),
-                          column(12,plotOutput(outputId = "All_VEP_diagrams")),
-                        )
                )
-             )
+          )
     ),
     tabPanel("Directions display, filter & average",
              sidebarLayout(
