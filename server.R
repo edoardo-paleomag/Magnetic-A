@@ -1787,13 +1787,13 @@ server <- function(input, output){
     m2ind <- as.numeric(which(dat$diff>90), arr.ind = TRUE)
     
     #terminate if distribution is not bimodal
-    if(length(m1ind)<10){Mode1 <- NULL}else{Mode1 <- dat[m1ind,1:2]}
+    if(length(m1ind)<5){Mode1 <- NULL}else{Mode1 <- dat[m1ind,1:2]}
     
-    if(length(m2ind)<10){Mode2 <- NULL}else{Mode2 <- dat[m2ind,1:2]}
+    if(length(m2ind)<5){Mode2 <- NULL}else{Mode2 <- dat[m2ind,1:2]}
     
     if(mode==1){
       if (is.null(Mode1)==T){
-        output$notbimodal <- renderText({paste("Distribution not biomodal, or N (mode) <10")})
+        output$notbimodal <- renderText({paste("Distribution not biomodal, or N (mode) <5")})
         return(NULL)
       }else{
         B95_result <- PmagDiR::Boots_conf_DI(DI = Mode1,n_boots = n_boots,p = p, mode=mode,shiny=TRUE)
@@ -1804,7 +1804,7 @@ server <- function(input, output){
     }
     else if(mode==2){
       if (is.null(Mode2)==T){
-        output$notbimodal <- renderText({paste("Distribution not biomodal, or N (mode) <10")})
+        output$notbimodal <- renderText({paste("Distribution not biomodal, or N (mode) <5")})
         return(NULL)
       }else{
         B95_result <- PmagDiR::Boots_conf_DI(DI = Mode2,n_boots = n_boots,p = p, mode=mode,shiny=TRUE)
