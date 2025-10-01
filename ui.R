@@ -37,8 +37,13 @@ ui <- fluidPage(
                ),
                mainPanel(
                  fluidRow(
-                   column(12,h4("Online version: ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
+                   column(12,h4("In case of overloading (failing bootstrap, etc) please use also ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
                                                                                                           "Magnetic-A")))
+                 ),
+                 br(),
+                 fluidRow(
+                   column(12,h4("Or you can run Magnetic-A locally by following the instructions ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
+                                                                                                          "in the GitHub repository where it is stored.")))
                  ),
                  br(),
                  fluidRow(
@@ -141,7 +146,7 @@ ui <- fluidPage(
                         mainPanel(
                           fluidRow(
                             column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
-                            column(10,h4("Please define Units, Ticks & Tags in the Vector end-points interpolation page to visualize the diagrams"))
+                            column(10,h5("Please define Units, Ticks & Tags in the Vector end-points interpolation page to visualize the diagrams"))
                           ),
                           column(12,plotOutput(outputId = "All_VEP_diagrams")),
                         )
@@ -173,7 +178,7 @@ ui <- fluidPage(
                                     plotOutput("saved_interpol_EA"))
                         )
                )
-          )
+             )
     ),
     tabPanel("Directions display, filter & average",
              sidebarLayout(
@@ -185,7 +190,7 @@ ui <- fluidPage(
                  fluidRow(
                    column(8,selectInput("filetype", label = "Directions file type",
                                         choices = list("Dec, Inc "=1,"G_dec, G_inc, B_az, B_plunge"=2,"G_dec, G_inc, B_dec, B_inc"=3,
-                                                       "S_d, S_i, G_d, G_i, B_d, B_i"=7,"Magnetic-A"=4, "Internal file"=5,"Example file"=6),selected = 1) %>%
+                                                       "S_d, S_i, G_d, G_i, B_d, B_i"=7,"Magnetic-A"=4, "Internal file"=5,"pmm file"=8,"Example file"=6),selected = 1) %>%
                             helper(type = "inline",
                                    title = "Format file",
                                    content = c(
@@ -440,6 +445,8 @@ ui <- fluidPage(
                             br(),
                             fluidRow(
                               column(12,h5("*Perform SVEI test for consistency with the THG24 GGP model. Translated in R from the original svei.py."))),
+                            fluidRow(
+                              column(12,h5("Run the code locally for a faster bootstrap. Please find the link to the GitHub repository in the 'Introduction and resources' page."))),
                             fluidRow(
                               column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2024JB029502", 
                                                                     "Tauxe, L., Heslop, D., Gilder, S.A. (2024). JGR: Solid Earth, 129, e2024JB029502.", target="_blank"))

@@ -1338,7 +1338,9 @@ server <- function(input, output){
       if (is.null(Dirs$Dirs)) {
         return(NULL)
       } else if (Dirs$Dirs == 'uploaded') {
-        read.csv(file = input$file$datapath)
+        if(input$filetype==8){
+          read.csv(file = input$file$datapath, skip = 3,header = F)
+        }else{read.csv(file = input$file$datapath)}
       } else if (Dirs$Dirs == 'reset') {
         return(NULL)
       } 
@@ -1394,8 +1396,17 @@ server <- function(input, output){
       if(coord==2){DI <- DIRS[,-c(1,2,3,4)]}
       if(coord==3){DI <- DIRS[,-c(3,4,5,6)]}
     }
+    #reads file for Longyun
+    if(file==8){
+      DIBB <- DIRS
+      if(coord==1){DI <- DIRS[,5:6]}
+      if(coord==2){DI <- DIRS[,9:10]}
+      #there is no sample coordinates in the file, takes geo
+      if(coord==3){DI <- DIRS[,5:6]}
+    }
     #apply cutoff & filters
-    if(file==2 && coord==1){geo=TRUE}else{geo=FALSE}
+    #file type of Ardo
+    if((file==2 || file==6) && (coord==1 || coord==3)){geo=TRUE}else{geo=FALSE}
     #in case of dirsfile type 3 and geo coordinates takes bedding coordinate to use as filter after cutoff
     if(file==3 && coord==1){
       if(cutoff>=2 && cutoff<=5){
@@ -1413,6 +1424,13 @@ server <- function(input, output){
         if(coord==1 || coord==3){DI <- DIRS[,5:6]}
       }
     }
+    #Longyung file, operates only on TC coordintes for VGPs based cutoffs
+    if(file==8){
+      if(cutoff>=2 && cutoff<=5){
+        if(coord==1 || coord==3){DI <- DIRS[,9:10]}
+      }
+    }
+    
     if(cutoff==2){DI <- PmagDiR::cut_DI(DI = DI,lat=Slat,long = Slong,geo = geo,Shiny = T)}
     else if(cutoff==3){DI <- PmagDiR::cut_DI(DI = DI,lat=Slat,long = Slong,inc_f = F,geo = geo,Shiny = T)}
     else if(cutoff==4){DI <- PmagDiR::cut_DI(DI = DI,VD=F,cutoff = VGP_fixed ,lat=Slat,long = Slong,geo = geo,Shiny = T)}
@@ -1435,6 +1453,10 @@ server <- function(input, output){
     if(file==7){
       if(coord==1){DI <- DIBB[rownames(DI),3:4]}
       if(coord==3){DI <- DIBB[rownames(DI),1:2]}
+    }
+    #if Longyun file with Specimen cords restore proper coordinates after filtering tilt corrected
+    if(file==8){
+      if(coord==1 || coord==3){DI <- DIBB[rownames(DI),5:6]}
     }
     if(input$mode==2){DI <- PmagDiR::common_DI(DI)}
     if(input$mode==3){DI <- PmagDiR::common_DI(DI,down = F)}
