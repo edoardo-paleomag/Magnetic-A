@@ -10,12 +10,12 @@ A dedicated publication is under preparation!
 
 #### If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally. To run Magnetic-A locally on your own computer follow the steps below.
 
-### Download both R and R-studio to your computer. Instructions for downloads can be found at:
+### 1.DOWNLOAD BOTH R AND R-STUDIO. Instructions for downloads can be found at:
 * R = https://www.r-project.org/
 * R studio = https://www.rstudio.com/products/rstudio/download/
 * Open R-Studio
 
-### 1.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
+### 2.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
 all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be downloaded by typing in the console:
 
 * install.packages("plyr")
@@ -27,7 +27,7 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 * install.packages("glue")
 * install.packages("tidyverse")
   
-#### PmagDiR is stored in GitHub. To install it, devtools is required. Please type:
+#### PmagDiR is stored in GitHub. To install it, devtools (package hosted in CRAN) is required. Please type:
 
 * install.packages("devtools")
 * library(devtools)
@@ -35,7 +35,7 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 
 ### 2.STARTING WITH MAGNETIC-A
 
-After installation, all packages hould be automatically called by Magnetic-A. To start type this:
+After installation, all packages are automatically called by launching Magnetic-A. To do so, type this:
 
 * shiny::runGitHub("Magnetic-A", "edoardo-paleomag")
 
