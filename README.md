@@ -10,7 +10,8 @@ A dedicated publication is under preparation!
 
 #### If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally. To run Magnetic-A locally on your own computer follow the steps below.
 
-### 1.DOWNLOAD BOTH R AND R-STUDIO. Instructions for downloads can be found at:
+### 1.DOWNLOAD R AND R-STUDIO. 
+#### R-STUDIO FACILITATE THE INTERACTION WITH R BUT THE SAME COMMANDS CAN BE TYPED IN THE R CONSOLE. Instructions for downloads can be found at:
 * R = https://www.r-project.org/
 * R studio = https://www.rstudio.com/products/rstudio/download/
 * Open R-Studio
