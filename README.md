@@ -14,7 +14,7 @@ A dedicated publication is under preparation!
 * R = https://www.r-project.org/
 * R studio = https://www.rstudio.com/products/rstudio/download/
 * Open R-Studio
-NOTE: R-Studio facilitate the interaction with R, but the same commands described in point " can be typed in the R Console.
+* NOTE: R-Studio facilitate the interaction with R, but the same commands described in point " can be typed in the R Console.
 
 ### 2.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
 all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be downloaded by typing in the console:
