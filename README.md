@@ -15,7 +15,7 @@ A dedicated publication is under preparation!
 * R studio = https://www.rstudio.com/products/rstudio/download/
 * Open R-Studio
 
-### 3.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
+### 2.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
 all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be downloaded by typing in the console:
 
 * install.packages("plyr")
@@ -33,7 +33,7 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 * library(devtools)
 * install_github("edoardo-paleomag/PmagDiR")
 
-### 2.STARTING WITH MAGNETIC-A
+### 3.WORKING WITH MAGNETIC-A
 
 After installation, all packages are automatically called by launching Magnetic-A. To do so, type this:
 
