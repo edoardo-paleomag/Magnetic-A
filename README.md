@@ -40,6 +40,12 @@ After installation, all packages are automatically called by launching Magnetic-
 
 * shiny::runGitHub("Magnetic-A", "edoardo-paleomag")
 
+Alternatively, download the full Magnetic-A content in a folder on your device and type:
+
+* shiny::runApp("/Path_to_the _folder/Name_of_the_folder/")
+
+The latter option allows to operate offline.
+
 For help and inquiries, please contact me: 
 
 * edoardo.dallanave@unimi.it
