@@ -34,7 +34,7 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 * library(devtools)
 * install_github("edoardo-paleomag/PmagDiR")
 
-### 3.WORKING WITH MAGNETIC-A
+### 3.STARTING MAGNETIC-A
 
 After installation, all packages are automatically called by launching Magnetic-A. To do so, type this:
 
