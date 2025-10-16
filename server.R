@@ -9,8 +9,6 @@ library(shinyhelper)
 library(stats)
 library(glue)
 library(tidyverse)
-library(pracma)
-
 
 
 server <- function(input, output){
@@ -666,7 +664,10 @@ server <- function(input, output){
         if(input$VEPticks==5){d_tick=1.0}
         ticks <- TRUE
         if(input$VEPticks==6){ticks=FALSE}
-      }else{ticks <- FALSE}
+      }else{
+        ticks <- TRUE
+        d_tick <- 0.5
+      }
       
       #save value with no order of magnitude and plot Zijderveld
       Zijdervel_res <- zijderveld(specim = specim$specim,
@@ -703,6 +704,9 @@ server <- function(input, output){
   #creates reactive file for saving steps of PCA
   specim$saved_steps <- data.frame(matrix(ncol=1,nrow=0))
   
+  # creates reactive file for probabilistic PCA, calculated always to be paste in the result file
+  PPCA_prob <- reactiveValues(pHa=NULL)
+  
   #calculate PCA or fisher and save steps selection            
   observeEvent(input$runVEPstat,{
     req(specim$specim)
@@ -719,6 +723,12 @@ server <- function(input, output){
         r2d <- function(x) {x*(180/pi)}
         data <- VEPs
         colnames(data) <- c("x", "y","z")
+        
+        #calculate constrained directions senus Heslop+Roberts 2016 PPCA to paste in the result line
+        PPCA_results <- PmagDiR::PPCA_HR16(VEPs = data)
+        PPCA_prob$pHa <- PPCA_results[[4]]
+        PPCA_prob$pHc <- PPCA_results[[5]]
+        
         #averaged Cartesian coordinates
         x_av <- mean(data$x)
         y_av <- mean(data$y)
@@ -795,8 +805,7 @@ server <- function(input, output){
           
         }
         if(anchor==6){
-          #calculate constrained directions senus Heslop+Roberts 2016 PPCA, script is in PmagDiR
-          PPCA_results <- PmagDiR::PPCA_HR16(VEPs = data)
+          #PPCA is calculated always at the top of the function, for having probablistic values, always pasted in the result line
           Vdec <- PPCA_results[[1]][3,1]
           Vinc <- PPCA_results[[1]][3,2]
           MAD <- PPCA_results[[1]][3,3]
@@ -951,11 +960,8 @@ server <- function(input, output){
       fluidRow(column(12,textOutput("verdict_a"))),
       fluidRow(column(12,textOutput("verdict_c"))),
       br(),
-      #tags$h6("Please cite:"),
       tags$h5("*Please cite: "), tags$a(href=" https://doi.org/10.1002/2016JB013387", 
                                         "Heslop & Roberts (2016), JGR: Solid Earth, 121, 7742–7753", target="_blank"),
-      
-      #tags$h6("Based on the theory of Heslop & Roberts (2016), JGR: Solid Earth, 121, 7742–7753, https://doi:10.1002/2016JB013387"),
       
       footer=tagList(
         modalButton('close')
@@ -1001,15 +1007,15 @@ server <- function(input, output){
   })
   
   #creates reactive result file
-  specim$PCA_result_file <- data.frame(matrix(ncol=14,nrow = 0))
+  specim$PCA_result_file <- data.frame(matrix(ncol=16,nrow = 0))
   
   #save results in reactive file
   observeEvent(input$save_PCA,{
     #DiR_d contains the results no matter the interpolation
     req(specim$DiR_d)
     c <- input$anchor
-    temp_result <- data.frame(matrix(ncol=14,nrow = 1))
-    colnames(temp_result) <- c("Sample","N","S_Dec","S_Inc","G_Dec","G_Inc","B_Dec","B_Inc","MAD","a95","k","Type","Comp","Steps")
+    temp_result <- data.frame(matrix(ncol=16,nrow = 1))
+    colnames(temp_result) <- c("Sample","N","S_Dec","S_Inc","G_Dec","G_Inc","B_Dec","B_Inc","MAD","a95","k","Type","Comp","Steps","p(Ha|D)","p(Hc|D)")
     temp_result[1,1] <- unique(specim$specim[,1])
     temp_result[1,2] <- round(specim$DiR_d[1,4],digits = 0)
     temp_result[1,3] <- round(specim$DiR_d[1,1],digits = 2)
@@ -1031,6 +1037,8 @@ server <- function(input, output){
     temp_result[1,13] <- input$comp_name
     #add steps of all interpreted samples
     temp_result[1,14] <- specim$saved_steps_temp
+    temp_result[1,15] <- PPCA_prob$pHa
+    temp_result[1,16] <- PPCA_prob$pHc
     specim$PCA_result_file <- rbind(specim$PCA_result_file,temp_result)
   })
   
@@ -1054,8 +1062,8 @@ server <- function(input, output){
   
   #create text file with unit
   zijd_unit <- reactive({
-    #if ticks are not yet defined, does not generate unit
-    req(input$VEPticks)
+    #if sample is not yet selected, does not generate unit
+    req(isolated_specimen())    
     #if window with details is not opened, does not plot ticks
     if(!is.null(input$textunit)){
       if(input$Zijd_Stereo_shift==3 || input$VEPticks==6 || length(isolated_specimen())==0){
@@ -1068,7 +1076,7 @@ server <- function(input, output){
         if(input$VEPticks==5) fract <- "1 E"
         z_unit <- paste("Unit: ",fract,specim$OM," ",input$textunit,sep = "")
       }
-    }else{z_unit <- NULL}
+    }else{z_unit <- "Please define NRM and step units in 'UNITS, TICKS & TAGS'"}
     return(z_unit)
   })
   
@@ -1091,7 +1099,7 @@ server <- function(input, output){
   TAB <- reactive({
     if(nrow(specim$PCA_result_file)==0){return(NULL)}
     else{
-      result_table <- specim$PCA_result_file[,-c(2,3,4,11,14)]
+      result_table <- specim$PCA_result_file[,-c(2,3,4,11,14,15,16)]
       return(result_table)
     }
   })
@@ -4962,4 +4970,3 @@ server <- function(input, output){
   
   
 }
-

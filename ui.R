@@ -1,5 +1,4 @@
 
-
 library(PmagDiR)
 library(plyr)
 library(dplyr)
@@ -10,6 +9,7 @@ library(shinyhelper)
 library(stats)
 library(glue)
 library(tidyverse)
+
 
 ui <- fluidPage(
   tabsetPanel(
@@ -37,13 +37,13 @@ ui <- fluidPage(
                ),
                mainPanel(
                  fluidRow(
-                   column(12,h4("In case of overloading (failing bootstrap, etc) please use also ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
+                   column(12,h4("Web version: ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
                                                                                                           "Magnetic-A")))
                  ),
                  br(),
                  fluidRow(
-                   column(12,h4("Or you can run Magnetic-A locally by following the instructions ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
-                                                                                                          "in the GitHub repository where it is stored.")))
+                   column(12,h4("Source and Instructions: ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
+                                                                                                                        "click here.")))
                  ),
                  br(),
                  fluidRow(
