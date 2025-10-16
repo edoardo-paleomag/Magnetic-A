@@ -1085,11 +1085,16 @@ server <- function(input, output){
     req(zijd_unit())
     zijd_unit()
   })
-  
+
   ####### ALL SAVED SAMPLES PAGE
   #import external file and attche it to internal result file if exists
   observeEvent(input$import_PCA,{
     specim$tab_result_ext <- read.csv(file = input$import_PCA$datapath)
+    colnames(specim$tab_result_ext) <- c("Sample","N","S_Dec","S_Inc",
+                                         "G_Dec","G_Inc","B_Dec","B_Inc",
+                                         "MAD","a95","k","Type","Comp",
+                                         "Steps","p(Ha|D)","p(Hc|D)")
+
     if(!is.null(specim$PCA_result_file)) {
       specim$PCA_result_file <- rbind(specim$PCA_result_file,specim$tab_result_ext)
     }
