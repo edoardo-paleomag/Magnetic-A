@@ -6,7 +6,7 @@ If you use this code for publication purposes, please cite (for now):
 
 Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using the R package PmagDiR. Scientific Reports, 14(1666). https://doi.org/10.1038/s41598-024-52001-x
 
-A dedicated publication is under preparation!
+A dedicated publication is under review!
 
 #### If you will be processing a large amount of data using Magnetic-A - it is adventageous to run the program locally. To run Magnetic-A locally on your own computer follow the steps below.
 
