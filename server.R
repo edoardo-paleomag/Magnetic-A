@@ -712,6 +712,11 @@ server <- function(input, output){
     req(specim$specim)
     req(length(selectedVEP())>1)
     
+    #calculate constrained directions senus Heslop+Roberts 2016 PPCA to paste in the result line. Uses tc data (coordinates are not-relevant)
+    PPCA_results <- PmagDiR::PPCA_HR16(VEPs = specim$specim[selectedVEP(),9:11])
+    PPCA_prob$pHa <- PPCA_results[[4]]
+    PPCA_prob$pHc <- PPCA_results[[5]]
+    
     DiR <- NULL
     c <- input$anchor
     if(c==1 || c==2 || c==3 || c==5 || c==6){
@@ -723,11 +728,6 @@ server <- function(input, output){
         r2d <- function(x) {x*(180/pi)}
         data <- VEPs
         colnames(data) <- c("x", "y","z")
-        
-        #calculate constrained directions senus Heslop+Roberts 2016 PPCA to paste in the result line
-        PPCA_results <- PmagDiR::PPCA_HR16(VEPs = data)
-        PPCA_prob$pHa <- PPCA_results[[4]]
-        PPCA_prob$pHc <- PPCA_results[[5]]
         
         #averaged Cartesian coordinates
         x_av <- mean(data$x)
