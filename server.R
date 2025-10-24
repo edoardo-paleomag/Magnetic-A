@@ -395,7 +395,7 @@ server <- function(input, output){
   }
   
   #read file if present, reset if requested
-  #reads three formats for now: Web-DiR, Lamont, Bremen (.cor, one coordinate system)
+  #reads files depending on the format selected, and normalise with NRMnorm
   sample_list <- reactive({
     if (is.null(input$All_Zijd) && input$Zijd_f_type!=7){
       return(NULL)
@@ -403,6 +403,7 @@ server <- function(input, output){
     if(input$Zijd_f_type==1){
       read.csv(file = input$All_Zijd$datapath)
     }
+    #LASA file
     else if(input$Zijd_f_type==2){
       dat <- read.table(input$All_Zijd$datapath,header = F,skip = 6)
       dat <- dat[,-c(3,4)]
@@ -412,8 +413,11 @@ server <- function(input, output){
       dat_PmagDiR[,3:5] <- PmagDiR::s2c(DI = dat[,4:5],J = dat[,3])
       dat_PmagDiR[,6:8] <- PmagDiR::s2c(DI = dat[,6:7],J = dat[,3])
       dat_PmagDiR[,9:11] <- PmagDiR::s2c(DI = dat[,8:9],J = dat[,3])
-      return(dat_PmagDiR)
+      
+      #file is in emu e-4, next convert in Am2
+      dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-7)
     }else if(input$Zijd_f_type==3){
+      #Bremen cor file
       dat <- read.table(input$All_Zijd$datapath,header = F,skip = 1)
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = nrow(dat)))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
@@ -421,10 +425,8 @@ server <- function(input, output){
       dat_PmagDiR[,3:5] <- dat[,3:5]
       dat_PmagDiR[,6:8] <- dat[,3:5]
       dat_PmagDiR[,9:11] <- dat[,3:5]
-      #convert to A/m
-      dat_PmagDiR[,3:11] <- (dat_PmagDiR[,3:11])/0.008
-      dat_PmagDiR <- unique(dat_PmagDiR)
-      return(dat_PmagDiR)
+      #converts in Am2
+      dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-3)
     }else if(input$Zijd_f_type==4){
       #load IODP Spinner data
       dat <- read.csv(input$All_Zijd$datapath)
@@ -446,8 +448,9 @@ server <- function(input, output){
       temp_file <- temp_file[order(temp_file[,3]),]
       temp_file <- temp_file[order(temp_file[,1]),]
       dat_PmagDiR <- temp_file[,-1]
-      return(dat_PmagDiR)
+      #return(dat_PmagDiR)
     }else if(input$Zijd_f_type==5){
+      #CIT multisamples
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
       for(i in 1:length(input$All_Zijd[,1])){
@@ -470,8 +473,9 @@ server <- function(input, output){
         temp_file[,9:11] <- PmagDiR::s2c(DI = dat[,5:6],J = dat[,7])
         dat_PmagDiR <- rbind(dat_PmagDiR,temp_file)
       }
-      return(dat_PmagDiR)
+      #return(dat_PmagDiR)
     }else if(input$Zijd_f_type==6){
+      #Longyun multisamples
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
       #must read all selected file
@@ -492,10 +496,22 @@ server <- function(input, output){
         temp_file[,9:11] <- PmagDiR::s2c(DI = dat[,8:9],J = dat[,5])
         dat_PmagDiR <- rbind(dat_PmagDiR,temp_file)
       }
-      return(dat_PmagDiR)
+      #return(dat_PmagDiR)
+      #example file
     }else if(input$Zijd_f_type==7){
-      return(PmagDiR::Ardo_diRs_example)
+      dat_PmagDiR <- PmagDiR::Ardo_diRs_example
+      #file is in emu e-4, next convert in Am2
+      dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-7)
     }
+    #acts only if Unit window has been opened before
+    if(!is.null(input$NRMnormYN)){
+      #normalise per volume and convert cm^3 in m^3
+      if(input$NRMnormYN==2){dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]/(input$NRMvolume*(10**-6))}
+      #normalise per mass and convert g in kg
+      if(input$NRMnormYN==3){dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]/(input$NRMmass*(10**-3))}  
+    }
+    #return manipulated values   
+    return(dat_PmagDiR)
   })
   
   #create reactive file
@@ -503,7 +519,7 @@ server <- function(input, output){
   
   #isolate specimen names and make table
   specimens <- reactive({
-    if(is.null(sample_list())==F){
+    if(!is.null(sample_list())){
       dat <- sample_list()
       specimens <- data.frame(unique(dat[,1]))
       colnames(specimens) <- "specimens"
@@ -621,24 +637,67 @@ server <- function(input, output){
     return(size)
   })
   
+  # display a modal dialog with a header, textinput and action buttons
   observeEvent(input$Zijd_detail, {
-    # display a modal dialog with a header, textinput and action buttons
+    req(sample_list())
+    req(specimens())
+    #defined some pre-compiled parameters
+    if(input$Zijd_f_type==2 || input$Zijd_f_type==7){
+      normtext <- "This window is pre-compiled for LASA file type. NRM is in A/m assuming standard 11.15 cm^3 samples"
+      Svolume <- 11.15
+      StepUnit <- "°C"
+      Normalization <- 2
+    }else if(input$Zijd_f_type==3){
+      normtext <- "This window is pre-compiled for Bremen (.cor) file. Data are in A/m assuming 8 cm^3 volume"
+      Svolume <- 8.0
+      StepUnit <- "mT"
+      Normalization <- 2
+    }else{
+      normtext <- "If data are already normalized, select Normalization = No. Volume and Mass are automatically converted in m^3 and kg."
+      Svolume <- 0
+      StepUnit <- "mT"
+      Normalization <- 1
+    }
+    
     showModal(modalDialog(
-      size = "m",
-      tags$h2('Enter units, tick spacing, and tags details'),
+      size = "l",
+      tags$h2('Enter NRM and demagnetization unit'),
+      tags$h4(normtext),
+      br(),
       fluidRow(
         column(4,textInput(inputId = "textunit",label = "NRM unit",value = "A/m")),
-        column(4,textInput(inputId = "demagunit",label = "Demag. unit",value = "mT")),
+        column(4,numericInput(inputId = "NRMvolume",label = "Volume (cm^3)",value = Svolume)),
+        column(4,numericInput(inputId = "NRMmass",label = "Mass (g)",value = 0)),
+      ),
+      fluidRow(
+        column(4,selectInput(inputId = "NRMnormYN",label = "Normalization",choices = list("No"=1,"By volume"=2,"By mass"=3),selected = Normalization)),
+        column(4,textInput(inputId = "demagunit",label = "Demag. unit",value = StepUnit)),
         column(4,selectInput("VEPticks",label = "Ticks",
                              choices = list("x0.05"=1,"x0.1"=2,"x0.25"=3,"x0.5"=4,"x1.0"=5,"No ticks"=6),selected = 4))
       ),
+      footer=tagList(
+        modalButton('close')
+      )
+    ))
+  })
+  
+  
+  
+  
+  # display a modal dialog with a header, textinput and action buttons
+  observeEvent(input$Zijd_detail2, {
+    req(sample_list())
+    req(specimens())
+    showModal(modalDialog(
+      size = "m",
+      tags$h2('Enter tags details'),
       fluidRow(
         column(4,selectInput(inputId = "labelaxis",label = "Labels plane",
-                             choices = list("Vertical"=1,"Horizontal"=2, "No labels"=3),selected = 3)),
+                             choices = list("Vertical"=1,"Horizontal"=2, "No labels"=3),selected = 1)),
         column(4,selectInput(inputId = "labelpos",label = "Labels position",
                              choices = list("Below"=1,"Left"=2,"Above"=3,"Right"=4),selected = 1)),
         column(4,selectInput(inputId = "labelspace",label = "Labels spacing",
-                             choices = list("Every 1"=1,"Every 2"=2, "Every 3"=3,"Every 4"=4),selected = 2))
+                             choices = list("Every 1"=1,"Every 2"=2, "Every 3"=3,"Every 4"=4),selected = 3))
       ),
       footer=tagList(
         modalButton('close')
@@ -1076,7 +1135,7 @@ server <- function(input, output){
         if(input$VEPticks==5) fract <- "1 E"
         z_unit <- paste("Unit: ",fract,specim$OM," ",input$textunit,sep = "")
       }
-    }else{z_unit <- "Please define NRM and step units in 'UNITS, TICKS & TAGS'"}
+    }else{z_unit <- "Please define units in 'UNITS' & 'TAGS'"}
     return(z_unit)
   })
   
@@ -1085,7 +1144,7 @@ server <- function(input, output){
     req(zijd_unit())
     zijd_unit()
   })
-
+  
   ####### ALL SAVED SAMPLES PAGE
   #import external file and attche it to internal result file if exists
   observeEvent(input$import_PCA,{
@@ -1094,7 +1153,7 @@ server <- function(input, output){
                                          "G_Dec","G_Inc","B_Dec","B_Inc",
                                          "MAD","a95","k","Type","Comp",
                                          "Steps","p(Ha|D)","p(Hc|D)")
-
+    
     if(!is.null(specim$PCA_result_file)) {
       specim$PCA_result_file <- rbind(specim$PCA_result_file,specim$tab_result_ext)
     }
@@ -3103,6 +3162,7 @@ server <- function(input, output){
   Pole <- reactiveValues(FishPole = NULL)
   IVGP <- reactiveValues(VGP_list=NULL)
   
+  
   ### VGP calculation Part
   output$VGPplot <- renderPlot({
     DIrs<- fix_DI(input_file())
@@ -3135,14 +3195,15 @@ server <- function(input, output){
     if(input$vgpssymbol==3) IVGP$vgpssymbol <- "d"
     if(input$vgpssymbol==4) IVGP$vgpssymbol <- "t"
     
-    #define name with locality
+    #define name with locality and various details not to replicate bootstrap
     vgp_temp_stat_name <- paste(
       ifelse(input$filetype==5,input$import_PCA$name,
              ifelse(input$filetype==6, "Ardo",Dirs$dirsFileName)),
-      "stat_temp",nrow(VGPS),input$lat,input$long,input$coord,input$vgpbootn,input$dirs_vgp,input$cutoff,sep = "_")
+      "stat_temp",nrow(VGPS),input$lat,input$long,input$coord,input$known_f,input$apply_known_f,input$vgpbootn,input$dirs_vgp,input$cutoff,sep = "_")
     if(input$plotA95==3 && exists(vgp_temp_stat_name,envir = MVGP_temp)==FALSE) {
       boot_run <- TRUE
     }else{boot_run <- FALSE}
+    
     #plot data and save stat
     Pole$FishPole <- plot_VGP_S(VGP = VGPS,
                                 lat = input$centerlat,
@@ -3171,6 +3232,7 @@ server <- function(input, output){
                          col_f = "cyan",
                          symbol = IVGP$vgpssymbol,
                          size = 1.5,on_plot = T)
+      
     }
     
     #make sure the pole reactive file is complete

@@ -38,12 +38,12 @@ ui <- fluidPage(
                mainPanel(
                  fluidRow(
                    column(12,h4("Web version: ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
-                                                                                                          "Magnetic-A")))
+                                                       "Magnetic-A")))
                  ),
                  br(),
                  fluidRow(
-                   column(12,h4("Source and Instructions: ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
-                                                                                                                        "click here.")))
+                   column(12,h4("Source and instructions: ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
+                                                                   "click here.")))
                  ),
                  br(),
                  fluidRow(
@@ -61,7 +61,7 @@ ui <- fluidPage(
                                        fluidRow(
                                          column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
                                          column(6,selectInput("Zijd_f_type",label = "File type",
-                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 2) %>%
+                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 1) %>%
                                                   helper(type = "inline",
                                                          title = "Format file",
                                                          content = c(
@@ -88,7 +88,8 @@ ui <- fluidPage(
                                                               choices = list("Specimen"=1,"Geographic"=2,"Tilt Corr."=3),selected = 3))
                                        ),
                                        fluidRow(
-                                         column(12, actionButton(inputId = "Zijd_detail",label = "UNITS, TICKS & TAGS",width = "100%"))
+                                         column(6, actionButton(inputId = "Zijd_detail",label = "UNITS",width = "100%")),
+                                         column(6, actionButton(inputId = "Zijd_detail2",label = "TAGS",width = "100%"))
                                        ),
                                        br(),
                                        br(),
@@ -146,7 +147,7 @@ ui <- fluidPage(
                         mainPanel(
                           fluidRow(
                             column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
-                            column(10,h5("Please define Units, Ticks & Tags in the Vector end-points interpolation page to visualize the diagrams"))
+                            column(10,h5("Please define Units & Tags for a complete visualization"))
                           ),
                           column(12,plotOutput(outputId = "All_VEP_diagrams")),
                         )
