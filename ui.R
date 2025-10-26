@@ -175,8 +175,9 @@ ui <- fluidPage(
                                              downloadButton("export_AllDirs_stereo",label = "Export figure"),
                                              actionButton(inputId = "comb_DI_GC",label = "Combine DI & GC"),
                                              actionButton(inputId = "save_GC",label = "Add GC dirs to list"),
-                                             actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot")),
-                                    plotOutput("saved_interpol_EA"))
+                                             actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot"),
+                                             actionButton(inputId = "showdiersEA",label = "Show dragged directions details")),
+                                    plotOutput("saved_interpol_EA",brush = brushOpts(id="plot_click")))
                         )
                )
              )

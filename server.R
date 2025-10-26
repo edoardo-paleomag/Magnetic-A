@@ -1278,6 +1278,9 @@ server <- function(input, output){
     specim$GC_directions <- NULL
   })
   
+  #create reactive file for display details on dragged dirs
+  dirsEA <- reactiveValues(df=NULL)
+  
   #plot directions and circles taking data from table of results
   output$saved_interpol_EA <- renderPlot({
     req(TAB())
@@ -1301,9 +1304,42 @@ server <- function(input, output){
     }
     if(is.null(specim$GC_directions)==FALSE){PmagDiR::plot_DI(DI = specim$GC_directions,on_plot = T,
                                                               col_d = "red",col_u = "pink",symbol = "t")}
-    #add GC directions estimate if exist
+    
+    #PREPARE SELECTING POINTS
+    #functions converting degree and radians
+    d2r <- function(x) {x*(pi/180)}
+    r2d <- function(x) {x*(180/pi)}
+    #functions converting inc(x) and dec(y) into equal area
+    a2cx <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*sin(d2r(y))}
+    a2cy <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*cos(d2r(y))}
+    
+    #plot invisible points to select with drag
+    dirs_selected$x <- a2cx(abs(dirs[,2]),dirs[,1])
+    dirs_selected$y <- a2cy(abs(dirs[,2]),dirs[,1])
+    points(x = dirs_selected$x,y=dirs_selected$y,col=NA)
+    
+    #select points
+    df <- brushedPoints(dirs_selected,input$plot_click,xvar = "x",yvar = "y")
+    if(length(df)){
+      if(input$EAcoordinates==1){PmagDiR::plot_DI(df[,2:3],col_d = "red",col_u = "pink",on_plot = T)}
+      else if(input$EAcoordinates==2){PmagDiR::plot_DI(df[,4:5],col_d = "red",col_u = "pink",on_plot = T)}
+    }
+    dirsEA$df <- df
     specim$all_dirs_equarea_plot <- recordPlot()
   },height = 700,width = 700)
+  
+  observeEvent(input$showdiersEA,{
+    showModal(modalDialog(
+      size="l",
+      title = "Directions selected on the equal area:",
+      renderTable(dirsEA$df[,-c(10,11)]),
+      easyClose = TRUE,
+      footer=tagList(
+        modalButton('close')
+      )
+    ))
+  })
+  
   ####### END OF ALL SAVED SAMPLES PAGE
   
   ####### FIGURE WITH ALL DIAGRAM FROM A SINGLE SAMPLE FOR EXPORT AND PUBLICATION
