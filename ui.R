@@ -234,7 +234,7 @@ ui <- fluidPage(
                  ),
                  fluidRow(
                    column(4,selectInput("fisher", label= "Mean",          
-                                        choices = list("None"=1, "Fisher" = 2, "Elliptic" = 3,
+                                        choices = list("None"=1, "Fisher" = 2,"Fisher (no split)"=8, "Elliptic" = 3,
                                                        "Inc. only single mode"=4,"Inc. only bimodal"=5,
                                                        "Arithm. single mode"=6, "Arithm. bimodal"=7),selected = 1)%>%
                             helper(type = "inline",
@@ -242,7 +242,9 @@ ui <- fluidPage(
                                    content = c(
                                      "Direction clusters can be averaged by:",
                                      "",
-                                     "Fisher- Standard Fisher (1953*) spherical mean.",
+                                     "Fisher- Standard Fisher (1953*) spherical mean (splits automatically the two modes).",
+                                     "",
+                                     "Fisher (no split)- Standard Fisher (1953*) spherical mean (uses all directions without splitting the modes).",
                                      "",
                                      "Elliptic- confidence ellipses is calculated following Deenen et al. (2011**).",
                                      "",
@@ -316,7 +318,8 @@ ui <- fluidPage(
                mainPanel(
                  fluidRow(downloadButton("exportG","Export graph"),
                           downloadButton("exportS","Export stat"),
-                          downloadButton("exportDI","Export directions")),
+                          downloadButton("exportDI","Export directions"),
+                          actionButton(inputId = "WatsRand",label = "Watson's test of randomness")),
                  column(1),
                  plotOutput("directions")
                )

@@ -681,9 +681,6 @@ server <- function(input, output){
     ))
   })
   
-  
-  
-  
   # display a modal dialog with a header, textinput and action buttons
   observeEvent(input$Zijd_detail2, {
     req(sample_list())
@@ -1328,6 +1325,7 @@ server <- function(input, output){
     specim$all_dirs_equarea_plot <- recordPlot()
   },height = 700,width = 700)
   
+  #show directions dragged in figure in an extra window
   observeEvent(input$showdiersEA,{
     showModal(modalDialog(
       size="l",
@@ -1597,63 +1595,71 @@ server <- function(input, output){
   
   ############ EQUAL AREA MODULE
   #modified fisher_plot function
-  fisher_plot_S <- function(DI, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c") {
+  fisher_plot_S <- function(DI, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c",auto_split=TRUE) {
     d2r <- function(x) {x*(pi/180)}
     r2d <- function(x) {x*(180/pi)}
     data <- DI
     data <- na.omit(data)
     data <- data[,1:2]
     colnames(data) <- c("dec", "inc")
-    #directions in Cartesian coordinates
-    data$x <- cos(d2r(data$dec))*cos(d2r(data$inc))
-    data$y <- sin(d2r(data$dec))*cos(d2r(data$inc))
-    data$z <- sin(d2r(data$inc))
-    #averaged Cartesian coordinates
-    x_av <- mean(data$x)
-    y_av <- mean(data$y)
-    z_av <- mean(data$z)
-    #elements of the distribution matrix
-    T_elements <- c(sum((data$x)*(data$x)),sum(data$x*data$y),sum(data$x*data$z),
-                    sum(data$y*data$x),sum(data$y*data$y),sum(data$y*data$z),
-                    sum(data$z*data$x),sum(data$z*data$y),sum(data$z*data$z))
-    #distribution matrix
-    T <- matrix(T_elements,nrow=3, byrow=TRUE)
-    #calculate and copy eigenvalues and vectors
-    T_e <- eigen(T,symmetric = TRUE)
-    T_vec <- T_e$vectors
-    T_val <- T_e$values
-    #calculate dec inc of max variance
-    V1inc <- r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
-    V1dec <- (r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
-    #next  calculates difference between dec_inc and average
-    data$Dec_aver <- rep(V1dec)
-    data$Inc_aver <- rep(V1inc)
-    data$delta <- abs(data$dec-data$Dec_aver)
-    data$diff <- r2d(acos((sin(d2r(data$inc))*sin(d2r(data$Inc_aver)))+
-                            (cos(d2r(data$inc))*cos(d2r(data$Inc_aver))*cos(d2r(data$delta)))))
-    #Isolate modes
-    if(any(data$diff<=90)){
-      mode1 <- as.data.frame(data$dec[data$diff<=90])
-      mode1$inc <- data$inc[data$diff<=90]
-      colnames(mode1) <- c("dec","inc")
+    if(auto_split==TRUE){
+      #directions in Cartesian coordinates
+      data$x <- cos(d2r(data$dec))*cos(d2r(data$inc))
+      data$y <- sin(d2r(data$dec))*cos(d2r(data$inc))
+      data$z <- sin(d2r(data$inc))
+      #averaged Cartesian coordinates
+      x_av <- mean(data$x)
+      y_av <- mean(data$y)
+      z_av <- mean(data$z)
+      #elements of the distribution matrix
+      T_elements <- c(sum((data$x)*(data$x)),sum(data$x*data$y),sum(data$x*data$z),
+                      sum(data$y*data$x),sum(data$y*data$y),sum(data$y*data$z),
+                      sum(data$z*data$x),sum(data$z*data$y),sum(data$z*data$z))
+      #distribution matrix
+      T <- matrix(T_elements,nrow=3, byrow=TRUE)
+      #calculate and copy eigenvalues and vectors
+      T_e <- eigen(T,symmetric = TRUE)
+      T_vec <- T_e$vectors
+      T_val <- T_e$values
+      #calculate dec inc of max variance
+      V1inc <- r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
+      V1dec <- (r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
+      #next  calculates difference between dec_inc and average
+      data$Dec_aver <- rep(V1dec)
+      data$Inc_aver <- rep(V1inc)
+      data$delta <- abs(data$dec-data$Dec_aver)
+      data$diff <- r2d(acos((sin(d2r(data$inc))*sin(d2r(data$Inc_aver)))+
+                              (cos(d2r(data$inc))*cos(d2r(data$Inc_aver))*cos(d2r(data$delta)))))
+      #Isolate modes
+      if(any(data$diff<=90)){
+        mode1 <- as.data.frame(data$dec[data$diff<=90])
+        mode1$inc <- data$inc[data$diff<=90]
+        colnames(mode1) <- c("dec","inc")
+      }
+      if(any(data$diff>90)){
+        mode2 <- as.data.frame(data$dec[data$diff>90])
+        mode2$inc <- data$inc[data$diff>90]
+        colnames(mode2) <- c("dec","inc")
+      }
+      if(exists("mode1")==TRUE) {fisher_M1 <- fisher(mode1)}
+      if(exists("mode2")==TRUE) {fisher_M2 <- fisher(mode2)}
+      if(plot==TRUE){
+        if(exists("mode1")==TRUE){PmagDiR::plot_a95(fisher_M1[1,1],fisher_M1[1,2],fisher_M1[1,3],
+                                                    on_plot = TRUE,symbol=symbol, col_d = col_d,
+                                                    col_u=col_u,col_l=col_l)}
+        if(exists("mode2")==TRUE){PmagDiR::plot_a95(fisher_M2[1,1],fisher_M2[1,2],fisher_M2[1,3],
+                                                    on_plot = TRUE,symbol=symbol, col_d = col_d,
+                                                    col_u=col_u,col_l=col_l)}
+      }
+      data_M12 <- PmagDiR::common_DI(data)
+      fisher_M12 <- PmagDiR::fisher(data_M12)
+    }else{ #forces fisher for all directions without splitting
+      data_M12 <- data
+      fisher_M12 <- PmagDiR::fisher(data_M12)
+      PmagDiR::plot_a95(fisher_M12[1,1],fisher_M12[1,2],fisher_M12[1,3],
+                        on_plot = TRUE,symbol=symbol, col_d = col_d,
+                        col_u=col_u,col_l=col_l)
     }
-    if(any(data$diff>90)){
-      mode2 <- as.data.frame(data$dec[data$diff>90])
-      mode2$inc <- data$inc[data$diff>90]
-      colnames(mode2) <- c("dec","inc")
-    }
-    if(exists("mode1")==TRUE) {fisher_M1 <- fisher(mode1)}
-    if(exists("mode2")==TRUE) {fisher_M2 <- fisher(mode2)}
-    if(plot==TRUE){
-      if(exists("mode1")==TRUE){plot_a95(fisher_M1[1,1],fisher_M1[1,2],fisher_M1[1,3],
-                                         on_plot = TRUE,symbol=symbol, col_d = col_d,
-                                         col_u=col_u,col_l=col_l)}
-      if(exists("mode2")==TRUE){plot_a95(fisher_M2[1,1],fisher_M2[1,2],fisher_M2[1,3],
-                                         on_plot = TRUE,symbol=symbol, col_d = col_d,
-                                         col_u=col_u,col_l=col_l)}
-    }
-    data_M12 <- common_DI(data)
-    fisher_M12 <- fisher(data_M12)
     #plot text with results
     Dec <- round(fisher_M12[1,1],digits=2)
     Inc <- round(fisher_M12[1,2],digits=2)
@@ -1664,16 +1670,19 @@ server <- function(input, output){
     S_results <- as.data.frame(matrix(ncol=6, nrow=3))
     colnames(S_results) <- c("dec", "inc", "a95", "N","R","k")
     
+    if(auto_split==TRUE){
+      if(any(data$diff<=90)) {
+        S_results[1,] <- fisher_M1
+      }
+      if(any(data$diff>90)) {
+        S_results[2,] <- fisher_M2
+      }
+      if(exists("fisher_M1")==TRUE | exists("fisher_M2")==TRUE) {
+        S_results[3,] <- fisher_M12
+      }
+      
+    }else{S_results[3,] <- fisher_M12} #forces fisher for all directions without splitting
     
-    if(any(data$diff<=90)) {
-      S_results[1,] <- fisher_M1
-    }
-    if(any(data$diff>90)) {
-      S_results[2,] <- fisher_M2
-    }
-    if(exists("fisher_M1")==TRUE | exists("fisher_M2")==TRUE) {
-      S_results[3,] <- fisher_M12
-    }
     rownames(S_results) <- c("Mode 1","Mode 2","All")
     S_results <- S_results[,-5]
     S_results <- na.omit(S_results)
@@ -1681,6 +1690,7 @@ server <- function(input, output){
     
     return(S_results)
   }
+  
   #modified ellips_plot function
   ellips_plot_S <- function(DI,lat=0,long=0, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c"){
     #degrees to radians and vice versa
@@ -1763,6 +1773,33 @@ server <- function(input, output){
     return(S_result)
   }
   
+  #perform watson's test for randomnes
+  observeEvent(input$WatsRand,{
+    #stop without file
+    req(input_file())
+    
+    #import data
+    DI <- fix_DI(input_file())           
+    
+    #apply function
+    result <- PmagDiR::Watson_Random(DI)
+    
+    #watson's test result
+    showModal(modalDialog(
+      size= "m",
+      tags$h2("Watson's test of randomness"),
+      br(),
+      tags$h4(paste("N:",result[[1]])),
+      tags$h4(paste("R:",round(result[[2]],digits = 2))),
+      tags$h4(paste("R_critical:",round(result[[3]],digits = 2))),
+      tags$h4(paste(result[[4]])),
+      footer=tagList(
+        modalButton('close')
+      )
+    ))
+    
+  })
+  
   output$directions <- renderPlot({
     #avoid errors if long and lat are missing
     req(input$lat)
@@ -1771,7 +1808,8 @@ server <- function(input, output){
     F_stat <- reactiveValues(result=NULL)
     
     #import data
-    DI <- fix_DI(input_file())           
+    DI <- fix_DI(input_file()) 
+    
     
     #equal area function
     plot_dirs <- function(DI,Slat=input$lat,Slong=input$long,mode=input$mode,
@@ -1802,6 +1840,9 @@ server <- function(input, output){
       if(input$fisher==2){
         assign("inc_warn",NULL, envir = .GlobalEnv)
         F_stat$result <- fisher_plot_S(DI)
+      }else if(input$fisher==8){
+        assign("inc_warn",NULL, envir = .GlobalEnv)
+        F_stat$result <- fisher_plot_S(DI,auto_split = FALSE)
       }else if(input$fisher==3){
         assign("inc_warn",NULL, envir = .GlobalEnv)
         F_stat$result <- ellips_plot_S(DI,lat = Slat,long = Slong)
