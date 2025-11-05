@@ -1806,12 +1806,14 @@ server <- function(input, output){
     #watson's test result
     showModal(modalDialog(
       size= "m",
-      tags$h2("Watson's test of randomness"),
+      tags$h3("Watson's test of randomness*"),
       br(),
-      tags$h4(paste("N:",result[[1]])),
-      tags$h4(paste("R:",round(result[[2]],digits = 2))),
-      tags$h4(paste("R_critical:",round(result[[3]],digits = 2))),
-      tags$h4(paste(result[[4]])),
+      tags$h5(paste("N:",result[[1]])),
+      tags$h5(paste("R:",round(result[[2]],digits = 2))),
+      tags$h5(paste("R_critical:",round(result[[3]],digits = 2))),
+      tags$h5(paste(result[[4]])),
+      br(),
+      tags$h6("*Watson, G.S. (1956). Geophysical Journal International, 7(s4), 160–161. https://doi.org/10.1111/j.1365-246X.1956.tb05561.x"),
       footer=tagList(
         modalButton('close')
       )
