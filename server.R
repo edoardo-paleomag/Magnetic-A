@@ -1146,6 +1146,21 @@ server <- function(input, output){
   #import external file and attche it to internal result file if exists
   observeEvent(input$import_PCA,{
     specim$tab_result_ext <- read.csv(file = input$import_PCA$datapath)
+    if(ncol(specim$tab_result_ext)==14){
+      temp <- specim$tab_result_ext
+      temp$pa <- rep(0)
+      temp$pd <- rep(0)
+      showModal(modalDialog(
+        size="m",
+        tags$h3("Warning"),
+        tags$h5("Bayesian PPCA values p(Ha|D) and p(Hc|D) missing from file, probably exported from an old version of Magnetic-A. Added columns with 0"),
+        easyClose = TRUE,
+        footer=tagList(
+          modalButton('close')
+        )
+      ))
+      specim$tab_result_ext <- temp
+    }
     colnames(specim$tab_result_ext) <- c("Sample","N","S_Dec","S_Inc",
                                          "G_Dec","G_Inc","B_Dec","B_Inc",
                                          "MAD","a95","k","Type","Comp",
@@ -1318,8 +1333,8 @@ server <- function(input, output){
     #select points
     df <- brushedPoints(dirs_selected,input$plot_click,xvar = "x",yvar = "y")
     if(length(df)){
-      if(input$EAcoordinates==1){PmagDiR::plot_DI(df[,2:3],col_d = "red",col_u = "pink",on_plot = T)}
-      else if(input$EAcoordinates==2){PmagDiR::plot_DI(df[,4:5],col_d = "red",col_u = "pink",on_plot = T)}
+      if(input$EAcoordinates==1){PmagDiR::plot_DI(df[,2:3],col_d = "red",col_u = "yellow",on_plot = T)}
+      else if(input$EAcoordinates==2){PmagDiR::plot_DI(df[,4:5],col_d = "red",col_u = "yellow",on_plot = T)}
     }
     dirsEA$df <- df
     specim$all_dirs_equarea_plot <- recordPlot()
@@ -1419,6 +1434,10 @@ server <- function(input, output){
   
   
   ############ Takes direction input file and fix it depending on commands
+  
+  #create reactive file for stat
+  F_stat <- reactiveValues(result=NULL)
+  
   #creates reactive value for checking if file is uploaded
   Dirs <- reactiveValues(Dirs = NULL)
   #check for uploaded file and save name
@@ -1435,31 +1454,33 @@ server <- function(input, output){
     if(input$filetype==5){
       sel <- input$saved_interpol_rows_selected
       dat <- specim$PCA_result_file[sel,]
-      return(dat)
+      Dirs$dat <- dat
+      #return(dat)
     }
     else if(input$filetype==6){
       dat <- PmagDiR::Ardo_Geo_PmagDiR
-      return(dat)
+      Dirs$dat <- dat
+      #return(dat)
     }else{
       if (is.null(Dirs$Dirs)) {
         return(NULL)
       } else if (Dirs$Dirs == 'uploaded') {
         if(input$filetype==8){
-          read.csv(file = input$file$datapath, skip = 3,header = F)
-        }else{read.csv(file = input$file$datapath)}
+          Dirs$dat <- read.csv(file = input$file$datapath, skip = 3,header = F)
+        }else{Dirs$dat <- read.csv(file = input$file$datapath)}
       } else if (Dirs$Dirs == 'reset') {
         return(NULL)
       } 
     }
   })
   
+  
   #fix dirs coordinate depending on input, file ncol, different cutoff
   fix_DI <- function(input_file,file=input$filetype,
                      Slat=input$lat, Slong=input$long,
                      coord=input$coord, cutoff=input$cutoff,
                      VGP_fixed=input$VGP_fixed, MinInc=input$MinInc, MaxInc=input$MaxInc){
-    req(input_file())
-    DIRS <- input_file()
+    DIRS <- input_file
     if(file==1){
       if(coord==1 || coord==2 || coord==3){
         DI <- DIRS
@@ -1776,10 +1797,10 @@ server <- function(input, output){
   #perform watson's test for randomnes
   observeEvent(input$WatsRand,{
     #stop without file
-    req(input_file())
+    req(Dirs$dat)
     
     #import data
-    DI <- fix_DI(input_file())           
+    DI <- fix_DI(input_file= Dirs$dat)           
     
     #apply function
     result <- PmagDiR::Watson_Random(DI)
@@ -1800,69 +1821,112 @@ server <- function(input, output){
     
   })
   
+  
+  #function that select directions from screen
+  selectedDIR <- reactive({
+    DI_2_drag <- fix_DI(Dirs$dat)
+    #PREPARE SELECTING POINTS
+    #plot invisible points to select with drag
+    DI_2_drag$x <- PmagDiR::a2cx(abs(DI_2_drag[,2]),DI_2_drag[,1])
+    DI_2_drag$y <- PmagDiR::a2cy(abs(DI_2_drag[,2]),DI_2_drag[,1])
+    #plot invisible dirs for selection
+    points(x = DI_2_drag$x,y=DI_2_drag$y,col=NA)
+    #select points
+    selected_directions <- as.integer(rownames(brushedPoints(df = DI_2_drag,brush = input$plot_brush2,xvar = "x",yvar = "y")))
+    return(selected_directions)
+  })
+  
+  #delete selected directions         
+  observeEvent(input$cutDirs,{
+    req(Dirs$dat)
+    #act differently for example data otherwise does not work. Do not ask me why.
+    if(input$filetype==6){
+      Dirs$dat <- Dirs$dat[-Dirs$to_delete,]
+    }else{
+      to_delete <- as.character(selectedDIR())
+      Dirs$dat <- Dirs$dat[!(row.names(Dirs$dat) %in% to_delete),]
+    }
+  })
+  
+  #restore directions from file
+  observeEvent(input$restoreDirs,{
+    req(input_file())
+    Dirs$dat <- input_file()
+  })
+  
+  
+  #equal area function
+  plot_dirs <- function(DI,Slat=input$lat,Slong=input$long,mode=input$mode,
+                        colD=input$colD,colU=input$colU,sym=input$sym){
+    #file with possible error message from inclination only routine
+    inc_warn <- NULL
+    #define colors Down-pointing
+    if(colD==1) colD <- "black"
+    if(colD==2) colD <- "blue"
+    if(colD==3) colD <- "red"
+    if(colD==4) colD <- "dark green"
+    
+    #define color Up-pointing
+    if(colU==1) colU <- "white"
+    if(colU==2) colU <- "cyan"
+    if(colU==3) colU <- "pink"
+    if(colU==4) colU <- "light green"
+    
+    #define symbol
+    if(sym==1) sym <- "c"
+    if(sym==2) sym <- "s"
+    if(sym==3) sym <- "d"
+    if(sym==4) sym <- "t"
+    
+    PmagDiR::plot_DI(DI,col_d = colD,col_u = colU, symbol = sym)
+    #plot statistic, with warning message if any from Arason+Levi2010 algorythm, or assign NULL in all other cases
+    #inc warn must be created in the environment normally to cover the one created by PmagDiR
+    if(input$fisher==2){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- fisher_plot_S(DI)
+    }else if(input$fisher==8){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- fisher_plot_S(DI,auto_split = FALSE)
+    }else if(input$fisher==3){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- ellips_plot_S(DI,lat = Slat,long = Slong)
+    }else if(input$fisher==4){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = F,print = F,export = F,save = F,Shiny = T)
+    }else if(input$fisher==5){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = T,print = F,export = F,save = F,Shiny = T)
+    }else if(input$fisher==6){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = F,print = F,export = F,save = F,arith_stat = T,Shiny = T)
+    }else if(input$fisher==7){
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+      F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = T,print = F,export = F,save = F,arith_stat = T,Shiny = T)
+    }else{
+      assign("inc_warn",NULL, envir = .GlobalEnv)
+    }
+  }
+  
+  
   output$directions <- renderPlot({
     #avoid errors if long and lat are missing
     req(input$lat)
     req(input$long)
-    #create reactive file for stat
-    F_stat <- reactiveValues(result=NULL)
+    req(input_file())
     
-    #import data
-    DI <- fix_DI(input_file()) 
+    #apply plotting function
+    plot_dirs(fix_DI(Dirs$dat))
     
+    #select points dragging from screen
+    Dirs$to_delete <- selectedDIR()   
     
-    #equal area function
-    plot_dirs <- function(DI,Slat=input$lat,Slong=input$long,mode=input$mode,
-                          colD=input$colD,colU=input$colU,sym=input$sym){
-      #file with possible error message from inclination only routine
-      inc_warn <- NULL
-      #define colors Down-pointing
-      if(colD==1) colD <- "black"
-      if(colD==2) colD <- "blue"
-      if(colD==3) colD <- "red"
-      if(colD==4) colD <- "dark green"
-      
-      #define color Up-pointing
-      if(colU==1) colU <- "white"
-      if(colU==2) colU <- "cyan"
-      if(colU==3) colU <- "pink"
-      if(colU==4) colU <- "light green"
-      
-      #define symbol
-      if(sym==1) sym <- "c"
-      if(sym==2) sym <- "s"
-      if(sym==3) sym <- "d"
-      if(sym==4) sym <- "t"
-      
-      PmagDiR::plot_DI(DI,col_d = colD,col_u = colU, symbol = sym)
-      #plot statistic, with warning message if any from Arason+Levi2010 algorythm, or assign NULL in all other cases
-      #inc warn must be created in the environment normally to cover the one created by PmagDiR
-      if(input$fisher==2){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- fisher_plot_S(DI)
-      }else if(input$fisher==8){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- fisher_plot_S(DI,auto_split = FALSE)
-      }else if(input$fisher==3){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- ellips_plot_S(DI,lat = Slat,long = Slong)
-      }else if(input$fisher==4){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = F,print = F,export = F,save = F,Shiny = T)
-      }else if(input$fisher==5){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = T,print = F,export = F,save = F,Shiny = T)
-      }else if(input$fisher==6){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = F,print = F,export = F,save = F,arith_stat = T,Shiny = T)
-      }else if(input$fisher==7){
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-        F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = T,print = F,export = F,save = F,arith_stat = T,Shiny = T)
-      }else{
-        assign("inc_warn",NULL, envir = .GlobalEnv)
-      }
+    #select and plot all dragged points. It chooses rownames otherwise it mixed up with rowindex
+    if(length(Dirs$to_delete)){
+      Selection2plot <- fix_DI(Dirs$dat)
+      to_highlight <- as.character(Dirs$to_delete)
+      Selection2plot <-  Selection2plot[(row.names(Selection2plot) %in% to_highlight),]
+      PmagDiR::plot_DI(Selection2plot,col_d = "red",col_u = "yellow",on_plot = T)
     }
-    plot_dirs(DI)
     
     #record plot
     DirsPlot <- recordPlot()
@@ -1907,7 +1971,7 @@ server <- function(input, output){
         paste(input$fileN,"_", Sys.Date(), "_directions.csv", sep="")
       },
       content = function(file) {
-        DI <- fix_DI(input_file())
+        DI <- fix_DI(Dirs$dat)
         if(input$mode==1){DI <- DI}
         if(input$mode==2){DI <- common_DI(DI)}
         if(input$mode==3){DI <- common_DI(DI,down = F)}
@@ -1924,7 +1988,7 @@ server <- function(input, output){
   
   #function that split data in modes and calculate ellipses
   B95_calculation <- function(n_boots=input$B95nb,p=0.05,mode=1){ 
-    DI <- fix_DI(input_file())
+    DI <- fix_DI(Dirs$dat)
     DI <- na.omit(DI)
     d2r <- function(x) {x*(pi/180)}
     r2d <- function(x) {x*(180/pi)}
@@ -2100,7 +2164,7 @@ server <- function(input, output){
     
     #reversal test
     revtest_funct <- function(){
-      DI <- fix_DI(input_file())
+      DI <- fix_DI(Dirs$dat)
       RVresult <- PmagDiR::CMDT_H23(DI,n_boots=input$revnb,Shiny=T)
       return(RVresult)
     }
@@ -2779,7 +2843,7 @@ server <- function(input, output){
     if(input$SVEI_k==2) sveikappa <- 50
     if(input$SVEI_k==3) sveikappa <- 100
     
-    DI <- fix_DI(input_file())
+    DI <- fix_DI(Dirs$dat)
     SVEI_result <- svei_test(DI = DI,
                              model_name = "THG24",
                              kappa = sveikappa,
@@ -2951,7 +3015,7 @@ server <- function(input, output){
   
   #reactive function
   SVEI_EI_testPlot <- eventReactive(input$SVEI_EI_go,{
-    DI <- fix_DI(input_file())
+    DI <- fix_DI(Dirs$dat)
     if(input$kappa_f==1){k_4_ftest <- -1}
     if(input$kappa_f==2){k_4_ftest <- 50}
     if(input$kappa_f==3){k_4_ftest <- 100}
@@ -3242,7 +3306,7 @@ server <- function(input, output){
   
   ### VGP calculation Part
   output$VGPplot <- renderPlot({
-    DIrs<- fix_DI(input_file())
+    DIrs<- fix_DI(Dirs$dat)
     #create file with all VGPs
     reactiveValuesToList(IVGP)
     ifelse(input$intVGPflip==1,
@@ -4896,7 +4960,7 @@ server <- function(input, output){
   output$magstrat <- renderPlot({
     if(input$filetype!=4 || input$filetype!=5){
       #data are always tilt corrected
-      DI <- fix_DI(input_file(),coord = 2)
+      DI <- fix_DI(Dirs$dat,coord = 2)
     }
     if(input$filetype==4 || input$filetype==5){
       DepFile <- depthfile()
@@ -4912,7 +4976,7 @@ server <- function(input, output){
         DepFile_temp[,2] <- DepFile[,9]+0.01
         DepFile <- unique(DepFile_temp)
       }
-      SampFile <- input_file()
+      SampFile <- Dirs$dat
       DI_temp <- SampFile[,c(1,7:8)]
       DI_temp <- na.omit(DI_temp)
       DI_temp$depth <- rep(NA)

@@ -319,9 +319,11 @@ ui <- fluidPage(
                  fluidRow(downloadButton("exportG","Export graph"),
                           downloadButton("exportS","Export stat"),
                           downloadButton("exportDI","Export directions"),
-                          actionButton(inputId = "WatsRand",label = "Watson's test of randomness")),
+                          actionButton(inputId = "WatsRand",label = "Watson's test of randomness"),
+                          actionButton(inputId = "cutDirs",label = "Delete dragged directions"),
+                          actionButton(inputId = "restoreDirs",label = "Restore all directions")),
                  column(1),
-                 plotOutput("directions")
+                 plotOutput("directions",brush = brushOpts(id = "plot_brush2"))
                )
              )
     ),
