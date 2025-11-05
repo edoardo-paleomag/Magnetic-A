@@ -1317,17 +1317,15 @@ server <- function(input, output){
     if(is.null(specim$GC_directions)==FALSE){PmagDiR::plot_DI(DI = specim$GC_directions,on_plot = T,
                                                               col_d = "red",col_u = "pink",symbol = "t")}
     
-    #PREPARE SELECTING POINTS
-    #functions converting degree and radians
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
-    #functions converting inc(x) and dec(y) into equal area
-    a2cx <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*sin(d2r(y))}
-    a2cy <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*cos(d2r(y))}
-    
     #plot invisible points to select with drag
-    dirs_selected$x <- a2cx(abs(dirs[,2]),dirs[,1])
-    dirs_selected$y <- a2cy(abs(dirs[,2]),dirs[,1])
+    if(input$EAcoordinates==1){
+      dirs_selected$x <- PmagDiR::a2cx(abs(dirs_selected[,3]),dirs_selected[,2])
+      dirs_selected$y <- PmagDiR::a2cy(abs(dirs_selected[,3]),dirs_selected[,2])
+    }
+    else if(input$EAcoordinates==2){
+      dirs_selected$x <- PmagDiR::a2cx(abs(dirs_selected[,5]),dirs_selected[,4])
+      dirs_selected$y <- PmagDiR::a2cy(abs(dirs_selected[,5]),dirs_selected[,4])
+    }
     points(x = dirs_selected$x,y=dirs_selected$y,col=NA)
     
     #select points
