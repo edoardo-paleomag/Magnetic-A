@@ -16,7 +16,7 @@ A dedicated publication is under review!
 * Open R-Studio
 * NOTE: R-Studio facilitate the interaction with R, but the same commands described in point 2 and 3 can be typed in the R Console.
 
-### 2.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY ISNTALLED IN YOUR DEVICE): 
+### 2.INSTALLING THE REQUIRED PACKAGES (SKIP to step 2 IF THE PACKAGES ARE ALREADY INSTALLED IN YOUR DEVICE): 
 all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be downloaded by typing in the console:
 
 * install.packages("plyr")
