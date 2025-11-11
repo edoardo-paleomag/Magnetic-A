@@ -3306,6 +3306,7 @@ server <- function(input, output){
   
   ### VGP calculation Part
   output$VGPplot <- renderPlot({
+    req(Dirs$dat)
     DIrs<- fix_DI(Dirs$dat)
     #create file with all VGPs
     reactiveValuesToList(IVGP)
@@ -4958,6 +4959,7 @@ server <- function(input, output){
   
   #main function and plot
   output$magstrat <- renderPlot({
+    req(Dirs$dat)
     if(input$filetype!=4 || input$filetype!=5){
       #data are always tilt corrected
       DI <- fix_DI(Dirs$dat,coord = 2)
