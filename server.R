@@ -1903,6 +1903,7 @@ server <- function(input, output){
       assign("inc_warn",NULL, envir = .GlobalEnv)
       F_stat$result <- PmagDiR::inc_plot(DI = DI,bimodal = T,print = F,export = F,save = F,arith_stat = T,Shiny = T)
     }else{
+      F_stat$result <- NULL
       assign("inc_warn",NULL, envir = .GlobalEnv)
     }
   }
