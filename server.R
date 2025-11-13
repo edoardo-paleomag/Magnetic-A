@@ -1839,8 +1839,8 @@ server <- function(input, output){
   #delete selected directions         
   observeEvent(input$cutDirs,{
     req(Dirs$dat)
-    #act differently for example data otherwise does not work. Do not ask me why.
-    if(input$filetype==6){
+    #act differently for example data otherwise does not work. Do not ask me why, like this it works. it is likely because of the fix_DI function a bit messed up
+    if(input$filetype==6 && input$coord==2){
       Dirs$dat <- Dirs$dat[-Dirs$to_delete,]
     }else{
       to_delete <- as.character(selectedDIR())
