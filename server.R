@@ -1795,7 +1795,7 @@ server <- function(input, output){
   #perform watson's test for randomnes
   observeEvent(input$WatsRand,{
     #stop without file
-    req(Dirs$dat)
+    req(Dirs$dat>1)
     
     #import data
     DI <- fix_DI(input_file= Dirs$dat)           
