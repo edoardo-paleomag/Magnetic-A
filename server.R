@@ -1914,6 +1914,7 @@ server <- function(input, output){
     req(input$lat)
     req(input$long)
     req(input_file())
+    req(Dirs$dat!=0)
     
     #apply plotting function
     plot_dirs(fix_DI(Dirs$dat))
