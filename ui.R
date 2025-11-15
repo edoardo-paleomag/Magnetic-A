@@ -418,6 +418,54 @@ ui <- fluidPage(
                             plotOutput("revtest")
                           )
                         )
+               ),
+               tabPanel("Common mean direction test (CMDT) of two datasets",         
+                        sidebarLayout(
+                          sidebarPanel(width=3,
+                                       fluidRow(
+                                         column(12,h4("CMDT*"))),
+                                       br(),
+                                       fluidRow(
+                                         column(12,fileInput(inputId = "CMDT_2_file",label = "Load second set"))
+                                       ),
+                                       fluidRow(
+                                         column(12,actionButton(inputId = "show_DI2",label = "Show second set",width = "100%"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(6,textInput("fileN_RT2",label = "Export name",value = "Site")),
+                                         column(6,numericInput("revnb2", label="Bootstraps n.",value=10000))),
+                                       fluidRow(
+                                         column(12,actionButton("revgo2", label= "Perform",width = "100%"))),
+                                       br(),
+                                       fluidRow(
+                                         column(12,progressBar(
+                                           id = "Rev_test_b2",
+                                           value = 0,total=10000,
+                                           title = "Bootstrap",
+                                           display_pct = TRUE))),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h4(textOutput(outputId = "CMDT_result1_2")))),
+                                       fluidRow(
+                                         column(12,h4(textOutput(outputId = "CMDT_result2_2")))),
+                                       fluidRow(
+                                         column(12,h4(textOutput(outputId = "CMDT_result3_2")))),
+                                       fluidRow(
+                                         column(12,h4(textOutput(outputId = "CMDT_result4_2")))),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5("*Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
+                                                                                "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
+                                       ),
+                          ),                                
+                          mainPanel(
+                            fluidRow(downloadButton("revexpG2","Export graph"),
+                                     downloadButton("CMDT_ellipsis2",label = "Export Common direction and ellipsis")
+                            ),
+                            plotOutput("revtest2")
+                          )
+                        )
                )
              )
     ),

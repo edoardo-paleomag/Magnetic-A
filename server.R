@@ -255,13 +255,10 @@ server <- function(input, output){
     c2sI <- function(x,y,z) {(asin(z/(sqrt((x^2)+(y^2)+(z^2)))))*(180/pi)}
     c2sInt <- function(x,y,z) {sqrt((x^2)+(y^2)+(z^2))}
     
-    #functions converting degree and radians
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     
     #functions converting inc(x) and dec(y) into equal area
-    a2cx <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*sin(d2r(y))}
-    a2cy <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*cos(d2r(y))}
+    a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
+    a2cy <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*cos(PmagDiR::d2r(y))}
     
     #add spherical coord columns for table
     dat <- VEP_temp[,-1]
@@ -280,16 +277,13 @@ server <- function(input, output){
     
     #graphical function connecting two points on a sphere with great circle segment
     connect_GC <- function(DI){
-      #degrees to radians and vice versa
-      d2r <- function(x) {x*(pi/180)}
-      r2d <- function(x) {x*(180/pi)}
       #functions converting inc(x) and dec(y) into equal area
-      a2cx <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*sin(d2r(y))}
-      a2cy <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*cos(d2r(y))}
+      a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
+      a2cy <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*cos(PmagDiR::d2r(y))}
       #functions spherical (Dec=x, Inc=y) to Cartesian
-      s2cx <- function(x,y) {cos(d2r(x))*cos(d2r(y))}
-      s2cy <- function(x,y) {sin(d2r(x))*cos(d2r(y))}
-      s2cz <- function(y) {sin(d2r(y))}
+      s2cx <- function(x,y) {cos(PmagDiR::d2r(x))*cos(PmagDiR::d2r(y))}
+      s2cy <- function(x,y) {sin(PmagDiR::d2r(x))*cos(PmagDiR::d2r(y))}
+      s2cz <- function(y) {sin(PmagDiR::d2r(y))}
       for(i in 2:nrow(DI)){
         #data are data frame 2X2 with dec and inc
         data <- DI[(i-1):i,]
@@ -297,9 +291,9 @@ server <- function(input, output){
         
         ##NEXT PART CALCULATES POLE OF GREAT CIRCLE
         #directions in Cartesian coordinates
-        data$x <- cos(d2r(data$dec))*cos(d2r(data$inc))
-        data$y <- sin(d2r(data$dec))*cos(d2r(data$inc))
-        data$z <- sin(d2r(data$inc))
+        data$x <- cos(PmagDiR::d2r(data$dec))*cos(PmagDiR::d2r(data$inc))
+        data$y <- sin(PmagDiR::d2r(data$dec))*cos(PmagDiR::d2r(data$inc))
+        data$z <- sin(PmagDiR::d2r(data$inc))
         #averaged Cartesian coordinates
         x_av <- mean(data$x)
         y_av <- mean(data$y)
@@ -314,8 +308,8 @@ server <- function(input, output){
         T_e <- eigen(T)
         T_vec <- T_e$vectors
         #coordinate of V3
-        V3inc <- r2d(asin(T_vec[3,3]/(sqrt((T_vec[1,3]^2)+(T_vec[2,3]^2)+(T_vec[3,3]^2)))))
-        V3dec <- (r2d(atan2(T_vec[2,3],T_vec[1,3])))%%360
+        V3inc <- PmagDiR::r2d(asin(T_vec[3,3]/(sqrt((T_vec[1,3]^2)+(T_vec[2,3]^2)+(T_vec[3,3]^2)))))
+        V3dec <- (PmagDiR::r2d(atan2(T_vec[2,3],T_vec[1,3])))%%360
         if(V3inc<0){
           V3dec <- (V3dec+180)%%360
           V3inc <- abs(V3inc)
@@ -779,9 +773,6 @@ server <- function(input, output){
       #calculate PCA-derived direction and MAD from demagnetization steps
       #VEPs is expressed in Cartesian coordinates x,y,z
       run_PCA <- function(VEPs,anchor) {
-        #degree to radians and VV
-        d2r <- function(x) {x*(pi/180)}
-        r2d <- function(x) {x*(180/pi)}
         data <- VEPs
         colnames(data) <- c("x", "y","z")
         
@@ -831,28 +822,28 @@ server <- function(input, output){
         #interpolate line through points
         if(anchor==1 || anchor== 2 || anchor==3){
           #calculate dec inc of max variance
-          Vdec <- (r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
-          Vinc <- r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
+          Vdec <- (PmagDiR::r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
+          Vinc <- PmagDiR::r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
           
           #flipping V1 module, if directions goes opposite to vector tip
           tip <- c(data[1,1]-data[nrow(data),1],data[1,2]-data[nrow(data),2],data[1,3]-data[nrow(data),3])
-          tipdec <- (r2d(atan2(tip[2],tip[1])))%%360
-          tipinc <- r2d(asin(tip[3]/(sqrt((tip[1]^2)+(tip[2]^2)+(tip[3]^2)))))
+          tipdec <- (PmagDiR::r2d(atan2(tip[2],tip[1])))%%360
+          tipinc <- PmagDiR::r2d(asin(tip[3]/(sqrt((tip[1]^2)+(tip[2]^2)+(tip[3]^2)))))
           deltadec_tip_V1<- abs(tipdec-Vdec)
-          dist_tip_V1 <- r2d(acos((sin(d2r(tipinc))*sin(d2r(Vinc)))+
-                                    (cos(d2r(tipinc))*cos(d2r(Vinc))*cos(d2r(deltadec_tip_V1)))))
+          dist_tip_V1 <- PmagDiR::r2d(acos((sin(PmagDiR::d2r(tipinc))*sin(PmagDiR::d2r(Vinc)))+
+                                             (cos(PmagDiR::d2r(tipinc))*cos(PmagDiR::d2r(Vinc))*cos(PmagDiR::d2r(deltadec_tip_V1)))))
           if(dist_tip_V1>90){
             Vdec <- (Vdec+180)%%360
             Vinc <- -Vinc
           }
           #calculate max ang dev of line
-          MAD <- r2d(atan(sqrt(((T_val[2])+(T_val[3]))/T_val[1])))
+          MAD <- PmagDiR::r2d(atan(sqrt(((T_val[2])+(T_val[3]))/T_val[1])))
           
           #calculate x y z coordinates of V1
-          V1_x <- cos(d2r(Vdec))*cos(d2r(Vinc))
+          V1_x <- cos(PmagDiR::d2r(Vdec))*cos(PmagDiR::d2r(Vinc))
           #next because zijderveld y axis is down pointing
-          V1_y <- (sin(d2r(Vdec))*cos(d2r(Vinc)))
-          V1_z <- (sin(d2r(Vinc)))
+          V1_y <- (sin(PmagDiR::d2r(Vdec))*cos(PmagDiR::d2r(Vinc)))
+          V1_z <- (sin(PmagDiR::d2r(Vinc)))
           
           #calculate inclination of interpolating lines
           m_xy <- V1_y/V1_x
@@ -866,10 +857,10 @@ server <- function(input, output){
           Vinc <- PPCA_results[[1]][3,2]
           MAD <- PPCA_results[[1]][3,3]
           #calculate x y z coordinates of V1
-          V1_x <- cos(d2r(Vdec))*cos(d2r(Vinc))
+          V1_x <- cos(PmagDiR::d2r(Vdec))*cos(PmagDiR::d2r(Vinc))
           #next because zijderveld y axis is down pointing
-          V1_y <- (sin(d2r(Vdec))*cos(d2r(Vinc)))
-          V1_z <- (sin(d2r(Vinc)))
+          V1_y <- (sin(PmagDiR::d2r(Vdec))*cos(PmagDiR::d2r(Vinc)))
+          V1_z <- (sin(PmagDiR::d2r(Vinc)))
           
           #calculate inclination of interpolating lines
           m_xy <- V1_y/V1_x
@@ -878,14 +869,14 @@ server <- function(input, output){
         }
         if(anchor==5){
           #calculate dec inc of min variance that is the pole of the plane or circle
-          Vdec <- (r2d(atan2(T_vec[2,3],T_vec[1,3])))%%360
-          Vinc <- r2d(asin(T_vec[3,3]/(sqrt((T_vec[1,3]^2)+(T_vec[2,3]^2)+(T_vec[3,3]^2)))))
+          Vdec <- (PmagDiR::r2d(atan2(T_vec[2,3],T_vec[1,3])))%%360
+          Vinc <- PmagDiR::r2d(asin(T_vec[3,3]/(sqrt((T_vec[1,3]^2)+(T_vec[2,3]^2)+(T_vec[3,3]^2)))))
           #flip pole if negative
           if(Vinc<0){
             Vdec <- (Vdec+180)%%360
             Vinc <- abs(Vinc)
           }
-          MAD <- r2d(atan(sqrt((T_val[3]/T_val[2])+(T_val[3]/T_val[1]))))
+          MAD <- PmagDiR::r2d(atan(sqrt((T_val[3]/T_val[2])+(T_val[3]/T_val[1]))))
         }
         
         #number of data points
@@ -913,21 +904,18 @@ server <- function(input, output){
       DiR_tc <- run_PCA(VEPs = VEPs_for_PCA_tc, anchor = input$anchor)
       
     } else if(c==4){
-      #degree to radians and VV
-      d2r <- function(x) {x*(pi/180)}
-      r2d <- function(x) {x*(180/pi)}
       dat_sp <- specim$specim[selectedVEP(),3:5]
       dat_geo <- specim$specim[selectedVEP(),6:8]
       dat_tc <- specim$specim[selectedVEP(),9:11]
       
-      dat_sp$dec <- (r2d(atan2(dat_sp[,2],dat_sp[,1])))%%360
-      dat_sp$inc <- r2d(asin(dat_sp[,3]/(sqrt((dat_sp[,1]^2)+(dat_sp[,2]^2)+(dat_sp[,3]^2)))))
+      dat_sp$dec <- (PmagDiR::r2d(atan2(dat_sp[,2],dat_sp[,1])))%%360
+      dat_sp$inc <- PmagDiR::r2d(asin(dat_sp[,3]/(sqrt((dat_sp[,1]^2)+(dat_sp[,2]^2)+(dat_sp[,3]^2)))))
       
-      dat_geo$dec <- (r2d(atan2(dat_geo[,2],dat_geo[,1])))%%360
-      dat_geo$inc <- r2d(asin(dat_geo[,3]/(sqrt((dat_geo[,1]^2)+(dat_geo[,2]^2)+(dat_geo[,3]^2)))))
+      dat_geo$dec <- (PmagDiR::r2d(atan2(dat_geo[,2],dat_geo[,1])))%%360
+      dat_geo$inc <- PmagDiR::r2d(asin(dat_geo[,3]/(sqrt((dat_geo[,1]^2)+(dat_geo[,2]^2)+(dat_geo[,3]^2)))))
       
-      dat_tc$dec <- (r2d(atan2(dat_tc[,2],dat_tc[,1])))%%360
-      dat_tc$inc <- r2d(asin(dat_tc[,3]/(sqrt((dat_tc[,1]^2)+(dat_tc[,2]^2)+(dat_tc[,3]^2)))))
+      dat_tc$dec <- (PmagDiR::r2d(atan2(dat_tc[,2],dat_tc[,1])))%%360
+      dat_tc$inc <- PmagDiR::r2d(asin(dat_tc[,3]/(sqrt((dat_tc[,1]^2)+(dat_tc[,2]^2)+(dat_tc[,3]^2)))))
       
       DiR_sp <- PmagDiR::fisher(dat_sp[,4:5],export = F)
       DiR_geo <- PmagDiR::fisher(dat_geo[,4:5],export = F)
@@ -1317,15 +1305,14 @@ server <- function(input, output){
     if(is.null(specim$GC_directions)==FALSE){PmagDiR::plot_DI(DI = specim$GC_directions,on_plot = T,
                                                               col_d = "red",col_u = "pink",symbol = "t")}
     
+    #PREPARE SELECTING POINTS
+    #functions converting inc(x) and dec(y) into equal area
+    a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
+    a2cy <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*cos(PmagDiR::d2r(y))}
+    
     #plot invisible points to select with drag
-    if(input$EAcoordinates==1){
-      dirs_selected$x <- PmagDiR::a2cx(abs(dirs_selected[,3]),dirs_selected[,2])
-      dirs_selected$y <- PmagDiR::a2cy(abs(dirs_selected[,3]),dirs_selected[,2])
-    }
-    else if(input$EAcoordinates==2){
-      dirs_selected$x <- PmagDiR::a2cx(abs(dirs_selected[,5]),dirs_selected[,4])
-      dirs_selected$y <- PmagDiR::a2cy(abs(dirs_selected[,5]),dirs_selected[,4])
-    }
+    dirs_selected$x <- a2cx(abs(dirs[,2]),dirs[,1])
+    dirs_selected$y <- a2cy(abs(dirs[,2]),dirs[,1])
     points(x = dirs_selected$x,y=dirs_selected$y,col=NA)
     
     #select points
@@ -1615,17 +1602,16 @@ server <- function(input, output){
   ############ EQUAL AREA MODULE
   #modified fisher_plot function
   fisher_plot_S <- function(DI, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c",auto_split=TRUE) {
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     data <- DI
     data <- na.omit(data)
     data <- data[,1:2]
     colnames(data) <- c("dec", "inc")
     if(auto_split==TRUE){
       #directions in Cartesian coordinates
-      data$x <- cos(d2r(data$dec))*cos(d2r(data$inc))
-      data$y <- sin(d2r(data$dec))*cos(d2r(data$inc))
-      data$z <- sin(d2r(data$inc))
+      data$x <- NA
+      data$y <- NA
+      data$z <- NA
+      data[,3:5] <- PmagDiR::s2c(data[,1:2])
       #averaged Cartesian coordinates
       x_av <- mean(data$x)
       y_av <- mean(data$y)
@@ -1641,14 +1627,14 @@ server <- function(input, output){
       T_vec <- T_e$vectors
       T_val <- T_e$values
       #calculate dec inc of max variance
-      V1inc <- r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
-      V1dec <- (r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
+      V1inc <- PmagDiR::r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
+      V1dec <- (PmagDiR::r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
       #next  calculates difference between dec_inc and average
       data$Dec_aver <- rep(V1dec)
       data$Inc_aver <- rep(V1inc)
       data$delta <- abs(data$dec-data$Dec_aver)
-      data$diff <- r2d(acos((sin(d2r(data$inc))*sin(d2r(data$Inc_aver)))+
-                              (cos(d2r(data$inc))*cos(d2r(data$Inc_aver))*cos(d2r(data$delta)))))
+      data$diff <- PmagDiR::r2d(acos((sin(PmagDiR::d2r(data$inc))*sin(PmagDiR::d2r(data$Inc_aver)))+
+                                       (cos(PmagDiR::d2r(data$inc))*cos(PmagDiR::d2r(data$Inc_aver))*cos(PmagDiR::d2r(data$delta)))))
       #Isolate modes
       if(any(data$diff<=90)){
         mode1 <- as.data.frame(data$dec[data$diff<=90])
@@ -1712,21 +1698,18 @@ server <- function(input, output){
   
   #modified ellips_plot function
   ellips_plot_S <- function(DI,lat=0,long=0, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c"){
-    #degrees to radians and vice versa
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     #functions converting inc(x) and dec(y) into equal area
-    a2cx <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*sin(d2r(y))}
-    a2cy <- function(x,y) {sqrt(2)*sin((d2r(90-x))/2)*cos(d2r(y))}
+    a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
+    a2cy <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*cos(PmagDiR::d2r(y))}
     data <- DI
     #cut lines with empty cells
     data <- na.omit(data)
     data <- data[,1:2]
     colnames(data) <- c("dec", "inc")
     #directions in Cartesian coordinates
-    data$x <- cos(d2r(data$dec))*cos(d2r(data$inc))
-    data$y <- sin(d2r(data$dec))*cos(d2r(data$inc))
-    data$z <- sin(d2r(data$inc))
+    data$x <- cos(PmagDiR::d2r(data$dec))*cos(PmagDiR::d2r(data$inc))
+    data$y <- sin(PmagDiR::d2r(data$dec))*cos(PmagDiR::d2r(data$inc))
+    data$z <- sin(PmagDiR::d2r(data$inc))
     #averaged Cartesian coordinates
     x_av <- mean(data$x)
     y_av <- mean(data$y)
@@ -1742,14 +1725,14 @@ server <- function(input, output){
     T_vec <- T_e$vectors
     T_val <- T_e$values
     #calculate dec inc of max variance
-    V1inc <- r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
-    V1dec <- (r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
+    V1inc <- PmagDiR::r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
+    V1dec <- (PmagDiR::r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
     #next  calculates difference between dec_inc and average
     data$Dec_aver <- rep(V1dec)
     data$Inc_aver <- rep(V1inc)
     data$delta <- abs(data$dec-data$Dec_aver)
-    data$diff <- r2d(acos((sin(d2r(data$inc))*sin(d2r(data$Inc_aver)))+
-                            (cos(d2r(data$inc))*cos(d2r(data$Inc_aver))*cos(d2r(data$delta)))))
+    data$diff <- PmagDiR::r2d(acos((sin(PmagDiR::d2r(data$inc))*sin(PmagDiR::d2r(data$Inc_aver)))+
+                                     (cos(PmagDiR::d2r(data$inc))*cos(PmagDiR::d2r(data$Inc_aver))*cos(PmagDiR::d2r(data$delta)))))
     #Isolate modes
     if(any(data$diff<=90)){mode1 <- data[data$diff<=90,1:2]}
     if(any(data$diff>90)){mode2 <- data[data$diff>90,1:2]}
@@ -1795,7 +1778,7 @@ server <- function(input, output){
   #perform watson's test for randomnes
   observeEvent(input$WatsRand,{
     #stop without file
-    req(Dirs$dat>1)
+    req(Dirs$dat)
     
     #import data
     DI <- fix_DI(input_file= Dirs$dat)           
@@ -1806,14 +1789,12 @@ server <- function(input, output){
     #watson's test result
     showModal(modalDialog(
       size= "m",
-      tags$h3("Watson's test of randomness*"),
+      tags$h2("Watson's test of randomness"),
       br(),
-      tags$h5(paste("N:",result[[1]])),
-      tags$h5(paste("R:",round(result[[2]],digits = 2))),
-      tags$h5(paste("R_critical:",round(result[[3]],digits = 2))),
-      tags$h5(paste(result[[4]])),
-      br(),
-      tags$h6("*Watson, G.S. (1956). Geophysical Journal International, 7(s4), 160–161. https://doi.org/10.1111/j.1365-246X.1956.tb05561.x"),
+      tags$h4(paste("N:",result[[1]])),
+      tags$h4(paste("R:",round(result[[2]],digits = 2))),
+      tags$h4(paste("R_critical:",round(result[[3]],digits = 2))),
+      tags$h4(paste(result[[4]])),
       footer=tagList(
         modalButton('close')
       )
@@ -1839,12 +1820,13 @@ server <- function(input, output){
   #delete selected directions         
   observeEvent(input$cutDirs,{
     req(Dirs$dat)
-    #act differently for example data otherwise does not work. Do not ask me why, like this it works. it is likely because of the fix_DI function a bit messed up
-    if(input$filetype==6 && input$coord==2){
-      Dirs$dat <- Dirs$dat[-Dirs$to_delete,]
-    }else{
-      to_delete <- as.character(selectedDIR())
-      Dirs$dat <- Dirs$dat[!(row.names(Dirs$dat) %in% to_delete),]
+    req(Dirs$to_delete)
+    temp <- Dirs$to_delete
+    temp <- as.character(temp)
+    for(i in temp){
+      for(l in 1:nrow(Dirs$dat)){
+        if(rownames(Dirs$dat[l,])==i){Dirs$dat <- Dirs$dat[-l,]}
+      }
     }
   })
   
@@ -1914,7 +1896,6 @@ server <- function(input, output){
     req(input$lat)
     req(input$long)
     req(input_file())
-    req(Dirs$dat!=0)
     
     #apply plotting function
     plot_dirs(fix_DI(Dirs$dat))
@@ -1924,9 +1905,16 @@ server <- function(input, output){
     
     #select and plot all dragged points. It chooses rownames otherwise it mixed up with rowindex
     if(length(Dirs$to_delete)){
-      Selection2plot <- fix_DI(Dirs$dat)
-      to_highlight <- as.character(Dirs$to_delete)
-      Selection2plot <-  Selection2plot[(row.names(Selection2plot) %in% to_highlight),]
+      temp <- fix_DI(Dirs$dat)
+      Selection2plot <- temp
+      Selection2plot[,] <- NA
+      for(i in Dirs$to_delete){
+        i <- as.character(i)
+        for(l in 1:nrow(temp)){
+          if(rownames(temp[l,])==i){Selection2plot[l,] <- temp[l,]}
+        }
+      }
+      Selection2plot <- na.omit(Selection2plot)
       PmagDiR::plot_DI(Selection2plot,col_d = "red",col_u = "yellow",on_plot = T)
     }
     
@@ -1992,15 +1980,14 @@ server <- function(input, output){
   B95_calculation <- function(n_boots=input$B95nb,p=0.05,mode=1){ 
     DI <- fix_DI(Dirs$dat)
     DI <- na.omit(DI)
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     
     dat <- DI[,1:2]
     colnames(dat) <- c("dec", "inc")
     #directions in Cartesian coordinates
-    dat$x <- cos(d2r(dat$dec))*cos(d2r(dat$inc))
-    dat$y <- sin(d2r(dat$dec))*cos(d2r(dat$inc))
-    dat$z <- sin(d2r(dat$inc))
+    dat$x <- NA
+    dat$y <- NA
+    dat$z <- NA
+    dat[,3:5] <- PmagDiR::s2c(DI = dat[,1:2])
     #calculate interpolation of all data set
     Ta_temp <- as.matrix(dat[,3:5])
     Ta <- t(Ta_temp) %*% Ta_temp
@@ -2010,15 +1997,15 @@ server <- function(input, output){
     T_val <- T_e$value
     
     #calculate dec inc of max variance
-    V1inc <- r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
-    V1dec <- (r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
+    V1inc <- PmagDiR::r2d(asin(T_vec[3,1]/(sqrt((T_vec[1,1]^2)+(T_vec[2,1]^2)+(T_vec[3,1]^2)))))
+    V1dec <- (PmagDiR::r2d(atan2(T_vec[2,1],T_vec[1,1])))%%360
     
     #next  calculates difference between dec_inc and average
     dat$Dec_aver <- rep(V1dec)
     dat$Inc_aver <- rep(V1inc)
     dat$delta <- abs(dat$dec-dat$Dec_aver)
-    dat$diff <- r2d(acos((sin(d2r(dat$inc))*sin(d2r(dat$Inc_aver)))+
-                           (cos(d2r(dat$inc))*cos(d2r(dat$Inc_aver))*cos(d2r(dat$delta)))))
+    dat$diff <- PmagDiR::r2d(acos((sin(PmagDiR::d2r(dat$inc))*sin(PmagDiR::d2r(dat$Inc_aver)))+
+                                    (cos(PmagDiR::d2r(dat$inc))*cos(PmagDiR::d2r(dat$Inc_aver))*cos(PmagDiR::d2r(dat$delta)))))
     #Isolate modes
     m1ind <- as.numeric(which(dat$diff<=90), arr.ind = TRUE)
     m2ind <- as.numeric(which(dat$diff>90), arr.ind = TRUE)
@@ -2228,6 +2215,101 @@ server <- function(input, output){
     revtest_plot()
   },width = 1200,height = 700)
   ############ END OF REVERSAL TEST MODULE
+  
+  ############ CMDT OF TWO DATASETS MODULE
+  second_DI <- observeEvent(input$CMDT_2_file,{
+    dat <- read.csv(input$CMDT_2_file$datapath)
+    CMDT$DI2 <- dat
+  })
+  
+  #create function that reversal test and save statistics and graph
+  revtest_plot2 <- eventReactive(input$revgo2,{
+    #reversal test
+    CMDT_funct <- function(){
+      req(Dirs$dat)
+      req(CMDT$DI2)
+      DI <- fix_DI(Dirs$dat)
+      DI2 <- CMDT$DI2
+      DI2 <- DI2[,1:2]
+      RVresult2 <- PmagDiR::CMDT_H23_2DiRs(DI = DI,DI2 = DI2,n_boots=input$revnb2,Shiny=T)
+      return(RVresult2)
+    }
+    
+    #save statistic and makes plot
+    CMDT$result2 <- CMDT_funct()
+    #record plot
+    revPlot2 <- recordPlot()
+    #Export reversal test graphic
+    output$revexpG2 <- downloadHandler(
+      filename = function() {
+        paste(input$fileN_RT2,"_CMDT_", Sys.Date(), ".pdf", sep="")
+      },
+      content = function(file) {
+        pdf(file, onefile = TRUE,width = 15,height = 10)
+        replayPlot(revPlot2)
+        dev.off()
+      }
+    )
+  })
+  
+  #Export reversal test stats
+  output$CMDT_ellipsis2 <- downloadHandler(
+    filename = function() {
+      paste(input$fileN_RT2,"_CM_ellipsis_", Sys.Date(), "_stat.csv", sep="")
+    },
+    content = function(file) {
+      if(!is.null(CMDT$result2)){
+        CMD_ellips <- matrix(ncol = 4,nrow = 181)
+        colnames(CMD_ellips) <- c("mean_dec","mean_inc","ell_dec","ell_inc")
+        CMD_ellips[1,1] <- round(CMDT$result2[["mean_direction"]][["dec"]]%%360,digits = 2)
+        CMD_ellips[1,2] <- round(CMDT$result2[["mean_direction"]][["inc"]],digits = 2)
+        CMD_ellips[,3] <- CMDT$result2[["ellipsis"]][["dec"]]%%360
+        CMD_ellips[,4] <- CMDT$result2[["ellipsis"]][["inc"]]
+        write.csv(CMD_ellips, file,row.names = F)
+      }
+    }
+  )
+  output$CMDT_DI2 <- renderPlot({
+    PmagDiR::plot_DI(DI = CMDT$DI2)
+  },width = 550,height = 550)
+  
+  observeEvent(input$show_DI2,{
+    req(CMDT$DI2)
+    showModal(modalDialog(
+      size="m",
+      tags$h4("Equal area of the second set of directions"),
+      plotOutput(outputId = "CMDT_DI2",height = 520),
+      br(),
+      easyClose = TRUE,
+      footer=tagList(
+        modalButton('close')
+      )
+    ))
+  })
+  
+  output$CMDT_result1_2 <- renderText({
+    if(!is.null(CMDT$result2)){paste("V3 obs.:", round(CMDT$result2[["CMDT_value"]],digit=2))}
+  })
+  output$CMDT_result2_2 <- renderText({
+    if(!is.null(CMDT$result2)){paste("V3 crit.:", round(CMDT$result2[["CMDT_critical_value"]], digit=2))}
+  })
+  output$CMDT_result3_2 <- renderText({
+    if(!is.null(CMDT$result2)){paste(ifelse(CMDT$result2[["CMDT_value"]]>CMDT$result2[["CMDT_critical_value"]],
+                                            "Test not passed","Test passed"))}
+  })
+  output$CMDT_result4_2 <- renderText({
+    if(!is.null(CMDT$result2[["mean_direction"]])){
+      paste("Comm. Dec.:",round((CMDT$result2[["mean_direction"]][["dec"]])%%360, digits = 1),"-","Comm. Inc.:",
+            round(CMDT$result2[["mean_direction"]][["inc"]], digits = 1))}
+  })
+  
+  
+  #execute CMDT test
+  output$revtest2 <- renderPlot({
+    revtest_plot2()
+  },width = 1200,height = 700)
+  
+  ############ END OF CMDT OF TWO DATASETS MODULE
   
   
   ##################### SVEI MODULE 
@@ -3115,15 +3197,12 @@ server <- function(input, output){
   plot_VGP_S <- function(VGP,lat=90,long=0,grid=30,plot_vgp=TRUE, symbol="c",cex=1,
                          col_sym_out="black", col="black",col_f="cyan",col_boot=rgb(1,0,0,0.15),
                          on_plot=FALSE,auto_cent=TRUE,coast=FALSE, title="",save=TRUE,A95=FALSE,B95=FALSE,nb=1000,VGPint=1,plot=T){
-    #functions converting degree and radians
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     
     #functions converting long & lat to xy
-    c2x <- function(lon,lat) {cos(d2r(lat))*sin(d2r(lon-lon0))}
-    c2y <- function(lon,lat) {(cos(d2r(lat0))*sin(d2r(lat)))-(sin(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
+    c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-lon0))}
+    c2y <- function(lon,lat) {(cos(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
     #cut is cosin of c, when negative is behind projections, needs to be cut
-    cut <- function(lon,lat) {(sin(d2r(lat0))*sin(d2r(lat)))+(cos(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
+    cut <- function(lon,lat) {(sin(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
     
     #manipulate data
     colnames(VGP) <- c("lon","lat")
@@ -3228,8 +3307,8 @@ server <- function(input, output){
       bootlonlat$Plon <- rep(PPole[1,1])
       bootlonlat$Plat <- rep(PPole[1,2])
       bootlonlat$delta <- abs(bootlonlat$vgp_lon-bootlonlat$Plon)
-      bootlonlat$diff <- r2d(acos((sin(d2r(bootlonlat$vgp_lat))*sin(d2r(bootlonlat$Plat)))+
-                                    (cos(d2r(bootlonlat$vgp_lat))*cos(d2r(bootlonlat$Plat))*cos(d2r(bootlonlat$delta)))))
+      bootlonlat$diff <- PmagDiR::r2d(acos((sin(PmagDiR::d2r(bootlonlat$vgp_lat))*sin(PmagDiR::d2r(bootlonlat$Plat)))+
+                                             (cos(PmagDiR::d2r(bootlonlat$vgp_lat))*cos(PmagDiR::d2r(bootlonlat$Plat))*cos(PmagDiR::d2r(bootlonlat$delta)))))
       ang_dis <- as.data.frame(bootlonlat$diff)
       ang_dis <- (ang_dis[order(ang_dis[,1]),])
       conf <- 0.95
@@ -3915,12 +3994,12 @@ server <- function(input, output){
   SVGP_generator <- function(N,k,lon,lat,k_tol){
     #sub-function generating random long lat
     fisherDiR <- function(k){
-      r2d <- function(x) {x*(180/pi)}
+      PmagDiR::r2d <- function(x) {x*(180/pi)}
       L <- exp(-2*k)
       a <- runif(1)*(1-L)+L
       f <- sqrt(-log(a)/(2*k))
-      latitude <- 90-r2d(2*asin(f))
-      longitude <- r2d(2*pi*runif(1))
+      latitude <- 90-PmagDiR::r2d(2*asin(f))
+      longitude <- PmagDiR::r2d(2*pi*runif(1))
       return(c(longitude, latitude))
     }
     #reiterate until k is within the tolerance
@@ -4440,14 +4519,11 @@ server <- function(input, output){
       
       #plot pole names if required
       if(input$MVGP_names_YN==2){
-        #functions converting degree and radians
-        d2r <- function(x) {x*(pi/180)}
-        r2d <- function(x) {x*(180/pi)}
         #functions converting long & lat to xy
-        c2x <- function(lon,lat) {cos(d2r(lat))*sin(d2r(lon-lon0))}
-        c2y <- function(lon,lat) {(cos(d2r(lat0))*sin(d2r(lat)))-(sin(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
+        c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-lon0))}
+        c2y <- function(lon,lat) {(cos(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
         #cut is cosin of c, when negative is behind projections, needs to be cut
-        cut <- function(lon,lat) {(sin(d2r(lat0))*sin(d2r(lat)))+(cos(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
+        cut <- function(lon,lat) {(sin(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
         
         #define coordinate for name of pole
         x <- c2x(VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][[1,2]],VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][[1,3]])
@@ -4522,14 +4598,12 @@ server <- function(input, output){
     }
     
     #plot custom APWP,
-    if(input$APWP==4){        #functions converting degree and radians
-      d2r <- function(x) {x*(pi/180)}
-      r2d <- function(x) {x*(180/pi)}
+    if(input$APWP==4){        
       lat0 <-  centerLat
       lon0 <-  centerLong
       #functions converting long & lat to xy
-      c2x <- function(lon,lat) {cos(d2r(lat))*sin(d2r(lon-lon0))}
-      c2y <- function(lon,lat) {(cos(d2r(lat0))*sin(d2r(lat)))-(sin(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
+      c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-lon0))}
+      c2y <- function(lon,lat) {(cos(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
       req(customAPWP())
       c_apwp <- customAPWP()
       #select age interval depending on slide select
@@ -4552,15 +4626,12 @@ server <- function(input, output){
       text(x=lin[nrow(lin),1], y=lin[nrow(lin),2],pos=4,substitute(paste(bold(text2))), cex= 1.5)
     }
     
-    #functions converting degree and radians
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     #functions converting long & lat to xy
     #convert to spherical coordinates using center Long and Lat as defined above
-    c2x <- function(lon,lat) {cos(d2r(lat))*sin(d2r(lon-centerLong))}
-    c2y <- function(lon,lat) {(cos(d2r(centerLat))*sin(d2r(lat)))-(sin(d2r(centerLat))*cos(d2r(lat))*cos(d2r(lon-centerLong)))}
+    c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-centerLong))}
+    c2y <- function(lon,lat) {(cos(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
     #cut is cosin of c, when negative is behind projections, needs to be cut
-    cut <- function(lon,lat) {(sin(d2r(centerLat))*sin(d2r(lat)))+(cos(d2r(centerLat))*cos(d2r(lat))*cos(d2r(lon-centerLong)))}
+    cut <- function(lon,lat) {(sin(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
     
     #if any vgp in table is selected it plots them, and the statistic,
     if(length(s)){
@@ -4961,7 +5032,6 @@ server <- function(input, output){
   
   #main function and plot
   output$magstrat <- renderPlot({
-    req(Dirs$dat)
     if(input$filetype!=4 || input$filetype!=5){
       #data are always tilt corrected
       DI <- fix_DI(Dirs$dat,coord = 2)
@@ -5069,17 +5139,15 @@ server <- function(input, output){
   
   
   geo_point_plot <- eventReactive(input$mapgo,{
-    d2r <- function(x) {x*(pi/180)}
-    r2d <- function(x) {x*(180/pi)}
     
     #functions converting long & lat to xy in KavrayskiyVII projection
-    c2x <- function(lon,lat) {((3*d2r(lon))/2)*(sqrt((1/3)-((d2r(lat)/pi)^2)))}
-    c2y <- function(lat) {d2r(lat)}
+    c2x <- function(lon,lat) {((3*PmagDiR::d2r(lon))/2)*(sqrt((1/3)-((PmagDiR::d2r(lat)/pi)^2)))}
+    c2y <- function(lat) {PmagDiR::d2r(lat)}
     
     #functions spherical (lon=x, lat=y) to Cartesian
-    s2cx <- function(x,y) {cos(d2r(x))*cos(d2r(y))}
-    s2cy <- function(x,y) {sin(d2r(x))*cos(d2r(y))}
-    s2cz <- function(y) {sin(d2r(y))}
+    s2cx <- function(x,y) {cos(PmagDiR::d2r(x))*cos(PmagDiR::d2r(y))}
+    s2cy <- function(x,y) {sin(PmagDiR::d2r(x))*cos(PmagDiR::d2r(y))}
+    s2cz <- function(y) {sin(PmagDiR::d2r(y))}
     
     #define center meridian
     if(input$gridCent==1) {center <- 0}
@@ -5178,7 +5246,4 @@ server <- function(input, output){
     geo_point_plot()
   },height = 700)
   ############ END OF MAPPING MODULE
-  
-  
-  
 }
