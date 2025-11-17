@@ -310,10 +310,6 @@ ui <- fluidPage(
                    h4(textOutput("inc_warn"))
                  ),
                  br(),
-                 fluidRow(
-                   column(12,actionButton("resetDir",label = "Delete input file", width = "100%"))
-                 ),
-                 br(),
                ),
                mainPanel(
                  fluidRow(downloadButton("exportG","Export graph"),
@@ -383,7 +379,11 @@ ui <- fluidPage(
                         sidebarLayout(
                           sidebarPanel(width=3,
                                        fluidRow(
-                                         column(12,h4("Reversal Test*"))),
+                                         column(12,h4("Reversal Test*"))
+                                       ),
+                                       fluidRow(
+                                         column(12,h6("Checks if the two modes flipped on the same hemisphere of the equal area share a common mean direction at a 95% confidence"))
+                                       ),
                                        br(),
                                        fluidRow(
                                          column(6,textInput("fileN_RT",label = "Export name",value = "Site")),
@@ -423,7 +423,11 @@ ui <- fluidPage(
                         sidebarLayout(
                           sidebarPanel(width=3,
                                        fluidRow(
-                                         column(12,h4("CMDT*"))),
+                                         column(12,h4("CMDT*"))
+                                       ),
+                                       fluidRow(
+                                         column(12,h6("Checks if the set of directions loaded in the main page and another set loaded here share a common mean direction at a 95% confidence"))
+                                       ),
                                        br(),
                                        fluidRow(
                                          column(12,fileInput(inputId = "CMDT_2_file",label = "Load second set"))

@@ -1431,8 +1431,6 @@ server <- function(input, output){
     file <- input$file
     Dirs$dirsFileName <- file$name
   })
-  #reset upload if requested
-  observeEvent(input$resetDir,{Dirs$Dirs <- "reset"})
   #read file if present, reset if requested
   input_file <- reactive({
     #take internal file if exists and selected
@@ -1440,12 +1438,10 @@ server <- function(input, output){
       sel <- input$saved_interpol_rows_selected
       dat <- specim$PCA_result_file[sel,]
       Dirs$dat <- dat
-      #return(dat)
     }
     else if(input$filetype==6){
       dat <- PmagDiR::Ardo_Geo_PmagDiR
       Dirs$dat <- dat
-      #return(dat)
     }else{
       if (is.null(Dirs$Dirs)) {
         return(NULL)
@@ -1453,9 +1449,7 @@ server <- function(input, output){
         if(input$filetype==8){
           Dirs$dat <- read.csv(file = input$file$datapath, skip = 3,header = F)
         }else{Dirs$dat <- read.csv(file = input$file$datapath)}
-      } else if (Dirs$Dirs == 'reset') {
-        return(NULL)
-      } 
+      }  
     }
   })
   
@@ -1821,12 +1815,12 @@ server <- function(input, output){
   observeEvent(input$cutDirs,{
     req(Dirs$dat)
     req(Dirs$to_delete)
-    temp <- Dirs$to_delete
-    temp <- as.character(temp)
-    for(i in temp){
-      for(l in 1:nrow(Dirs$dat)){
-        if(rownames(Dirs$dat[l,])==i){Dirs$dat <- Dirs$dat[-l,]}
-      }
+    #act differently for example data otherwise does not work. Do not ask me why, like this it works. it is likely because of the fix_DI function a bit messed up
+    if(input$filetype==6 && input$coord==2){
+      Dirs$dat <- Dirs$dat[-Dirs$to_delete,]
+    }else{
+      to_delete <- as.character(selectedDIR())
+      Dirs$dat <- Dirs$dat[!(row.names(Dirs$dat) %in% to_delete),]
     }
   })
   
@@ -5032,6 +5026,7 @@ server <- function(input, output){
   
   #main function and plot
   output$magstrat <- renderPlot({
+    req(Dirs$dat)
     if(input$filetype!=4 || input$filetype!=5){
       #data are always tilt corrected
       DI <- fix_DI(Dirs$dat,coord = 2)
