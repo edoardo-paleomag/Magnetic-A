@@ -1819,7 +1819,7 @@ server <- function(input, output){
     if(input$filetype==6 && input$coord==2){
       Dirs$dat <- Dirs$dat[-Dirs$to_delete,]
     }else{
-      to_delete <- as.character(selectedDIR())
+      to_delete <- as.character(Dirs$to_delete)
       Dirs$dat <- Dirs$dat[!(row.names(Dirs$dat) %in% to_delete),]
     }
   })
