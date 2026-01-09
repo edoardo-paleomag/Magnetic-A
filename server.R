@@ -1263,11 +1263,11 @@ server <- function(input, output){
   observeEvent(input$save_GC,{
     req(specim$GC_directions)
     #create empty tab
-    temp_table <- data.frame(matrix(ncol=14,nrow = nrow(specim$GC_directions)))
-    colnames(temp_table) <- c("Sample","N","S_Dec","S_Inc","G_Dec","G_Inc","B_Dec","B_Inc","MAD","a95","k","Type","Comp","Steps")
+    temp_table <- data.frame(matrix(ncol=16,nrow = nrow(specim$GC_directions)))
+    colnames(temp_table) <- c("Sample","N","S_Dec","S_Inc","G_Dec","G_Inc","B_Dec","B_Inc","MAD","a95","k","Type","Comp","Steps","p(Ha|D)","p(Hc|D)")
     #paste details copied above
     temp_table[1:nrow(temp_table),1:2] <- specim$GC_firstCols
-    temp_table[1:nrow(temp_table),9:14] <- specim$GC_lastCols
+    temp_table[1:nrow(temp_table),9:16] <- specim$GC_lastCols
     if(input$EAcoordinates==2){
       temp_table[1:nrow(temp_table),7:8] <- round(specim$GC_directions, digits = 2)
     } else if(input$EAcoordinates==1){
@@ -1287,10 +1287,26 @@ server <- function(input, output){
     dat <- input$saved_interpol_rows_selected
     dirs_full <- TAB()
     dirs_selected <- dirs_full[dat,]
+    
+    #PREPARE SELECTING POINTS FOR PLOTTING INVISIBLE POINTS FOR DRAGGING IN EQUAL AREA WINDOW (BELOW)
+    #functions converting inc(x) and dec(y) into equal area
+    a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
+    a2cy <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*cos(PmagDiR::d2r(y))}
+    #check coordinates
+    if(input$EAcoordinates==1){
+      selection_2_convert <- dirs_selected[,2:3]}
+    else if(input$EAcoordinates==2){
+      selection_2_convert <- dirs_selected[,4:5]}
+    #add invisible points to select with drag
+    dirs_selected$x <- a2cx(abs(selection_2_convert[,2]),selection_2_convert[,1])
+    dirs_selected$y <- a2cy(abs(selection_2_convert[,2]),selection_2_convert[,1])
+    
     #cut great circles temporarily
     dirs_temp <- dirs_selected[dirs_selected$Type!="GC",]
     if(input$EAcoordinates==1){dirs <- dirs_temp[,2:3]}
     else if(input$EAcoordinates==2){dirs <- dirs_temp[,4:5]}
+    
+    #plots directions
     PmagDiR::plot_DI(dirs)
     #add great circles
     circles_temp <- dirs_selected[dirs_selected$Type=="GC",]
@@ -1305,14 +1321,7 @@ server <- function(input, output){
     if(is.null(specim$GC_directions)==FALSE){PmagDiR::plot_DI(DI = specim$GC_directions,on_plot = T,
                                                               col_d = "red",col_u = "pink",symbol = "t")}
     
-    #PREPARE SELECTING POINTS
-    #functions converting inc(x) and dec(y) into equal area
-    a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
-    a2cy <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*cos(PmagDiR::d2r(y))}
-    
     #plot invisible points to select with drag
-    dirs_selected$x <- a2cx(abs(dirs[,2]),dirs[,1])
-    dirs_selected$y <- a2cy(abs(dirs[,2]),dirs[,1])
     points(x = dirs_selected$x,y=dirs_selected$y,col=NA)
     
     #select points
@@ -1819,6 +1828,7 @@ server <- function(input, output){
     if(input$filetype==6 && input$coord==2){
       Dirs$dat <- Dirs$dat[-Dirs$to_delete,]
     }else{
+      #Dirs$to_delete comes from the renderplot part
       to_delete <- as.character(Dirs$to_delete)
       Dirs$dat <- Dirs$dat[!(row.names(Dirs$dat) %in% to_delete),]
     }
@@ -3988,7 +3998,6 @@ server <- function(input, output){
   SVGP_generator <- function(N,k,lon,lat,k_tol){
     #sub-function generating random long lat
     fisherDiR <- function(k){
-      PmagDiR::r2d <- function(x) {x*(180/pi)}
       L <- exp(-2*k)
       a <- runif(1)*(1-L)+L
       f <- sqrt(-log(a)/(2*k))
