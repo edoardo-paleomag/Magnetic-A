@@ -1463,6 +1463,8 @@ server <- function(input, output){
   })
   
   
+  
+  
   #fix dirs coordinate depending on input, file ncol, different cutoff
   fix_DI <- function(input_file,file=input$filetype,
                      Slat=input$lat, Slong=input$long,
@@ -1600,6 +1602,14 @@ server <- function(input, output){
   output$flatwarning <- renderText({flatwarn()})
   output$flatwarning2 <- renderText({flatwarn()})
   output$flatwarning3 <- renderText({flatwarn()})
+  output$flatwarning4 <- renderText({flatwarn()})
+  
+  #warning for not tilt coordinates in different pages
+  geowarn <- reactive({ifelse(input$coord!=2,"WARNING: data are not in Tilt Corrected coordinates","")})
+  output$geowarning <- renderText({geowarn()})
+  output$geowarning2 <- renderText({geowarn()})
+  output$geowarning3 <- renderText({geowarn()})
+  output$geowarning4 <- renderText({geowarn()})
   
   
   ############ EQUAL AREA MODULE
@@ -2736,7 +2746,6 @@ server <- function(input, output){
     Ds <- rot_block[,1]
     Is <- rot_block[,2]
     
-    
     n <- nrow(DI)
     if (n < 5) stop("Insufficient data: N must be ≥ 5")
     
@@ -3187,8 +3196,55 @@ server <- function(input, output){
   ##################### END OF SVEI MODULE
   
   
-  ############ VIRTUAL GEOMAGNETIC POLES MODULE
+  ############ TK03.GAD INCLINATION FLATTENING MODULE
+  #Function that correct inclination shallowing after tk03.GAD model
   
+  #create reactive file
+  ffind <- reactiveValues(results=NULL)
+  ffind_boot_plot <- eventReactive(input$ffindgo,{
+    #main function adapted
+    #perform routine
+    ffind_boot_funct <- function(){
+      DI <- fix_DI(Dirs$dat)
+      PmagDiR::ffind_boot_S(DI,nb=input$ffindboot,bootstrap=input$ffindyesnoboot)
+    }
+    #save statistic and makes plot
+    ffind$results <- ffind_boot_funct()
+    #total number of simulations
+    output$validboots <- renderText({paste("Total number of simulations:",ffind$results[[4]])})
+    
+    #prepare and plot table
+    output$ffindStat <- renderTable({ffind$results[[2]][1:2,]},rownames = T,
+                                    caption="Inc= inclination, E_dec= declination of elongation. Exported file includes f, N, Elongation.")
+  })
+  #execute ffind_boot test
+  output$ffindgraph <- renderPlot({
+    ffind_boot_plot()
+    ffindPlot <- recordPlot()
+    #Export graphic
+    output$ffindG <- downloadHandler(
+      filename = function() {
+        paste(input$fileN_FF,"_ffind_", Sys.Date(), ".pdf", sep="")
+      },
+      content = function(file) {
+        pdf(file, onefile = TRUE,width = 12,height = 11)
+        replayPlot(ffindPlot)
+        dev.off()
+      }
+    )
+    output$ffindS <- downloadHandler(
+      filename = function() {
+        paste(input$fileN_FF,"_ffind_", Sys.Date(), ".csv", sep="")
+      },
+      content = function(file) {
+        write.csv(ffind$results[[2]],file)
+      }
+    )
+  },width = 800,height = 700)
+  ############ END OF TK03.GAD INCLINATION FLATTENING MODULE
+  
+  
+  ############ VIRTUAL GEOMAGNETIC POLES MODULE
   #create service environment
   MVGP_temp <- new.env()
   assign("MVGP_temp", MVGP_temp, envir = .GlobalEnv)
@@ -3490,10 +3546,13 @@ server <- function(input, output){
     
     
     
-    #warning for geographic coordinates
-    geowarn <- ifelse(input$coord!=2,"WARNING: data are not in Tilt Corrected coordinates","")
-    output$geowarning <- renderText({geowarn})
-    
+    # #warning for geographic coordinates
+    # geowarn <- ifelse(input$coord!=2,"WARNING: data are not in Tilt Corrected coordinates","")
+    # output$geowarning <- renderText({geowarn})
+    # output$geowarning2 <- renderText({geowarn})
+    # output$geowarning3 <- renderText({geowarn})
+    # output$geowarning4 <- renderText({geowarn})
+    # 
     #warning for site coordinates not set
     coordwarn <- ifelse(input$lat==0 | input$long==0, "WARNING: site latitude and longitude are set as zero","")
     output$coordwarning <- renderText({coordwarn})
@@ -4400,7 +4459,7 @@ server <- function(input, output){
       }
       
       #if something is selected operates
-      if(nrow(extlist)>0){
+      if(nrow(extlist)>1){
         #calculate fisher of poles
         if(input$extrapolesfisher==2){
           Fisher <- PmagDiR::fisher(extlist)
@@ -4420,6 +4479,8 @@ server <- function(input, output){
         } 
       }
     }else{extpole$Fisher <- NULL}
+    #if only one entry it makes it null, otherwise it stays memorised
+    if(nrow(extlist)==1){extpole$Fisher <- NULL}
     #function return values used in all_poles_plotter
     return(extpole$Fisher)  
   })
@@ -4481,7 +4542,6 @@ server <- function(input, output){
   })
   
   
-  
   ######## FUNCTIONS FOR PLOTTING MULTIPLE VGP PARTS #########
   #plot VGPs selected from list
   plot_selected_VGP <- function(s,lat0,lon0){
@@ -4541,8 +4601,101 @@ server <- function(input, output){
   #create reactive file for merged VGPs color and symbol
   MrVGP <- reactiveValues(col_f=NULL)
   
+  #add localities to list for plotting
+  #create list file
+  localities <- reactiveValues(list=NULL)
+  
+  #open window with locality plot details
+  observeEvent(input$localitydetails, {
+    # display a modal dialog with a header, textinput and action buttons
+    showModal(modalDialog(
+      tags$h2('Enter Locality details'),
+      tags$h5('Default name and coordinates are from Direction display & average window'),
+      fluidRow(
+        column(4,textInput("LocName",label = "Name",value = input$fileN)),
+        column(4,numericInput("LocLat",label = "Latitude",value = input$lat,min = -90,max = 90)),
+        column(4,numericInput("LocLong",label = "Longitude",value = input$long,min = 0,max = 180))
+      ),
+      fluidRow(
+        column(4,selectInput("LocSymbol", label= "Symbol type",
+                             choices = list("circle"=1, "square"=2, "diamond"=3,"Triangle"=4),selected=1)),
+        column(4,selectInput("LocColor", label= "Symbol color",
+                             choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=7)),
+        column(4,numericInput("LocSize",label = "Symbol size",value = 1))
+      ),
+      fluidRow(
+        column(12, actionButton("addlocality",label = "ADD TO LOCALITY LIST",width = "100%"))
+      ),
+      
+      footer=tagList(
+        modalButton('close')
+      )
+    ))
+  })
+  
+  #Add locality details to list
+  observeEvent(input$addlocality,{
+    #check if list already exists
+    if(is.null(localities$list)==T){
+      localities$list <- data.frame(matrix(ncol=6,nrow = 0))
+      colnames(localities$list) <- c("Name","Lat","Long","Sym","Col","Size")
+    }
+    #choose color of pole
+    if(input$LocColor==1) LocColor <- "black"
+    if(input$LocColor==2) LocColor <- "blue"
+    if(input$LocColor==3) LocColor <- "green"
+    if(input$LocColor==4) LocColor <- "pink"
+    if(input$LocColor==5) LocColor <- "purple"
+    if(input$LocColor==6) LocColor <- "brown"
+    if(input$LocColor==7) LocColor <- "red"
+    if(input$LocColor==8) LocColor <- "yellow"
+    if(input$LocColor==9) LocColor <- "cyan"
+    if(input$LocColor==10) LocColor <- "gray"
+    if(input$LocColor==11) LocColor <- "white"
+    
+    #select symbol of pole
+    if(input$LocSymbol==1) LocSymbol <- "c"
+    if(input$LocSymbol==2) LocSymbol <- "s"
+    if(input$LocSymbol==3) LocSymbol <- "d"
+    if(input$LocSymbol==4) LocSymbol <- "t"
+    
+    temp <- data.frame(matrix(ncol=6,nrow = 0))
+    colnames(temp) <- c("Name","Lat","Long","Sym","Col","Size")
+    temp[1,1] <- input$LocName
+    temp[1,2] <- input$LocLat
+    temp[1,3] <- input$LocLong
+    temp[1,4] <- LocSymbol
+    temp[1,5] <- LocColor
+    temp[1,6] <- input$LocSize
+    
+    localities$list <- rbind(localities$list,temp)
+    
+    if(nrow(localities$list)==0){localities$list <- NULL}
+  })
+  
+  #delete Locality from list
+  observeEvent(input$cutlocality,{
+    if(!is.null(localities$list)){
+      d <- input$LocList_rows_selected
+      if(length(d)){localities$list <- localities$list[-d,]}
+    }
+    if(nrow(localities$list)==0){localities$list <- NULL}
+  })
+  
+  
+  #send to ui the interactive extra pole list
+  output$LocList <- DT::renderDataTable(localities$list, server = F)
+  
+  
   #function that creates plots for Multiple VGP analysis
   all_poles_plotter <- function(){
+    #functions converting long & lat to xy
+    #convert to spherical coordinates using center Long and Lat as defined above
+    c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-centerLong))}
+    c2y <- function(lon,lat) {(cos(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
+    #cut is cosin of c, when negative is behind projections, needs to be cut
+    cut <- function(lon,lat) {(sin(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
+    
     s <- input$MVGPlist_rows_selected
     ext <- input$EP_list_rows_selected
     #if no pole is selected from list, read center from input always
@@ -4560,6 +4713,27 @@ server <- function(input, output){
     PmagDiR::sph_ortho(lat = centerLat,long = centerLong,
                        coast = ifelse(input$MVGP_coast==1,TRUE,FALSE),
                        grid = input$MultiVGPGrid)
+    
+    #Add Localities
+    #check if list exists
+    if(!is.null(localities$list)){
+      d <- input$LocList_rows_selected
+      if(length(d)){
+        for(i in d){
+          PmagDiR::plot_PA95(lon = localities$list[i,3],
+                             lat = localities$list[i,2],
+                             lon0 = centerLong,lat0 = centerLat,A = NA,
+                             symbol = localities$list[i,4],
+                             col_f = localities$list[i,5],
+                             size = localities$list[i,6],
+                             on_plot = T)
+          locname <- localities$list[i,1]
+          text(x=c2x(localities$list[i,3],localities$list[i,2]),
+               y=c2y(localities$list[i,3],localities$list[i,2]),
+               pos=3,cex=1.2,substitute(paste(bold(locname))))
+        }
+      }
+    }
     
     #add APWP
     #read custom apwp file avoiding warning if not existing
@@ -4629,12 +4803,6 @@ server <- function(input, output){
       text(x=lin[nrow(lin),1], y=lin[nrow(lin),2],pos=4,substitute(paste(bold(text2))), cex= 1.5)
     }
     
-    #functions converting long & lat to xy
-    #convert to spherical coordinates using center Long and Lat as defined above
-    c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-centerLong))}
-    c2y <- function(lon,lat) {(cos(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
-    #cut is cosin of c, when negative is behind projections, needs to be cut
-    cut <- function(lon,lat) {(sin(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
     
     #if any vgp in table is selected it plots them, and the statistic,
     if(length(s)){
@@ -4855,33 +5023,36 @@ server <- function(input, output){
         extpole$extrameansymbol <- extrameansymbol
         extpole$extrameancolor <- extrameancolor
         
-        #the extfisher reactive function is above
-        Ext_P_fisher <- extfisher()
-        if(input$extrapolesfisher==2){
-          PmagDiR::plot_PA95(lon = Ext_P_fisher[1,1],
-                             lat = Ext_P_fisher[1,2],
-                             A = Ext_P_fisher[1,3],
-                             lon0 = centerLong,
-                             lat0 = centerLat,
-                             col_A = rgb(1,0,0,0.2),
-                             symbol = extrameansymbol,
-                             col_f = extrameancolor,
-                             size = 1.2,
-                             on_plot = T)
-          if(input$addextreanames==2){
-            averpolename <- input$extreameanname
-            #add name
-            text(x = c2x(Ext_P_fisher[1,1],Ext_P_fisher[1,2]),
-                 y = c2y(Ext_P_fisher[1,1],Ext_P_fisher[1,2]),
-                 pos=3,
-                 substitute(paste(bold(averpolename))), cex= 1.5)
+        #ask if it is null or not
+        if(!is.null(extfisher())){
+          #the extfisher reactive function is above
+          Ext_P_fisher <- extfisher()
+          if(input$extrapolesfisher==2){
+            PmagDiR::plot_PA95(lon = Ext_P_fisher[1,1],
+                               lat = Ext_P_fisher[1,2],
+                               A = Ext_P_fisher[1,3],
+                               lon0 = centerLong,
+                               lat0 = centerLat,
+                               col_A = rgb(1,0,0,0.2),
+                               symbol = extrameansymbol,
+                               col_f = extrameancolor,
+                               size = 1.2,
+                               on_plot = T)
+            if(input$addextreanames==2){
+              averpolename <- input$extreameanname
+              #add name
+              text(x = c2x(Ext_P_fisher[1,1],Ext_P_fisher[1,2]),
+                   y = c2y(Ext_P_fisher[1,1],Ext_P_fisher[1,2]),
+                   pos=3,
+                   substitute(paste(bold(averpolename))), cex= 1.5)
+            }
+          }else if(input$extrapolesfisher==3){
+            PmagDiR::plot_plane_sph(P_long = Ext_P_fisher[1,1],
+                                    P_lat = Ext_P_fisher[1,2],
+                                    lon0 = centerLong,
+                                    lat0 = centerLat,
+                                    plot_pole = T,on_plot = T)
           }
-        }else if(input$extrapolesfisher==3){
-          PmagDiR::plot_plane_sph(P_long = Ext_P_fisher[1,1],
-                                  P_lat = Ext_P_fisher[1,2],
-                                  lon0 = centerLong,
-                                  lat0 = centerLat,
-                                  plot_pole = T,on_plot = T)
         }
       }
     }

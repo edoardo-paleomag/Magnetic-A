@@ -53,7 +53,7 @@ ui <- fluidPage(
                )
              )
     ),
-    tabPanel("Directions analysis",
+    tabPanel("VEPs analysis",
              tabsetPanel(
                tabPanel("Vector end-points interpolation",
                         sidebarLayout(
@@ -95,7 +95,7 @@ ui <- fluidPage(
                                        br(),
                                        fluidRow(
                                          column(6,selectInput("anchor",label = "Interpolation",
-                                                              choices = list("PCA Free"=1,"PCA Anch."=2,"PCA Or. Incl."=3,"PPCA Constr."= 6, "Fisher"=4, "G. Circle"=5),selected = 1)%>%
+                                                              choices = list("PCA Free"=1,"PCA Anch."=2,"PCA Or. Incl."=3,"PCA Constr."= 6, "Fisher"=4, "G. Circle"=5),selected = 1)%>%
                                                   helper(type = "inline",
                                                          title = "Interpolation type",
                                                          content = c(
@@ -104,11 +104,11 @@ ui <- fluidPage(
                                                            "PCA Free- PCA free from origin of demagnetization axes",
                                                            "",
                                                            "PCA Anch.- PCA with ellipsoid centered at the origin of the demagnetization axes.",
-                                                           "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PPCA* TEST (available in main panel)",
+                                                           "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PROBABILISTIC PCA* TEST (available in main panel)",
                                                            "",
                                                            "PCA Or. Incl.- Includes origin of the demagnetization axes as demagnetization point",
                                                            "",
-                                                           "PPCA Constr.- Constrained PCA*",
+                                                           "PCA Constr.- Constrained PCA*",
                                                            "",
                                                            "Fisher- Fisher spherical average of the vector end-points",
                                                            "",
@@ -182,12 +182,12 @@ ui <- fluidPage(
                )
              )
     ),
-    tabPanel("Directions display, filter & average",
+    tabPanel("Directions display & average",
              sidebarLayout(
                sidebarPanel(
                  fluidRow(
                    column(6,fileInput("file", label= "Directions file input")),
-                   column(6,textInput("fileN",label = "Export name",value = "Site"))
+                   column(6,textInput("fileN",label = "Site name",value = "Site"))
                  ),
                  fluidRow(
                    column(8,selectInput("filetype", label = "Directions file type",
@@ -246,7 +246,7 @@ ui <- fluidPage(
                                      "",
                                      "Fisher (no split)- Standard Fisher (1953*) spherical mean (uses all directions without splitting the modes).",
                                      "",
-                                     "Elliptic- confidence ellipses is calculated following Deenen et al. (2011**).",
+                                     "Elliptic- confidence ellipsis is calculated following Deenen et al. (2011**).",
                                      "",
                                      "Inc. only- Inclination only average and 95% confidence (either single mode or bimodal) based on the Maximum likelihood solution of Arason and Levi (2010***).",
                                      "",
@@ -325,7 +325,7 @@ ui <- fluidPage(
     ),
     tabPanel("Bootstrap statistics",
              tabsetPanel(
-               tabPanel("Confidence ellipses",      
+               tabPanel("Confidence ellipsis",      
                         sidebarLayout(              
                           sidebarPanel(
                             fluidRow(
@@ -360,7 +360,7 @@ ui <- fluidPage(
                               column(12,h4(textOutput(outputId = "notbimodal")))),
                             br(),
                             fluidRow(
-                              column(12,h5("Average and confidence ellipses can be downloaded as coordinate points by clicking on 'Export ellipses'"))),
+                              column(12,h5("Average directions and confidence ellipsis can be downloaded as coordinate points by clicking on 'Export ellipsis'"))),
                             br(),
                             fluidRow(
                               column(12,h5("*Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
@@ -370,7 +370,7 @@ ui <- fluidPage(
                           mainPanel(
                             fluidRow(
                               downloadButton("B95_graph","Export graph"),
-                              downloadButton("B95_stat","Export ellipses")),
+                              downloadButton("B95_stat","Export ellipsis")),
                             plotOutput("B95_test")
                           )
                         )
@@ -473,13 +473,19 @@ ui <- fluidPage(
                )
              )
     ),
-    tabPanel("Distribution reliability (SVEI test)",
+    tabPanel("SVEI test",
              tabsetPanel(
                tabPanel("SVEI test",
                         sidebarLayout(
                           sidebarPanel(
                             fluidRow(
-                              column(12,h4("SVEI Test*"))),
+                              column(12,h4("SVEI Test"))),
+                            fluidRow(
+                              column(12,h5("Perform SVEI test for consistency with the THG24 GGP model. Translated in R from the original svei.py."))),
+                            fluidRow(
+                              column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2024JB029502", 
+                                                                    "Tauxe, L., Heslop, D., Gilder, S.A. (2024). JGR: Solid Earth, 129, e2024JB029502.", target="_blank"))
+                            ),
                             br(),
                             fluidRow(
                               column(4,textInput(inputId = "sveiEXPname",label = "Export name",value = "Site")),
@@ -494,21 +500,13 @@ ui <- fluidPage(
                             ),
                             br(),
                             h4(textOutput("flatwarning3")),
+                            h4(textOutput("geowarning3")),
                             fluidRow(
                               column(12,progressBar(
                                 id = "svei_test_b",
                                 value = 0,total=1000,
                                 title = "Simulations",
                                 display_pct = TRUE))
-                            ),
-                            br(),
-                            fluidRow(
-                              column(12,h5("*Perform SVEI test for consistency with the THG24 GGP model. Translated in R from the original svei.py."))),
-                            fluidRow(
-                              column(12,h5("Run the code locally for a faster bootstrap. Please find the link to the GitHub repository in the 'Introduction and resources' page."))),
-                            fluidRow(
-                              column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2024JB029502", 
-                                                                    "Tauxe, L., Heslop, D., Gilder, S.A. (2024). JGR: Solid Earth, 129, e2024JB029502.", target="_blank"))
                             )
                           ),
                           mainPanel(
@@ -520,7 +518,15 @@ ui <- fluidPage(
                tabPanel("Inclination flattening estimate",
                         sidebarLayout(
                           sidebarPanel(
-                            fluidRow(column(12,h4("SVEI Test - inclination flattening*"))),
+                            fluidRow(column(12,h4("SVEI Test - inclination flattening"))),
+                            br(),
+                            fluidRow(
+                              column(12,h5("Perform SVEI test for inclination flattening estimate by comparing progressively unflattened directions with the THG24 GGP model. Translated in R from the original svei.py."))),
+                            fluidRow(
+                              column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2024JB029502", 
+                                                                    "Tauxe, L., Heslop, D., Gilder, S.A. (2024). JGR: Solid Earth, 129, e2024JB029502.", target="_blank"))
+                            ),
+                            br(),
                             fluidRow(
                               column(12,h5("NOTE: This test can be SIGNIFICANTLY TIME DEMANDING. Lost of connection may result in annoying breaks of the process and data loss. 
                                          To avoid this, please use the original Jupyter notebook or run the R code locally."))),
@@ -559,6 +565,7 @@ ui <- fluidPage(
                             ),
                             br(),
                             h4(textOutput("flatwarning2")),
+                            h4(textOutput("geowarning2")),
                             fluidRow(
                               column(12,progressBar(
                                 id = "svei_test_EI_b",
@@ -573,13 +580,6 @@ ui <- fluidPage(
                                 value = 0,total=71,
                                 title = "Total increments performed",
                                 display_pct = TRUE))
-                            ),
-                            br(),
-                            fluidRow(
-                              column(12,h5("*Perform SVEI test for inclination flattening estimate by comparing progressively unflattened directions with the THG24 GGP model. Translated in R from the original svei.py."))),
-                            fluidRow(
-                              column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2024JB029502", 
-                                                                    "Tauxe, L., Heslop, D., Gilder, S.A. (2024). JGR: Solid Earth, 129, e2024JB029502.", target="_blank"))
                             )
                           ),
                           mainPanel(
@@ -589,6 +589,59 @@ ui <- fluidPage(
                             plotOutput("SVEI_EI_test_fig")
                           )
                         )
+               )
+             )
+    ),
+    tabPanel("TK03.GAD E/I Test",
+             sidebarLayout(
+               sidebarPanel(width = 3,
+                            fluidRow(
+                              column(12,h4("TK03.GAD E/I Test"))),
+                            fluidRow(
+                              column(12,h5("This page performs the test for inclination flattening of paleomagnetic directions based on the TK03.GAD field model (Elongation/Inclination test).
+                                           It is faster than the SVEI test, but it is based on an older paleosecular variation model and has less strict reliability criteria."))),
+                            br(),
+                            fluidRow(
+                              column(12,h5("Please refer to: "), tags$a(href="https://doi.org/10.7916/D81N89JT", 
+                                                                        "Tauxe, L., Kent, D.V. (2004). In Channell, J.E.T., Kent, D.V.,Lowrie, W., Meert,J.E.T. (Eds.), Timescales of the Paleomagnetic Field, Geophys. Monogr. (Vol. 145, pp. 101–115).", target="_blank"))
+                            ),
+                            br(),
+                            fluidRow(
+                              column(12,textInput("fileN_FF",label = "Export name",value = "Site"))
+                            ),
+                            fluidRow(
+                              column(6,selectInput("ffindyesnoboot", label="Bootstrap?",
+                                                   choices = list("No"= 1, "Yes" = 2),selected = 1)),
+                              column(6,numericInput("ffindboot", label="Bootstraps number",value=1000))
+                            ),
+                            fluidRow(
+                              column(12,actionButton("ffindgo", label= "Perform",width = "100%"))
+                            ),
+                            br(),
+                            h4(textOutput("flatwarning4")),
+                            h4(textOutput("geowarning4")),
+                            br(),
+                            fluidRow(
+                              column(12,progressBar(
+                                id = "ffindbootstrap",
+                                value = 0,total=1000,
+                                title = "Valid bootstraps",
+                                display_pct = TRUE
+                              ))
+                            ),
+                            fluidRow(h5(textOutput("validboots"))),
+                            br(),
+                            fluidRow(
+                              tableOutput("ffindStat")
+                            )
+               ),
+               mainPanel(
+                 fluidRow(
+                   downloadButton("ffindG","Export graph"),
+                   downloadButton("ffindS","Export stat")
+                 ),
+                 column(1),
+                 plotOutput("ffindgraph")
                )
              )
     ),
@@ -996,12 +1049,19 @@ ui <- fluidPage(
                                     plotOutput("MVGP_plot2"))
                         )
                ),
-               tabPanel("Analysis - 3 - Add APWP",
+               tabPanel("Analysis - 3 - Add APWP & Geo Loc.",
                         sidebarLayout(
                           sidebarPanel(width = 5,
                                        fluidRow(
                                          column(8,h4("Add APWP"))
                                        ),
+                                       fluidRow(
+                                         column(12,h5("Compiled available global synthetic APWPs: "), tags$a(href="https://doi.org/10.1016/j.earscirev.2023.104547", 
+                                                                                                             "(V2023): Vaes, B. et al. (2023). Earth-Science Reviews, 245(104547), 1–35.", target="_blank")),
+                                         column(12, tags$a(href="http://linkinghub.elsevier.com/retrieve/pii/S0012825212000797", 
+                                                           "(T2012): Torsvik, T.H., et al. (2012). Earth-Science Reviews, 114(3–4), 325–368.", target="_blank"))
+                                       ),
+                                       br(),
                                        fluidRow(
                                          column(4,selectInput("APWP", label = "APWP",
                                                               choices = list("None"=1,"V2023"=2,"T2012"=3,"Custom"=4),selected=1)),
@@ -1032,11 +1092,16 @@ ui <- fluidPage(
                                          column(4,numericInput("apwp_O",label = "APWP max age",value = 320))
                                        ),
                                        fluidRow(
-                                         column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1016/j.earscirev.2023.104547", 
-                                                                               "(V2023): Vaes, B. et al. (2023). Earth-Science Reviews, 245(104547), 1–35.", target="_blank")),
-                                         column(12, tags$a(href="http://linkinghub.elsevier.com/retrieve/pii/S0012825212000797", 
-                                                           "(T2012): Torsvik, T.H., et al. (2012). Earth-Science Reviews, 114(3–4), 325–368.", target="_blank"))
-                                       )
+                                         column(8,h4("Add geographic localities:"))
+                                       ),
+                                       fluidRow(
+                                         column(6, actionButton(inputId = "localitydetails",label = "INSERT LOCALITY DETAILS",width = "100%")),
+                                         column(6, actionButton(inputId = "cutlocality",label = "DELETE LOCALITY FROM LIST",width = "100%"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,DT::dataTableOutput("LocList"))
+                                       ),
                           ),
                           mainPanel(
                             width = 7,
@@ -1168,3 +1233,4 @@ ui <- fluidPage(
     )
   )
 )
+
