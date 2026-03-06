@@ -1612,7 +1612,9 @@ server <- function(input, output){
   output$geowarning4 <- renderText({geowarn()})
   
   
-  ############ EQUAL AREA MODULE
+  ############ DIRECTIONS DISPILAY & AVERAGE
+  
+  ####### DIRECTIONS DISPILAY & AVERAGE SUBPAGE
   #modified fisher_plot function
   fisher_plot_S <- function(DI, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c",auto_split=TRUE) {
     data <- DI
@@ -1815,7 +1817,6 @@ server <- function(input, output){
     
   })
   
-  
   #function that select directions from screen
   selectedDIR <- reactive({
     DI_2_drag <- fix_DI(Dirs$dat)
@@ -1853,7 +1854,7 @@ server <- function(input, output){
   
   #equal area function
   plot_dirs <- function(DI,Slat=input$lat,Slong=input$long,mode=input$mode,
-                        colD=input$colD,colU=input$colU,sym=input$sym){
+                        colD=input$colD,colU=input$colU,sym=input$sym,GAD=input$addGAD){
     #file with possible error message from inclination only routine
     inc_warn <- NULL
     #define colors Down-pointing
@@ -1875,6 +1876,10 @@ server <- function(input, output){
     if(sym==4) sym <- "t"
     
     PmagDiR::plot_DI(DI,col_d = colD,col_u = colU, symbol = sym)
+    #plot GAD if requested
+    if(GAD==2){PmagDiR::plot_GAD(lat = Slat,on_plot = T,size = 0.18,col_u = "yellow")}
+    if(GAD==3){PmagDiR::plot_GAD(lat = Slat,on_plot = T,circle = T,size=0.18,col_u = "yellow")}
+    
     #plot statistic, with warning message if any from Arason+Levi2010 algorythm, or assign NULL in all other cases
     #inc warn must be created in the environment normally to cover the one created by PmagDiR
     if(input$fisher==2){
@@ -1913,6 +1918,7 @@ server <- function(input, output){
     
     #apply plotting function
     plot_dirs(fix_DI(Dirs$dat))
+    
     
     #select points dragging from screen
     Dirs$to_delete <- selectedDIR()   
@@ -1984,7 +1990,600 @@ server <- function(input, output){
       }
     )
   },width = 700,height = 700)
-  ############ END OF EQUAL AREA MODULE
+  ####### END OF DIRECTIONS DISPILAY & AVERAGE SUBPAGE
+  
+  ####### MULTIPLE DIRECTION SETS AND AVERAGED DIRECTIONS PLOT SUBPAGES
+  ###create reactive file table parametric
+  #direction sets table to display
+  multiDirsTab <- reactiveValues(table_sets=NULL) 
+  #direction sets list
+  multiDirsList <- reactiveValues(sets=NULL)
+  #multi parametric average
+  multiFish <- reactiveValues(table_p=NULL)
+  #multi non-parametric average
+  multiBoot <- reactiveValues(table_b=NULL)
+  #list with non-parametric ellipses
+  multiEllips <- reactiveValues(ellips=NULL)
+  #file for recording plot to save
+  multiDirs <- reactiveValues(plot=NULL)
+  
+  #import directions set from file
+  observeEvent(input$extDirsFile, {
+    #save name for later rowname use
+    fileName <- input$extDirsFile$name
+    
+    #import file
+    ext_Dirs_file <- read.csv(file = input$extDirsFile$datapath,header = T)
+    #remove empty rows to avoid wrong N
+    ext_Dirs_file <- na.omit(ext_Dirs_file)
+    
+    #create and populate temporary file for table
+    temp <- data.frame(matrix(ncol=5,nrow = 1))
+    colnames(temp) <- c("Name","N","Sym.","Col. D.","Col. U.")
+    temp[1,1] <- fileName
+    temp[1,2] <- nrow(ext_Dirs_file)
+    temp[1,3] <- "c"
+    temp[1,4] <- "black"
+    temp[1,5] <- "white"
+    
+    #Directions set is saved elsewhere in a reactive list. Need to create an unique name for it with file and dec inc of first row
+    ExtDirsName_1 <- paste(fileName,"_",ext_Dirs_file[1,1],"_",ext_Dirs_file[1,2],sep = "")
+    
+    #depending of the lenth of the exising list it make an index for the new set
+    ExtDirsListIndex <- length(multiDirsList$sets)
+    #send set to the list
+    multiDirsList$sets[[ExtDirsListIndex+1]] <- ext_Dirs_file[,1:2]
+    #change name of the set in the list
+    names(multiDirsList$sets)[ExtDirsListIndex+1] <- ExtDirsName_1
+    
+    #name is also assign to the row, so the set can be called again to plot.
+    rownames(temp) <- ExtDirsName_1
+    
+    #if table is null makes it, or add new rows if it exists
+    if(is.null(multiDirsTab$table_sets)){
+      multiDirsTab$table_sets <- temp
+    }else{multiDirsTab$table_sets <- rbind(multiDirsTab$table_sets,temp)}
+    multiDirsTab$table_sets <- unique(multiDirsTab$table_sets)
+  })
+  
+  #import main set from DD&A window
+  observeEvent(input$ADD_Dirs,{
+    #take directions 
+    req(Dirs$dat)
+    DI <- fix_DI(Dirs$dat)
+    req(nrow(DI)>0)
+    #save name as typed in main window for later rowname use
+    fileName <- input$fileN
+    
+    #create and populate temporary file for table
+    temp <- data.frame(matrix(ncol=5,nrow = 1))
+    colnames(temp) <- c("Name","N","Sym.","Col. D.","Col. U.")
+    temp[1,1] <- fileName
+    temp[1,2] <- nrow(DI)
+    temp[1,3] <- "c"
+    temp[1,4] <- "black"
+    temp[1,5] <- "white"
+    
+    #Directions set is saved elsewhere in a reactive list. Need to create an unique name for it with file and dec inc of first row
+    ExtDirsName_1 <- paste(fileName,"_",DI[1,1],"_",DI[1,2],sep = "")
+    
+    #depending of the lenth of the exising list it make an index for the new set
+    ExtDirsListIndex <- length(multiDirsList$sets)
+    #send set to the list
+    multiDirsList$sets[[ExtDirsListIndex+1]] <- DI[,1:2]
+    #change name of the set in the list
+    names(multiDirsList$sets)[ExtDirsListIndex+1] <- ExtDirsName_1
+    
+    #name is also assign to the row, so the set can be called again to plot.
+    rownames(temp) <- ExtDirsName_1
+    
+    #if table is null makes it, or add new rows if it exists
+    if(is.null(multiDirsTab$table_sets)){
+      multiDirsTab$table_sets <- temp
+    }else{multiDirsTab$table_sets <- rbind(multiDirsTab$table_sets,temp)}
+    multiDirsTab$table_sets <- unique(multiDirsTab$table_sets)
+  })
+  
+  #send multiDirsTab to UI and make it editable cell by cell
+  output$multiDirsTab <- DT::renderDataTable({
+    req(multiDirsTab$table_sets)  
+    datatable(multiDirsTab$table_sets, editable = list(target="cell", disable= list(columns=c(0,1))),rownames = FALSE,
+              options = list(
+                dom = 't',                    # 't' mostra solo la tabella, senza l'intestazione e ricerca
+                paging = FALSE,               # Disabilita la paginazione
+                searching = FALSE              # Disabilita la ricerca
+              ))  %>%
+      formatStyle(
+        columns = c("Name","N","Sym.","Col. D.","Col. U."), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #modify table through UI
+  observeEvent(input$multiDirsTab_cell_edit, {
+    info <- input$multiDirsTab_cell_edit
+    #current values in table
+    modified_data <-  multiDirsTab$table_sets  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why, it's like a chopper flying without spinning blades)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    multiDirsTab$table_sets <- modified_data
+  })
+  
+  #delete entry from multi dirs tab
+  observeEvent(input$Del_Dirs,{
+    if(!is.null(multiDirsTab$table_sets)){
+      d <- input$multiDirsTab_rows_selected
+      if(length(d)){multiDirsTab$table_sets <- multiDirsTab$table_sets[-d,]}
+      if(nrow(multiDirsTab$table_sets)==0){multiDirsTab$table_sets <- NULL}
+    }#does not delete from list as it is not relevant if data stays there temporarily
+  })
+  
+  #import parametric average from file
+  observeEvent(input$multiFishFile,{
+    #save name for later rowname use
+    fileName <- input$multiFishFile$name
+    
+    #import file
+    ext_MFish_file <- read.csv(file = input$multiFishFile$datapath,header = T)
+    
+    #create temporary file with same row number
+    temp <- data.frame(matrix(ncol=7,nrow = nrow(ext_MFish_file)))
+    colnames(temp) <- c("Dec.","Inc.","a95(dec)","a95_inc","Sym.","S. Col","L. Col")
+    
+    
+    #create the rest depending on the file (columns number)
+    #only standard Fisher
+    if(ncol(ext_MFish_file)==3){
+      temp[,1] <- ext_MFish_file[,1]
+      temp[,2] <- ext_MFish_file[,2]
+      temp[,3] <- ext_MFish_file[,3]
+      temp[,4] <- 0
+      temp[,5] <- "c"
+      temp[,6] <- ifelse(temp[,2]<0,"white","black")
+      temp[,7] <- "black"
+    }
+    #Deenan elliptic
+    else if(ncol(ext_MFish_file)==4){
+      temp[,1] <- ext_MFish_file[,1]
+      temp[,2] <- ext_MFish_file[,2]
+      temp[,3] <- ext_MFish_file[,3]
+      temp[,4] <- ext_MFish_file[,4]
+      temp[,5] <- "c"
+      temp[,6] <- ifelse(temp[,2]<0,"white","black")
+      temp[,7] <- "black"
+    }
+    #Standard Fisher+symbol and color
+    else if(ncol(ext_MFish_file)==6){
+      #this is for Magnetic-A fisher-exported files 
+      if(all(names(ext_MFish_file)==c("X","dec","inc","a95","N","k"))){
+        temp[,1] <- ext_MFish_file[,2]
+        temp[,2] <- ext_MFish_file[,3]
+        temp[,3] <- ext_MFish_file[,4]
+        temp[,4] <- 0
+        temp[,5] <- "c"
+        temp[,6] <- ifelse(temp[,2]<0,"white","black")
+        temp[,7] <- "black"
+      }
+      #magnetic-A elliptic
+      else if(all(names(ext_MFish_file)==c("X","dec","inc","a95.dec","a95.inc","N"))){
+        temp[,1] <- ext_MFish_file[,2]
+        temp[,2] <- ext_MFish_file[,3]
+        temp[,3] <- ext_MFish_file[,4]
+        temp[,4] <- ext_MFish_file[,5]
+        temp[,5] <- "c"
+        temp[,6] <- ifelse(temp[,2]<0,"white","black")
+        temp[,7] <- "black"
+      }
+      #any other 6 columns file
+      else{
+        temp[,1] <- ext_MFish_file[,1]
+        temp[,2] <- ext_MFish_file[,2]
+        temp[,3] <- ext_MFish_file[,3]
+        temp[,4] <- 0
+        temp[,5] <- ext_MFish_file[,4]
+        temp[,6] <- ext_MFish_file[,5]
+        temp[,7] <- ext_MFish_file[,6]
+      }
+    }
+    #Deenan elliptic+ all symbol and color
+    else if(ncol(ext_MFish_file)==7){
+      temp[,1] <- ext_MFish_file[,1]
+      temp[,2] <- ext_MFish_file[,2]
+      temp[,3] <- ext_MFish_file[,3]
+      temp[,4] <- ext_MFish_file[,4]
+      temp[,5] <- ext_MFish_file[,5]
+      temp[,6] <- ext_MFish_file[,6]
+      temp[,7] <- ext_MFish_file[,7]
+    } 
+    #check if multifish reactive file exists and merge or create
+    if(is.null(multiFish$table_p)){
+      multiFish$table_p <- temp
+    }else{multiFish$table_p <- rbind(multiFish$table_p,temp)}
+    
+  })
+  
+  #import non-parametric data from file
+  observeEvent(input$multiBootFile,{
+    #save name for later rowname use
+    fileName <- input$multiBootFile$name
+    
+    #import file
+    ext_Boot_file <- read.csv(file = input$multiBootFile$datapath,header = T)
+    
+    #create and populate temporary file of table
+    temp <- data.frame(matrix(ncol=5,nrow = 2))
+    colnames(temp) <- c("Dec.","Inc.","Sym.","S. Col","L. Col")
+    temp[1,1:2] <- round(ext_Boot_file[1,1:2],digits = 1)
+    temp[1,3] <- "c"
+    temp[1,4] <- ifelse(temp[1,2]<0,"white","black")
+    temp[1,5] <- "black"
+    
+    #ellipsis is saved elsewhere in a reactive list. Need to create an unique name for it with file and dec inc
+    ellipsName_1 <- paste(fileName,"_",temp[1,1],"_",temp[1,2],sep = "")
+    
+    #depending of the lenth of the exising list it make an index for the new ellipse
+    ellipsListIndex <- length(multiEllips$ellips)
+    #send ellipse to the list
+    multiEllips$ellips[[ellipsListIndex+1]] <- ext_Boot_file[,3:4]
+    #change name of the ellipse in the list
+    names(multiEllips$ellips)[ellipsListIndex+1] <- ellipsName_1
+    
+    #name is also assign to the row, so the ellipsis can be called again to plot.
+    rownames(temp) <- c(ellipsName_1,"to_change")
+    
+    #if it is a file with two modes, first condition is to avoid crash with wrong file
+    if(ncol(ext_Boot_file)>4 && !is.na(ext_Boot_file[1,5])){
+      temp[2,1:2] <- round(ext_Boot_file[1,5:6], digits = 1)
+      temp[2,3] <- "c"
+      temp[2,4] <- ifelse(temp[2,2]<0,"white","black")
+      temp[2,5] <- "black"
+      #name of ellipsis
+      ellipsName_2 <- paste(fileName,"_",temp[2,1],"_",temp[2,2],sep = "")             
+      multiEllips$ellips[[ellipsListIndex+2]] <- ext_Boot_file[,7:8]
+      names(multiEllips$ellips)[ellipsListIndex+2] <- ellipsName_2
+      #rename rows of the table
+      rownames(temp) <- c(ellipsName_1,ellipsName_2)                             
+    }
+    
+    #delete NA row in case one mode only
+    temp <- na.omit(temp)
+    
+    #if table is null makes it, or add new rows if it exists
+    if(is.null(multiBoot$table_b)){
+      multiBoot$table_b <- temp
+    }else{multiBoot$table_b <- rbind(multiBoot$table_b,temp)}
+    multiBoot$table_b <- unique(multiBoot$table_b)
+  })
+  
+  #open window to enter fisher mean details manually
+  observeEvent(input$MultiFishDetails, {
+    # display a modal dialog with a header, textinput and action buttons
+    showModal(modalDialog(
+      tags$h2('Enter average direction details'),
+      fluidRow(
+        column(3,numericInput("MFdec",label = "Declination",value = 0)),
+        column(3,numericInput("MFinc",label = "Inclination",value = 0)),
+        column(3,numericInput("MFa95",label = "a95 (Dec)*",value = 0)),
+        column(3,numericInput("MFa95_inc",label = "a95 Inc",value = 0))
+      ),
+      fluidRow(
+        column(4,selectInput("MFsym", label= "Symbol",
+                             choices = list("circle"=1, "square"=2, "diamond"=3,"Triangle"=4),selected=1)),
+        column(4,selectInput("MFcolor_s", label= "Symbol color",
+                             choices= list("black"=1,"blue"=2,"green"=3,"darkgreen"=12,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=1)),
+        column(4,selectInput("MFcolor_l", label= "Line color",
+                             choices= list("black"=1,"blue"=2,"green"=3,"darkgreen"=12,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=1))
+      ),
+      br(),
+      tags$h5('*In case of circular (standard Fisher) 95% confidence, fill only a95 (Dec) and leave a95 Inc zero. In case of elliptic 95% confidence [Deenan et al. GJI 186(2), 509-520, 2013] fill both Dec and Inc 95%'),
+      br(),
+      fluidRow(
+        column(12, actionButton(inputId = "addMultiFish",label = "ADD TO LIST",width = "100%"))
+      ),
+      footer=tagList(
+        modalButton('close')
+      )
+    ))
+  })
+  
+  #add manually typed average direction to list
+  observeEvent(input$addMultiFish,{
+    #check if list already exists
+    if(is.null(multiFish$table_p)==T){
+      multiFish$table_p <- data.frame(matrix(ncol=7,nrow = 0))
+      colnames(multiFish$table_p) <- c("Dec.","Inc.","a95(dec)","a95_inc","Sym.","S. Col","L. Col")
+    }
+    #temporary row
+    temp <- data.frame(matrix(ncol=7,nrow = 0))
+    colnames(temp) <- c("Dec.","Inc.","a95(dec)","a95_inc","Sym.","S. Col","L. Col")
+    
+    #select symbol of dir
+    if(input$MFsym==1) MFsym <- "c"
+    if(input$MFsym==2) MFsym <- "s"
+    if(input$MFsym==3) MFsym <- "d"
+    if(input$MFsym==4) MFsym <- "t"
+    
+    #choose color of point
+    if(input$MFcolor_s==1) MFcolor_s <- "black"
+    if(input$MFcolor_s==2) MFcolor_s <- "blue"
+    if(input$MFcolor_s==3) MFcolor_s <- "green"
+    if(input$MFcolor_s==12) MFcolor_s <- "darkgreen"
+    if(input$MFcolor_s==4) MFcolor_s <- "pink"
+    if(input$MFcolor_s==5) MFcolor_s <- "purple"
+    if(input$MFcolor_s==6) MFcolor_s <- "brown"
+    if(input$MFcolor_s==7) MFcolor_s <- "red"
+    if(input$MFcolor_s==8) MFcolor_s <- "yellow"
+    if(input$MFcolor_s==9) MFcolor_s <- "cyan"
+    if(input$MFcolor_s==10) MFcolor_s <- "gray"
+    if(input$MFcolor_s==11) MFcolor_s <- "white"
+    #color of line
+    if(input$MFcolor_l==1) MFcolor_l <- "black"
+    if(input$MFcolor_l==2) MFcolor_l <- "blue"
+    if(input$MFcolor_l==3) MFcolor_l <- "green"
+    if(input$MFcolor_l==12) MFcolor_l <- "darkgreen"
+    if(input$MFcolor_l==4) MFcolor_l <- "pink"
+    if(input$MFcolor_l==5) MFcolor_l <- "purple"
+    if(input$MFcolor_l==6) MFcolor_l <- "brown"
+    if(input$MFcolor_l==7) MFcolor_l <- "red"
+    if(input$MFcolor_l==8) MFcolor_l <- "yellow"
+    if(input$MFcolor_l==9) MFcolor_l <- "cyan"
+    if(input$MFcolor_l==10) MFcolor_l <- "gray"
+    if(input$MFcolor_l==11) MFcolor_l <- "white"
+    
+    #fill temporary row
+    temp[1,1] <- input$MFdec
+    temp[1,2] <- input$MFinc
+    temp[1,3] <- input$MFa95
+    temp[1,4] <- input$MFa95_inc
+    temp[1,5] <- MFsym
+    temp[1,6] <- MFcolor_s
+    temp[1,7] <- MFcolor_l
+    
+    #combine with entries
+    multiFish$table_p <- rbind(multiFish$table_p,temp)
+  })                                           
+  
+  #send table to UI and make it editable cell by cell
+  output$multiFishTab <- DT::renderDataTable({
+    req(multiFish$table_p)  
+    datatable(multiFish$table_p, editable = TRUE,rownames = FALSE,
+              options = list(
+                dom = 't',                    # 't' mostra solo la tabella, senza l'intestazione e ricerca
+                paging = FALSE,               # Disabilita la paginazione
+                searching = FALSE              # Disabilita la ricerca
+              ))  %>%
+      formatStyle(
+        columns = c("Dec.","Inc.","a95(dec)","a95_inc","Sym.","S. Col","L. Col"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #send table of non-parametric averages to UI
+  output$multiBootTab <- DT::renderDataTable({
+    req(multiBoot$table_b)  
+    datatable(multiBoot$table_b, editable = list(target="cell", disable= list(columns=c(0,1))),rownames = FALSE,
+              options = list(
+                dom = 't',                    # 't' mostra solo la tabella, senza l'intestazione e ricerca
+                paging = FALSE,               # Disabilita la paginazione
+                searching = FALSE              # Disabilita la ricerca
+              ))  %>%
+      formatStyle(
+        columns = c("Dec.","Inc.","Sym.","S. Col","L. Col"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #shows table title if present
+  output$TableParametric <- renderText(ifelse(!is.null(multiFish$table_p),"Parametric average list",""))
+  output$TableBoots <- renderText(ifelse(!is.null(multiBoot$table_b),"Non-parametric average list",""))
+  
+  #delete entry from multi fisher list
+  observeEvent(input$cutMultiFish,{
+    if(!is.null(multiFish$table_p)){
+      d <- input$multiFishTab_rows_selected
+      if(length(d)){multiFish$table_p <- multiFish$table_p[-d,]}
+      if(nrow(multiFish$table_p)==0){multiFish$table_p <- NULL}
+    }
+    #delete also ellipsis
+    if(!is.null(multiBoot$table_b)){
+      b <- input$multiBootTab_rows_selected
+      if(length(b)){
+        multiBoot$table_b <- multiBoot$table_b[-b,]
+        # for(i in b){
+        #   nome_riga <- rownames(multiBoot$table_b)[i]
+        #   multiEllips$ellips[[nome_riga]] <- NULL
+        #   }
+      }
+      if(nrow(multiBoot$table_b)==0){multiBoot$table_b <- NULL}
+    }
+  })
+  
+  #modify table through UI
+  observeEvent(input$multiFishTab_cell_edit, {
+    info <- input$multiFishTab_cell_edit
+    #current values in table
+    modified_data <- multiFish$table_p  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why, it's like a chopper flying without spinning blades)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    multiFish$table_p <- modified_data
+  })
+  
+  #modify table through UI
+  observeEvent(input$multiBootTab_cell_edit, {
+    info <- input$multiBootTab_cell_edit
+    #current values in table
+    modified_data <-  multiBoot$table_b  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why, it's like a chopper flying without spinning blades)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    multiBoot$table_b <- modified_data
+  })
+  
+  #generate equal area and plot it, one for sub-page
+  output$MultiFish1 <- renderPlot({
+    #plot empty stereo
+    PmagDiR::equalarea()
+    #plot directions sets
+    if(!is.null(multiDirsTab$table_sets)){
+      f <- input$multiDirsTab_rows_selected
+      if(length(f)){
+        for(n in f){
+          nome_riga <- rownames(multiDirsTab$table_sets)[n]
+          PmagDiR::plot_DI(DI = multiDirsList$sets[[nome_riga]][,1:2],
+                           symbol = multiDirsTab$table_sets[n,3],
+                           col_d = multiDirsTab$table_sets[n,4],
+                           col_u = multiDirsTab$table_sets[n,5],
+                           on_plot = T)
+        }
+      }
+    }
+    #plot fisher
+    if(!is.null(multiFish$table_p)){
+      d <- input$multiFishTab_rows_selected
+      if(length(d)){
+        for(i in d){
+          if(multiFish$table_p[i,4]==0){
+            PmagDiR::plot_a95(D = multiFish$table_p[i,1],
+                              I = multiFish$table_p[i,2],
+                              a = multiFish$table_p[i,3],
+                              symbol = multiFish$table_p[i,5],
+                              col_l = multiFish$table_p[i,7],
+                              col_d = multiFish$table_p[i,6],
+                              col_u = multiFish$table_p[i,6],
+                              on_plot = T)
+          }
+          else if(multiFish$table_p[i,4]!=0){
+            PmagDiR::generate_ellips(D = multiFish$table_p[i,1],
+                                     I = multiFish$table_p[i,2],
+                                     delta_dec = multiFish$table_p[i,3],
+                                     delta_inc = multiFish$table_p[i,4],
+                                     symbol = multiFish$table_p[i,5],
+                                     col_l = multiFish$table_p[i,7],
+                                     col_d = multiFish$table_p[i,6],
+                                     col_u = multiFish$table_p[i,6],
+                                     on_plot = T)
+          }
+        }
+      }
+    }
+    #plot non-parametric ellipsis
+    if(!is.null(multiBoot$table_b)){
+      b <- input$multiBootTab_rows_selected
+      if(length(b)){
+        for(l in b){
+          nome_riga <- rownames(multiBoot$table_b)[l]
+          PmagDiR::plot_B95(D = multiBoot$table_b[l,1],
+                            I = multiBoot$table_b[l,2],
+                            B_conf = multiEllips$ellips[[nome_riga]][,1:2],
+                            col_d = multiBoot$table_b[l,4],
+                            col_u = multiBoot$table_b[l,4],
+                            col_l = multiBoot$table_b[l,5],
+                            symbol = multiBoot$table_b[l,3],
+                            on_plot = T)
+        }
+      }
+    }
+    if(input$addGAD_2==2){PmagDiR::plot_GAD(lat = input$GAD_lat,on_plot = T,size = 0.18,col_u = "yellow")}
+    if(input$addGAD_2==3){PmagDiR::plot_GAD(lat = input$GAD_lat,on_plot = T,circle = T,size=0.18,col_u = "yellow")}
+    #record plot for exporting
+    multiDirs$plot <- recordPlot()
+  },width = 700,height = 700)
+  
+  output$MultiFish2 <- renderPlot({
+    #plot empty stereo
+    PmagDiR::equalarea()
+    #plot directions sets
+    if(!is.null(multiDirsTab$table_sets)){
+      f <- input$multiDirsTab_rows_selected
+      if(length(f)){
+        for(n in f){
+          nome_riga <- rownames(multiDirsTab$table_sets)[n]
+          PmagDiR::plot_DI(DI = multiDirsList$sets[[nome_riga]][,1:2],
+                           symbol = multiDirsTab$table_sets[n,3],
+                           col_d = multiDirsTab$table_sets[n,4],
+                           col_u = multiDirsTab$table_sets[n,5],
+                           on_plot = T)
+        }
+      }
+    }
+    #plot fisher
+    if(!is.null(multiFish$table_p)){
+      d <- input$multiFishTab_rows_selected
+      if(length(d)){
+        for(i in d){
+          if(multiFish$table_p[i,4]==0){
+            PmagDiR::plot_a95(D = multiFish$table_p[i,1],
+                              I = multiFish$table_p[i,2],
+                              a = multiFish$table_p[i,3],
+                              symbol = multiFish$table_p[i,5],
+                              col_l = multiFish$table_p[i,7],
+                              col_d = multiFish$table_p[i,6],
+                              col_u = multiFish$table_p[i,6],
+                              on_plot = T)
+          }
+          else if(multiFish$table_p[i,4]!=0){
+            PmagDiR::generate_ellips(D = multiFish$table_p[i,1],
+                                     I = multiFish$table_p[i,2],
+                                     delta_dec = multiFish$table_p[i,3],
+                                     delta_inc = multiFish$table_p[i,4],
+                                     symbol = multiFish$table_p[i,5],
+                                     col_l = multiFish$table_p[i,7],
+                                     col_d = multiFish$table_p[i,6],
+                                     col_u = multiFish$table_p[i,6],
+                                     on_plot = T)
+          }
+        }
+      }
+    }
+    #plot non-parametric ellipsis
+    if(!is.null(multiBoot$table_b)){
+      b <- input$multiBootTab_rows_selected
+      if(length(b)){
+        for(l in b){
+          nome_riga <- rownames(multiBoot$table_b)[l]
+          PmagDiR::plot_B95(D = multiBoot$table_b[l,1],
+                            I = multiBoot$table_b[l,2],
+                            B_conf = multiEllips$ellips[[nome_riga]][,1:2],
+                            col_d = multiBoot$table_b[l,4],
+                            col_u = multiBoot$table_b[l,4],
+                            col_l = multiBoot$table_b[l,5],
+                            symbol = multiBoot$table_b[l,3],
+                            on_plot = T)
+        }
+      }
+    }
+    if(input$addGAD_2==2){PmagDiR::plot_GAD(lat = input$GAD_lat,on_plot = T,size = 0.18,col_u = "yellow")}
+    if(input$addGAD_2==3){PmagDiR::plot_GAD(lat = input$GAD_lat,on_plot = T,circle = T,size=0.18,col_u = "yellow")}
+    #record plot for exporting
+    multiDirs$plot <- recordPlot()
+  },width = 700,height = 700)
+  
+  #export plot _1
+  output$multiDirs_1 <- downloadHandler(
+    filename = function() {
+      paste("Multi_sets_", Sys.Date(), ".pdf", sep="")
+    },
+    content = function(file) {
+      pdf(file, onefile = TRUE,width = 10,height = 10)
+      replayPlot(multiDirs$plot)
+      dev.off()
+    }
+  )
+  #export plot _2
+  output$multiDirs_2 <- downloadHandler(
+    filename = function() {
+      paste("Multi_sets_", Sys.Date(), ".pdf", sep="")
+    },
+    content = function(file) {
+      pdf(file, onefile = TRUE,width = 10,height = 10)
+      replayPlot(multiDirs$plot)
+      dev.off()
+    }
+  )
+  ####### END OF MULTIPLE DIRECTIONS AND AVERAGED PLOT SUBPAGES
+  ############ END OF DIRECTIONS DISPILAY & AVERAGE
   
   ############ BOOTSTRAPPED CONFIDENCE MODULE
   #create reactive file to append things
@@ -4435,7 +5034,7 @@ server <- function(input, output){
   
   
   #send to ui the interactive extra pole list
-  output$EP_list <- DT::renderDataTable(Added_poles$list, server = F)
+  output$EP_list <- DT::renderDataTable(Added_poles$list, server= F,rownames = F) 
   
   #Calculate Fisher of selected poles, SENT TO UI within "all_poles_plotter"                
   
@@ -4617,7 +5216,7 @@ server <- function(input, output){
         column(4,numericInput("LocLong",label = "Longitude",value = input$long,min = 0,max = 180))
       ),
       fluidRow(
-        column(4,selectInput("LocSymbol", label= "Symbol type",
+        column(4,selectInput("LocSymbol", label= "Symbol",
                              choices = list("circle"=1, "square"=2, "diamond"=3,"Triangle"=4),selected=1)),
         column(4,selectInput("LocColor", label= "Symbol color",
                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=7)),
@@ -4673,6 +5272,16 @@ server <- function(input, output){
     if(nrow(localities$list)==0){localities$list <- NULL}
   })
   
+  #send table to UI and make it editable cell by cell
+  output$LocList <- DT::renderDataTable({
+    req(localities$list)  
+    datatable(localities$list, editable = TRUE,rownames = F)%>%
+      formatStyle(
+        columns = c("Name","Lat","Long","Sym","Col","Size"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
   #delete Locality from list
   observeEvent(input$cutlocality,{
     if(!is.null(localities$list)){
@@ -4682,9 +5291,16 @@ server <- function(input, output){
     if(nrow(localities$list)==0){localities$list <- NULL}
   })
   
-  
-  #send to ui the interactive extra pole list
-  output$LocList <- DT::renderDataTable(localities$list, server = F)
+  #modify table through UI
+  observeEvent(input$LocList_cell_edit, {
+    info <- input$LocList_cell_edit
+    #current values in table
+    modified_data <- localities$list  
+    #update values (plus one otherwise in paste to the wrong clumn. Do not ask me why, it's like a chopper flying without spinning blades)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    localities$list <- modified_data
+  })
   
   
   #function that creates plots for Multiple VGP analysis
@@ -5240,10 +5856,10 @@ server <- function(input, output){
     }
     
     #fix base and top
-    if(is.na(input$baseMS)==FALSE){
+    if(!is.na(input$baseMS)){
       DI <- DI[(DI[,3]>=input$baseMS),]
     }
-    if(is.na(input$topMS)==FALSE){
+    if(!is.na(input$topMS)){
       DI <- DI[(DI[,3]<=input$topMS),]
     }
     #sort position upw

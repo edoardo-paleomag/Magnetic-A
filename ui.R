@@ -52,284 +52,410 @@ ui <- fluidPage(
                  )
                )
              )
-    ),
+    ),    
     tabPanel("VEPs analysis",
+                   tabsetPanel(
+                     tabPanel("Vector end-points interpolation",
+                              sidebarLayout(
+                                sidebarPanel(width = 3,
+                                             fluidRow(
+                                               column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
+                                               column(6,selectInput("Zijd_f_type",label = "File type",
+                                                                    choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 1) %>%
+                                                        helper(type = "inline",
+                                                               title = "Format file",
+                                                               content = c(
+                                                                 "Magnetic-A= file processed directly by the software without conversion; 11 comma-separated columns with: Sample,step,the nine remaining columns with (3x3x3) tilt corrected data, geographic coordinates data, and sample coordinates data in cartesian coordinates.",
+                                                                 "",
+                                                                 "LASA= file produced at the paleomagnetic laboratory of the Univeristy of Milan -Italy- (i.e., old Lamont file).",
+                                                                 "",
+                                                                 "Bremen (.cor)= file produced at the Bremen paleomagnetic laboratory (Germany).",
+                                                                 "",
+                                                                 "IODP JR6A Expanded= IODP spinner magnetometer (JR6) file downloaded by from the portal https://web.iodp.tamu.edu/LORE/.",
+                                                                 "",
+                                                                 "CIT multi-samples= Sample Data file as described in https://cires1.colorado.edu/people/jones.craig/PMag_Formats.html (multiple files can be selected).",
+                                                                 "",
+                                                                 "Example data= Some paleomagnetic directions from the South Ardo Paleocene record,
+                                     Dallanave et al., 2012, https://doi.org/10.1016/j.palaeo.2012.04.007",
+                                                                 "",
+                                                                 "For any inquiries or request regarding additional file types, please contact me at edoardo.dallanave@unimi.it"),
+                                                               size = "l",fade = T))
+                                             ),
+                                             fluidRow(
+                                               column(6,selectInput("Zijd_Stereo_shift",label = "Diagram",
+                                                                    choices = list("N-Right"=1,"N-Up"=2, "Equal area"=3), selected = 1)),
+                                               column(6,selectInput(inputId = "VEPcoordinates",label = "Coordinates",
+                                                                    choices = list("Specimen"=1,"Geographic"=2,"Tilt Corr."=3),selected = 3))
+                                             ),
+                                             fluidRow(
+                                               column(6, actionButton(inputId = "Zijd_detail",label = "UNITS",width = "100%")),
+                                               column(6, actionButton(inputId = "Zijd_detail2",label = "TAGS",width = "100%"))
+                                             ),
+                                             br(),
+                                             br(),
+                                             fluidRow(
+                                               column(6,selectInput("anchor",label = "Interpolation",
+                                                                    choices = list("PCA Free"=1,"PCA Anch."=2,"PCA Or. Incl."=3,"PCA Constr."= 6, "Fisher"=4, "G. Circle"=5),selected = 1)%>%
+                                                        helper(type = "inline",
+                                                               title = "Interpolation type",
+                                                               content = c(
+                                                                 "Vector end-points interpolation can be performed by:",
+                                                                 "",
+                                                                 "PCA Free- PCA free from origin of demagnetization axes",
+                                                                 "",
+                                                                 "PCA Anch.- PCA with ellipsoid centered at the origin of the demagnetization axes.",
+                                                                 "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PROBABILISTIC PCA* TEST (available in main panel)",
+                                                                 "",
+                                                                 "PCA Or. Incl.- Includes origin of the demagnetization axes as demagnetization point",
+                                                                 "",
+                                                                 "PCA Constr.- Constrained PCA*",
+                                                                 "",
+                                                                 "Fisher- Fisher spherical average of the vector end-points",
+                                                                 "",
+                                                                 "G. Circle- Interpolation of the vector end-points by a great circle",
+                                                                 "",
+                                                                 "*Heslop, D., Roberts, A.P. (2016). Analyzing paleomagnetic data: To anchor or not to anchor? Journal of Geophysical Research: Solid Earth, 121(11), 7742–7753. https://doi.org/10.1002/2016JB013387"
+                                                               ),
+                                                               size = "l",fade = T)),
+                                               column(6, textInput("comp_name",label = "Component name",value = "Ch"))
+                                             ),
+                                             fluidRow(
+                                               column(12,h4("List of loaded specimens"))
+                                             ),
+                                             fluidRow(
+                                               column(12,DT::dataTableOutput("samples_list"))
+                                             )
+                                ),
+                                mainPanel(
+                                  fluidRow(
+                                    actionButton(inputId = "del_VEPs",label = "Delete selection"),
+                                    actionButton(inputId = "restore_VEPs",label = "Restore data"),
+                                    actionButton(inputId = "PPCA",label = "Run Probabilistic PCA test"),
+                                    actionButton(inputId = "runVEPstat",label = "Run interpolation"),
+                                    actionButton(inputId = "save_PCA",label = "Save interpolation"),
+                                    downloadButton("export_PCA",label = "Export all saved directions")
+                                  ),
+                                  fluidRow(column(3,textOutput("Zijd_Unit")),
+                                           column(9,textOutput("PCA_result"))
+                                  ),
+                                  column(11,plotOutput("zijderveld",brush = brushOpts(id = "plot_brush", fill = NA))),
+                                  column(1, DT::dataTableOutput("sampledat",width = 100))
+                                )
+                              )
+                     ),
+                     tabPanel("Export figure with all diagrams",
+                              mainPanel(
+                                fluidRow(
+                                  column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
+                                  column(10,h5("Please define Units & Tags for a complete visualization"))
+                                ),
+                                column(12,plotOutput(outputId = "All_VEP_diagrams")),
+                              )
+                     ),
+                     tabPanel("All saved directions",
+                              sidebarLayout(
+                                sidebarPanel(width = 6,
+                                             fluidRow(
+                                               column(4,fileInput(inputId = "import_PCA",label = "Import saved directions")%>%
+                                                        helper(type = "inline",
+                                                               title = "Format file",
+                                                               content = c(
+                                                                 "File as exported from Vector end-points interpolation page"),
+                                                               size = "m",fade = T)),
+                                               column(4,textInput(inputId = "sel_interpol_name",label = "Name of exported file",value = "Directions")),
+                                               column(4,selectInput(inputId = "EAcoordinates",label = "Coordinates",
+                                                                    choices = list("Geographic"=1,"Tilt Corr."=2),selected = 2))
+                                             ),
+                                             fluidRow(DT::dataTableOutput(outputId = "saved_interpol"))
+                                ),
+                                mainPanel(width = 6,
+                                          fluidRow(actionButton(inputId = "del_interpol",label = "Delete selection"),
+                                                   actionButton(inputId = "undel_interpol",label = "undo delete"),
+                                                   downloadButton("export_interpol",label = "Export selected directions"),
+                                                   downloadButton("export_AllDirs_stereo",label = "Export figure"),
+                                                   actionButton(inputId = "comb_DI_GC",label = "Combine DI & GC"),
+                                                   actionButton(inputId = "save_GC",label = "Add GC dirs to list"),
+                                                   actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot"),
+                                                   actionButton(inputId = "showdiersEA",label = "Show dragged directions details")),
+                                          plotOutput("saved_interpol_EA",brush = brushOpts(id="plot_click")))
+                              )
+                     )
+                   )
+    ),
+    tabPanel("Directions display & average",
              tabsetPanel(
-               tabPanel("Vector end-points interpolation",
+               tabPanel("Directions display & average",
                         sidebarLayout(
-                          sidebarPanel(width = 3,
+                          sidebarPanel(width = 5,
                                        fluidRow(
-                                         column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
-                                         column(6,selectInput("Zijd_f_type",label = "File type",
-                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 1) %>%
+                                         column(6,fileInput("file", label= "Load directions file")),
+                                         column(6,textInput("fileN",label = "Site name",value = "Site"))
+                                       ),
+                                       fluidRow(
+                                         column(6,selectInput("filetype", label = "Directions file type",
+                                                              choices = list("Dec, Inc "=1,"G_dec, G_inc, B_az, B_plunge"=2,"G_dec, G_inc, B_dec, B_inc"=3,
+                                                                             "S_d, S_i, G_d, G_i, B_d, B_i"=7,"Magnetic-A"=4, "Internal file"=5,"pmm file"=8,"Example file"=6),selected = 1) %>%
                                                   helper(type = "inline",
                                                          title = "Format file",
                                                          content = c(
-                                                           "Magnetic-A= file processed directly by the software without conversion; 11 comma-separated columns with: Sample,step,the nine remaining columns with (3x3x3) tilt corrected data, geographic coordinates data, and sample coordinates data in cartesian coordinates.",
+                                                           "Dec, Inc= declination and inclination in two comma separated columns, with optional third column with stratigraphic position, 
+                                     for plotting the mangetic polarity stratigraphy.",
                                                            "",
-                                                           "LASA= file produced at the paleomagnetic laboratory of the Univeristy of Milan -Italy- (i.e., old Lamont file).",
+                                                           "G_dec, G_inc, B_az, B_plunge= Geographic coordinates declination and inclination,
+                                               followed by bedding azimuth (i.e., declination of plunge) and plunge, four comma separated columns,with optional fifth column with stratigraphic position, 
+                                     for plotting the mangetic polarity stratigraphy.",
                                                            "",
-                                                           "Bremen (.cor)= file produced at the Bremen paleomagnetic laboratory (Germany).",
+                                                           "G_dec, G_inc, B_dec, B_inc= Geographic coordinates declination and inclination, followed by bedding corrected declination and inclination, four comma separated columns,with optional fifth column with stratigraphic position, 
+                                     for plotting the mangetic polarity stratigraphy.",
                                                            "",
-                                                           "IODP JR6A Expanded= IODP spinner magnetometer (JR6) file downloaded by from the portal https://web.iodp.tamu.edu/LORE/.",
+                                                           "S_d, S_i, G_d, G_i, B_d, B_i= Specimen, Geographic, and tilt corrected coordinates declination and inclination, six columns, with optional seventh column with sample position, for plotting the mangetic polarity stratigraphy..",
                                                            "",
-                                                           "CIT multi-samples= Sample Data file as described in https://cires1.colorado.edu/people/jones.craig/PMag_Formats.html (multiple files can be selected).",
+                                                           "Magnetic-A= File as exported from the directions analysis page.",
                                                            "",
-                                                           "Example data= Some paleomagnetic directions from the South Ardo Paleocene record,
-                                     Dallanave et al., 2012, https://doi.org/10.1016/j.palaeo.2012.04.007",
+                                                           "Internal file= Directions selected in the 'All saved samples' sub-page of the 'VEPs analysis' page.",
                                                            "",
-                                                           "For any inquiries or request regarding additional file types, please contact me at edoardo.dallanave@unimi.it"),
+                                                           "Example file= Paleomagnetic directions in geographic and tilt-coorected coordinates, with stratigraphic position, from the South Ardo* Paleocene record",
+                                                           "",
+                                                           "*Dallanave, E., Agnini, C., Muttoni, G., Rio, D. (2012). Paleocene magneto-biostratigraphy and climate-controlled rock magnetism from the Belluno Basin, Tethys Ocean, Italy. Palaeogeography, Palaeoclimatology, Palaeoecology, 337–338, 130–142. https://doi.org/10.1016/j.palaeo.2012.04.007"),
+                                                         size = "l",fade = T)
+                                         ),
+                                         column(6,selectInput("coord", label= "Coordinates",
+                                                              choices = list("Geographic"=1, "Tilt corr."=2,"Specimen"=3),selected = 2))
+                                       ),
+                                       fluidRow(
+                                         column(4,numericInput("lat",label="Site latitude",value=0)),
+                                         column(4,numericInput("long",label="Site longitude",value=0)),
+                                         column(4, numericInput(inputId = "known_f",label = "Flattening",value = 1,min = 0.1,max = 1) %>%
+                                                  helper(type = "inline",
+                                                         title = "Optional flattening factor",
+                                                         content = c(
+                                                           "If known, a flattening factor can be typed in and applied to the directions. 
+                                                     The synthetically 'unflattened' directions will be used in the next pages."
+                                                         ),
                                                          size = "l",fade = T))
                                        ),
                                        fluidRow(
-                                         column(6,selectInput("Zijd_Stereo_shift",label = "Diagram",
-                                                              choices = list("N-Right"=1,"N-Up"=2, "Equal area"=3), selected = 1)),
-                                         column(6,selectInput(inputId = "VEPcoordinates",label = "Coordinates",
-                                                              choices = list("Specimen"=1,"Geographic"=2,"Tilt Corr."=3),selected = 3))
-                                       ),
-                                       fluidRow(
-                                         column(6, actionButton(inputId = "Zijd_detail",label = "UNITS",width = "100%")),
-                                         column(6, actionButton(inputId = "Zijd_detail2",label = "TAGS",width = "100%"))
-                                       ),
-                                       br(),
-                                       br(),
-                                       fluidRow(
-                                         column(6,selectInput("anchor",label = "Interpolation",
-                                                              choices = list("PCA Free"=1,"PCA Anch."=2,"PCA Or. Incl."=3,"PCA Constr."= 6, "Fisher"=4, "G. Circle"=5),selected = 1)%>%
+                                         column(4,selectInput("fisher", label= "Mean",          
+                                                              choices = list("None"=1, "Fisher" = 2,"Fisher (no split)"=8, "Elliptic" = 3,
+                                                                             "Inc. only single mode"=4,"Inc. only bimodal"=5,
+                                                                             "Arithm. single mode"=6, "Arithm. bimodal"=7),selected = 1)%>%
                                                   helper(type = "inline",
-                                                         title = "Interpolation type",
+                                                         title = "Mean direction type",
                                                          content = c(
-                                                           "Vector end-points interpolation can be performed by:",
+                                                           "Direction clusters can be averaged by:",
                                                            "",
-                                                           "PCA Free- PCA free from origin of demagnetization axes",
+                                                           "Fisher- Standard Fisher (1953*) spherical mean (splits automatically the two modes).",
                                                            "",
-                                                           "PCA Anch.- PCA with ellipsoid centered at the origin of the demagnetization axes.",
-                                                           "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PROBABILISTIC PCA* TEST (available in main panel)",
+                                                           "Fisher (no split)- Standard Fisher (1953*) spherical mean (uses all directions without splitting the modes).",
                                                            "",
-                                                           "PCA Or. Incl.- Includes origin of the demagnetization axes as demagnetization point",
+                                                           "Elliptic- confidence ellipse is calculated following Deenen et al. (2011**).",
                                                            "",
-                                                           "PCA Constr.- Constrained PCA*",
+                                                           "Inc. only- Inclination only average and 95% confidence (either single mode or bimodal) based on the Maximum likelihood solution of Arason and Levi (2010***).",
                                                            "",
-                                                           "Fisher- Fisher spherical average of the vector end-points",
+                                                           "Arithm.- Inclination only arithmetic average.",
                                                            "",
-                                                           "G. Circle- Interpolation of the vector end-points by a great circle",
+                                                           "*Fisher, R. (1953). Dispersion on a sphere. Proceedings of the Royal Society of London, A217, 295–305.",
                                                            "",
-                                                           "*Heslop, D., Roberts, A.P. (2016). Analyzing paleomagnetic data: To anchor or not to anchor? Journal of Geophysical Research: Solid Earth, 121(11), 7742–7753. https://doi.org/10.1002/2016JB013387"
+                                                           "**Deenen, M. H. L., Langereis, C. G., van Hinsbergen, D. J. J., & Biggin, A. J. (2011). Geomagnetic secular variation and the statistics of palaeomagnetic directions. Geophysical Journal International, 186(2), 509–520. https://doi.org/10.1111/j.1365-246X.2011.05050.x",
+                                                           "",
+                                                           "***Arason, P., & Levi, S. (2010). Maximum likelihood solution for inclination-only data in paleomagnetism. Geophysical Journal International, 182(2), 753–771. https://doi.org/10.1111/j.1365-246X.2010.04671.x."
                                                          ),
                                                          size = "l",fade = T)),
-                                         column(6, textInput("comp_name",label = "Component name",value = "Ch"))
+                                         column(4,selectInput("mode", label= "Mode",
+                                                              choices = list("Bimodal"=1, "Mode 1" = 2, "Mode 2" = 3, "All down"=4, "All up"=5),selected = 1)),
+                                         column(4,selectInput(inputId = "apply_known_f",label = "Apply f",
+                                                              choices = list("No"=1,"Yes"=2),selected = 1))
                                        ),
                                        fluidRow(
-                                         column(12,h4("List of loaded specimens"))
+                                         column(3,selectInput("colD", label= "Color down",
+                                                              choices = list("black"=1, "blue" = 2, "red" = 3,"green"=4),selected = 2)),
+                                         column(3,selectInput("colU", label= "Color up",
+                                                              choices = list("white"=1, "cyan" = 2, "pink" = 3,"light green"=4),selected = 2)),
+                                         column(3,selectInput("sym", label= "Symbol",
+                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                         column(3,selectInput(inputId = "addGAD",label = "GAD",
+                                                              choices = list("No"=1,"GAD"=2,"GAD & circle"=3),selected = 1))
                                        ),
                                        fluidRow(
-                                         column(12,DT::dataTableOutput("samples_list"))
-                                       )
+                                         column(6,selectInput("cutoff", label= "Cut-off",
+                                                              choices = list("None"=1, "Vandamme dynamic" = 2, "Vandamme static" = 3,
+                                                                             "Fixed dynamic"=4, "Fixed static"=5,
+                                                                             "Cut up-pointing"=6,"Cut down-pointing"=7,"Cut fixed inc."=8),selected = 1) %>%
+                                                  helper(type = "inline",
+                                                         title = "Cut-off",
+                                                         content = c(
+                                                           "Dynamic cut-off, contrary to the static, include the TK03.GAD-based estimate of the inclination shallowing
+                                     within the reiterative process (see Dallanave, 2024* for details)",
+                                                           "NOTE: The use of any cut-off before applying the SVEI test for consistency with the THG24 field model is NOT RECOMMENDED!",
+                                                           "",
+                                                           "Vandamme: based on the algorithm of Vandamme, 1994**",
+                                                           "",
+                                                           "Static: cut all VGPs with an angular distance higher than the angle defined in the 'VGP fixed-filter radius' ",
+                                                           "",
+                                                           "Cut up- and down-pointing: cut either up-pointing or down-pointing directions",
+                                                           "",
+                                                           "Cut fixed inc.: cut all directions included in the angular interval defined by the 'Min inc. filt.' and 'Max inc. filt.' angles 
+                                     (specifically compiled for azimuthally unoriented data (i.e., RCB IODP data)",
+                                                           "",
+                                                           "*Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using the R package PmagDiR. Scientific Reports, 14(1666). https://doi.org/10.1038/s41598-024-52001-x",
+                                                           "",
+                                                           "**Vandamme, D. (1994). A new method to determine paleosecular variation. Physics of the Earth and Planetary Interiors, 85(1–2), 131–142. https://doi.org/10.1016/0031-9201(94)90012-4"),
+                                                         size = "l",fade = T)),
+                                         column(6, numericInput("VGP_fixed", label= "VGP fixed-filter radius", value=45)),
+                                       ),
+                                       fluidRow(
+                                         column(6, numericInput("MinInc",label = "Min Inc. filt.",value = 0)),
+                                         column(6, numericInput("MaxInc",label = "Max Inc. filt.",value = 0)),
+                                       ),
+                                       fluidRow(
+                                         tableOutput("stats")
+                                       ),
+                                       fluidRow(
+                                         h4(textOutput("inc_warn"))
+                                       ),
+                                       br(),
                           ),
-                          mainPanel(
-                            fluidRow(
-                              actionButton(inputId = "del_VEPs",label = "Delete selection"),
-                              actionButton(inputId = "restore_VEPs",label = "Restore data"),
-                              actionButton(inputId = "PPCA",label = "Run Probabilistic PCA test"),
-                              actionButton(inputId = "runVEPstat",label = "Run interpolation"),
-                              actionButton(inputId = "save_PCA",label = "Save interpolation"),
-                              downloadButton("export_PCA",label = "Export all saved directions")
-                            ),
-                            fluidRow(column(3,textOutput("Zijd_Unit")),
-                                     column(9,textOutput("PCA_result"))
-                            ),
-                            column(11,plotOutput("zijderveld",brush = brushOpts(id = "plot_brush", fill = NA))),
-                            column(1, DT::dataTableOutput("sampledat",width = 100))
+                          mainPanel(width = 7,
+                                    fluidRow(downloadButton("exportG","Export graph"),
+                                             downloadButton("exportS","Export stat"),
+                                             downloadButton("exportDI","Export directions"),
+                                             actionButton(inputId = "WatsRand",label = "Watson's test of randomness"),
+                                             actionButton(inputId = "cutDirs",label = "Delete dragged directions"),
+                                             actionButton(inputId = "restoreDirs",label = "Restore all directions")),
+                                    column(1),
+                                    plotOutput("directions",brush = brushOpts(id = "plot_brush2"))
                           )
                         )
                ),
-               tabPanel("Export figure with all diagrams",
-                        mainPanel(
-                          fluidRow(
-                            column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
-                            column(10,h5("Please define Units & Tags for a complete visualization"))
-                          ),
-                          column(12,plotOutput(outputId = "All_VEP_diagrams")),
-                        )
-               ),
-               tabPanel("All saved directions",
+               tabPanel("Plot multiple directions sets ",
                         sidebarLayout(
-                          sidebarPanel(width = 6,
+                          sidebarPanel(width = 5,
                                        fluidRow(
-                                         column(4,fileInput(inputId = "import_PCA",label = "Import saved directions")%>%
+                                         column(12,h4("Plots multiple directions sets"))),
+                                       br(),
+                                       fluidRow(
+                                         column(6,fileInput(inputId = "extDirsFile",label = "Load directions file")%>%
                                                   helper(type = "inline",
                                                          title = "Format file",
                                                          content = c(
-                                                           "File as exported from Vector end-points interpolation page"),
+                                                           "Declination and inclination of the directions in two comma separated columns, with (any) header. Any other column is ignored."),
                                                          size = "m",fade = T)),
-                                         column(4,textInput(inputId = "sel_interpol_name",label = "Name of exported file",value = "Directions")),
-                                         column(4,selectInput(inputId = "EAcoordinates",label = "Coordinates",
-                                                              choices = list("Geographic"=1,"Tilt Corr."=2),selected = 2))
+                                         column(3,numericInput("GAD_lat", label= "GAD Latitude",value = 0)),
+                                         column(3,selectInput(inputId = "addGAD_2",label = "GAD",
+                                                              choices = list("No"=1,"GAD"=2,"GAD & circle"=3),selected = 1))
                                        ),
-                                       fluidRow(DT::dataTableOutput(outputId = "saved_interpol"))
+                                       fluidRow(
+                                         column(6, actionButton(inputId = "ADD_Dirs",label = "ADD MAIN SET TO LIST",width = "100%")),
+                                         column(6, actionButton(inputId = "Del_Dirs",label = "DELETE ENTRY",width = "100%"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5("Color and symbol are editable, double-click on the cell."))
+                                       ),
+                                       fluidRow(
+                                         column(12,h6("Valid symbols: c= circle, d= diamond, s= square, t= triangle. Any color accepted by R can be typed in."))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,DT::dataTableOutput("multiDirsTab"))
+                                       )
                           ),
-                          mainPanel(width = 6,
-                                    fluidRow(actionButton(inputId = "del_interpol",label = "Delete selection"),
-                                             actionButton(inputId = "undel_interpol",label = "undo delete"),
-                                             downloadButton("export_interpol",label = "Export selected directions"),
-                                             downloadButton("export_AllDirs_stereo",label = "Export figure"),
-                                             actionButton(inputId = "comb_DI_GC",label = "Combine DI & GC"),
-                                             actionButton(inputId = "save_GC",label = "Add GC dirs to list"),
-                                             actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot"),
-                                             actionButton(inputId = "showdiersEA",label = "Show dragged directions details")),
-                                    plotOutput("saved_interpol_EA",brush = brushOpts(id="plot_click")))
+                          mainPanel(width = 7,
+                                    fluidRow(
+                                      downloadButton("multiDirs_1","Export graph")),
+                                    column(1),
+                                    plotOutput("MultiFish1")
+                          )
                         )
-               )
-             )
-    ),
-    tabPanel("Directions display & average",
-             sidebarLayout(
-               sidebarPanel(
-                 fluidRow(
-                   column(6,fileInput("file", label= "Directions file input")),
-                   column(6,textInput("fileN",label = "Site name",value = "Site"))
-                 ),
-                 fluidRow(
-                   column(8,selectInput("filetype", label = "Directions file type",
-                                        choices = list("Dec, Inc "=1,"G_dec, G_inc, B_az, B_plunge"=2,"G_dec, G_inc, B_dec, B_inc"=3,
-                                                       "S_d, S_i, G_d, G_i, B_d, B_i"=7,"Magnetic-A"=4, "Internal file"=5,"pmm file"=8,"Example file"=6),selected = 1) %>%
-                            helper(type = "inline",
-                                   title = "Format file",
-                                   content = c(
-                                     "Dec, Inc= declination and inclination in two comma separated columns, with optional third column with stratigraphic position, 
-                                     for plotting the mangetic polarity stratigraphy.",
-                                     "",
-                                     "G_dec, G_inc, B_az, B_plunge= Geographic coordinates declination and inclination,
-                                               followed by bedding azimuth (i.e., declination of plunge) and plunge, four comma separated columns,with optional fifth column with stratigraphic position, 
-                                     for plotting the mangetic polarity stratigraphy.",
-                                     "",
-                                     "G_dec, G_inc, B_dec, B_inc= Geographic coordinates declination and inclination, followed by bedding corrected declination and inclination, four comma separated columns,with optional fifth column with stratigraphic position, 
-                                     for plotting the mangetic polarity stratigraphy.",
-                                     "",
-                                     "S_d, S_i, G_d, G_i, B_d, B_i= Specimen, Geographic, and tilt corrected coordinates declination and inclination, six columns, with optional seventh column with sample position.",
-                                     "",
-                                     "Magnetic-A= File as exported from the directions analysis page.",
-                                     "",
-                                     "Internal file= Directions selected in the 'All saved samples' page.",
-                                     "",
-                                     "Example file= Paleomagnetic directions in geographic and tilt-coorected coordinates, with stratigraphic position, from the South Ardo* Paleocene record",
-                                     "",
-                                     "*Dallanave, E., Agnini, C., Muttoni, G., Rio, D. (2012). Paleocene magneto-biostratigraphy and climate-controlled rock magnetism from the Belluno Basin, Tethys Ocean, Italy. Palaeogeography, Palaeoclimatology, Palaeoecology, 337–338, 130–142. https://doi.org/10.1016/j.palaeo.2012.04.007"),
-                                   size = "l",fade = T)
-                   ),
-                   column(4,selectInput("coord", label= "Coordinates",
-                                        choices = list("Geographic"=1, "Tilt corr."=2,"Specimen"=3),selected = 2))
-                 ),
-                 fluidRow(
-                   column(4,numericInput("lat",label="Site latitude",value=0)),
-                   column(4,numericInput("long",label="Site longitude",value=0)),
-                   column(4, numericInput(inputId = "known_f",label = "Flattening",value = 1,min = 0.1,max = 1) %>%
-                            helper(type = "inline",
-                                   title = "Optional flattening factor",
-                                   content = c(
-                                     "If known, a flattening factor can be typed in and applied to the directions. 
-                                                     The synthetically 'unflattened' directions will be used in the next pages."
-                                   ),
-                                   size = "l",fade = T))
-                 ),
-                 fluidRow(
-                   column(4,selectInput("fisher", label= "Mean",          
-                                        choices = list("None"=1, "Fisher" = 2,"Fisher (no split)"=8, "Elliptic" = 3,
-                                                       "Inc. only single mode"=4,"Inc. only bimodal"=5,
-                                                       "Arithm. single mode"=6, "Arithm. bimodal"=7),selected = 1)%>%
-                            helper(type = "inline",
-                                   title = "Mean direction type",
-                                   content = c(
-                                     "Direction clusters can be averaged by:",
-                                     "",
-                                     "Fisher- Standard Fisher (1953*) spherical mean (splits automatically the two modes).",
-                                     "",
-                                     "Fisher (no split)- Standard Fisher (1953*) spherical mean (uses all directions without splitting the modes).",
-                                     "",
-                                     "Elliptic- confidence ellipsis is calculated following Deenen et al. (2011**).",
-                                     "",
-                                     "Inc. only- Inclination only average and 95% confidence (either single mode or bimodal) based on the Maximum likelihood solution of Arason and Levi (2010***).",
-                                     "",
-                                     "Arithm.- Inclination only arithmetic average.",
-                                     "",
-                                     "*Fisher, R. (1953). Dispersion on a sphere. Proceedings of the Royal Society of London, A217, 295–305.",
-                                     "",
-                                     "**Deenen, M. H. L., Langereis, C. G., van Hinsbergen, D. J. J., & Biggin, A. J. (2011). Geomagnetic secular variation and the statistics of palaeomagnetic directions. Geophysical Journal International, 186(2), 509–520. https://doi.org/10.1111/j.1365-246X.2011.05050.x",
-                                     "",
-                                     "***Arason, P., & Levi, S. (2010). Maximum likelihood solution for inclination-only data in paleomagnetism. Geophysical Journal International, 182(2), 753–771. https://doi.org/10.1111/j.1365-246X.2010.04671.x."
-                                   ),
-                                   size = "l",fade = T)),
-                   column(4,selectInput("mode", label= "Mode",
-                                        choices = list("Bimodal"=1, "Mode 1" = 2, "Mode 2" = 3, "All down"=4, "All up"=5),selected = 1)),
-                   column(4,selectInput(inputId = "apply_known_f",label = "Apply f",
-                                        choices = list("No"=1,"Yes"=2),selected = 1))
-                 ),
-                 fluidRow(
-                   column(4,selectInput("colD", label= "Color down",
-                                        choices = list("black"=1, "blue" = 2, "red" = 3,"green"=4),selected = 2)),
-                   column(4,selectInput("colU", label= "Color up",
-                                        choices = list("white"=1, "cyan" = 2, "pink" = 3,"light green"=4),selected = 2)),
-                   column(4,selectInput("sym", label= "Symbol",
-                                        choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1))
-                 ),
-                 fluidRow(
-                   column(6,selectInput("cutoff", label= "Cut-off",
-                                        choices = list("None"=1, "Vandamme dynamic" = 2, "Vandamme static" = 3,
-                                                       "Fixed dynamic"=4, "Fixed static"=5,
-                                                       "Cut up-pointing"=6,"Cut down-pointing"=7,"Cut fixed inc."=8),selected = 1) %>%
-                            helper(type = "inline",
-                                   title = "Cut-off",
-                                   content = c(
-                                     "Dynamic cut-off, contrary to the static, include the TK03.GAD-based estimate of the inclination shallowing
-                                     within the reiterative process (see Dallanave, 2024* for details)",
-                                     "NOTE: The use of any cut-off before applying the SVEI test for consistency with the THG24 field model is NOT RECOMMENDED!",
-                                     "",
-                                     "Vandamme: based on the algorithm of Vandamme, 1994**",
-                                     "",
-                                     "Static: cut all VGPs with an angular distance higher than the angle defined in the 'VGP fixed-filter radius' ",
-                                     "",
-                                     "Cut up- and down-pointing: cut either up-pointing or down-pointing directions",
-                                     "",
-                                     "Cut fixed inc.: cut all directions included in the angular interval defined by the 'Min inc. filt.' and 'Max inc. filt.' angles 
-                                     (specifically compiled for azimuthally unoriented data (i.e., RCB IODP data)",
-                                     "",
-                                     "*Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using the R package PmagDiR. Scientific Reports, 14(1666). https://doi.org/10.1038/s41598-024-52001-x",
-                                     "",
-                                     "**Vandamme, D. (1994). A new method to determine paleosecular variation. Physics of the Earth and Planetary Interiors, 85(1–2), 131–142. https://doi.org/10.1016/0031-9201(94)90012-4"),
-                                   size = "l",fade = T)),
-                   column(6, numericInput("VGP_fixed", label= "VGP fixed-filter radius", value=45)),
-                 ),
-                 fluidRow(
-                   column(6, numericInput("MinInc",label = "Min Inc. filt.",value = 0)),
-                   column(6, numericInput("MaxInc",label = "Max Inc. filt.",value = 0)),
-                 ),
-                 fluidRow(
-                   tableOutput("stats")
-                 ),
-                 fluidRow(
-                   h4(textOutput("inc_warn"))
-                 ),
-                 br(),
                ),
-               mainPanel(
-                 fluidRow(downloadButton("exportG","Export graph"),
-                          downloadButton("exportS","Export stat"),
-                          downloadButton("exportDI","Export directions"),
-                          actionButton(inputId = "WatsRand",label = "Watson's test of randomness"),
-                          actionButton(inputId = "cutDirs",label = "Delete dragged directions"),
-                          actionButton(inputId = "restoreDirs",label = "Restore all directions")),
-                 column(1),
-                 plotOutput("directions",brush = brushOpts(id = "plot_brush2"))
+               tabPanel("Add average directions",
+                        sidebarLayout(
+                          sidebarPanel(width = 5,
+                                       fluidRow(
+                                         column(12,h4("Plots multiple mean directions and 95% confidence"))),
+                                       br(),
+                                       fluidRow(
+                                         column(6,fileInput(inputId = "multiFishFile",label = "Load parametric file") %>%
+                                                  helper(type = "inline",
+                                                         title = "File format",
+                                                         content = c(
+                                                           "Six formats are accepted:",
+                                                           "",
+                                                           "1) and 2) Average Fisher* or elliptic** statistic as exported from the 'Directions display & average' sub-page of Magnetic-A. DO NOT CHANGE the columns name of the file before importing!",
+                                                           "",
+                                                           "The remaining 4 formats can be compiled manually, all as .csv file with (any) columns header: ",
+                                                           "",
+                                                           "3) Standard Fisher: 3 columns with declination, inclination, a95 (colors and symbol are set automatically)",
+                                                           "",
+                                                           "4) Elliptic: 4 columns with declination, inclination, a95_dec, a95_inc (colors and symbol are set automatically)",
+                                                           "",
+                                                           "5 and 6) Same format as above, but with 3 more columns (total columns= 6 & 7 respectively), with symbol, color of symbol, color of lines",
+                                                           "",
+                                                           "Accepted symbols: c=circle, d=diamond, t=triangle, s= square; color= full name of the desired color (black, white, cyan, etc)",
+                                                           "",
+                                                           "",
+                                                           "*Fisher, R. (1953). Proceedings of the Royal Society of London, A217, 295–305.",
+                                                           
+                                                           "**Deenen, M.H.L. et al. (2011). Geophysical Journal International, 186(2), 509–520. https://doi.org/10.1111/j.1365-246X.2011.05050.x"),
+                                                         size = "l",fade = T)),
+                                         column(6,fileInput(inputId = "multiBootFile",label = "Load non-parametric file")%>%
+                                                  helper(type = "inline",
+                                                         title = "File format",
+                                                         content = c(
+                                                           "Accepts files as exported from the 'Bootstrap statistic' page, determined adopting the non-parametric approach of Heslop et al. (2023)*",
+                                                           "",
+                                                           "1) 4 columns (csv), with (any) header. Columns 1 & 2, only one cell each, with averaged declination and inclination; columns 3 & 4 with declination and inclination of the 95% confidence ellipse points (no limit in the number of rows).",
+                                                           "",
+                                                           "2) 8 columns (csv), with any header. Same as above, with 2 average directions (Dec1, Inc1, Ellips_dec1, Ellips_inc1, Dec2, Inc2, Ellips_dec2, Ellips_inc2",
+                                                           "",
+                                                           "*Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: Solid Earth, 128(8), 1–12. https://doi.org/10.1029/2023JB026983"),
+                                                         size = "l",fade = T))
+                                       ),
+                                       fluidRow(
+                                         column(6,actionButton(inputId = "MultiFishDetails",label = "ADD ENTRY MANUALLY",width = "100%")),
+                                         column(6,actionButton(inputId = "cutMultiFish",label = "DELETE ENTRY",width = "100%"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5("The parametric average directions table is fully editable. Within the non-parametric averages table, only colors and symbols are editable. Double-click on the cell to edit."))
+                                       ),
+                                       fluidRow(
+                                         column(12,h6("Valid symbols: c= circle, d= diamond, s= square, t= triangle. Any color accepted by R can be typed in."))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5(textOutput(outputId = "TableParametric")))),
+                                       fluidRow(
+                                         column(12,DT::dataTableOutput("multiFishTab"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5(textOutput(outputId = "TableBoots")))),
+                                       fluidRow(
+                                         column(12,DT::dataTableOutput("multiBootTab")))
+                          ),
+                          mainPanel(width = 7,
+                                    fluidRow(
+                                      downloadButton("multiDirs_2","Export graph")),
+                                    column(1),
+                                    plotOutput("MultiFish2")
+                          )
+                        )
                )
              )
     ),
     tabPanel("Bootstrap statistics",
              tabsetPanel(
-               tabPanel("Confidence ellipsis",      
+               tabPanel("Confidence ellipse",      
                         sidebarLayout(              
                           sidebarPanel(
                             fluidRow(
-                              column(12,h4("Calculate non-parametric 95% confidence*"))),
+                              column(12,h4("Calculate non-parametric 95% confidence"))),
+                            br(),
+                            fluidRow(
+                              column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
+                                                                    "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
+                            ),
                             br(),
                             fluidRow(
                               column(4,textInput("fileN_B95",label = "Export name",value = "Site")),
@@ -360,17 +486,12 @@ ui <- fluidPage(
                               column(12,h4(textOutput(outputId = "notbimodal")))),
                             br(),
                             fluidRow(
-                              column(12,h5("Average directions and confidence ellipsis can be downloaded as coordinate points by clicking on 'Export ellipsis'"))),
-                            br(),
-                            fluidRow(
-                              column(12,h5("*Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
-                                                                     "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
-                            )
+                              column(12,h5("Average directions and confidence ellipse can be downloaded as coordinate points by clicking on 'Export ellipse'")))
                           ),
                           mainPanel(
                             fluidRow(
                               downloadButton("B95_graph","Export graph"),
-                              downloadButton("B95_stat","Export ellipsis")),
+                              downloadButton("B95_stat","Export ellipse")),
                             plotOutput("B95_test")
                           )
                         )
@@ -414,7 +535,7 @@ ui <- fluidPage(
                           ),
                           mainPanel(
                             fluidRow(downloadButton("revexpG","Export graph"),
-                                     downloadButton("CMDT_ellipsis",label = "Export Common direction and ellipsis")),
+                                     downloadButton("CMDT_ellipsis",label = "Export Common direction and ellipse")),
                             plotOutput("revtest")
                           )
                         )
@@ -465,7 +586,7 @@ ui <- fluidPage(
                           ),                                
                           mainPanel(
                             fluidRow(downloadButton("revexpG2","Export graph"),
-                                     downloadButton("CMDT_ellipsis2",label = "Export Common direction and ellipsis")
+                                     downloadButton("CMDT_ellipsis2",label = "Export Common direction and ellipse")
                             ),
                             plotOutput("revtest2")
                           )
@@ -1100,6 +1221,9 @@ ui <- fluidPage(
                                        ),
                                        br(),
                                        fluidRow(
+                                         column(12,h5("The localities table is editable by double-click on the cells"))),
+                                       br(),
+                                       fluidRow(
                                          column(12,DT::dataTableOutput("LocList"))
                                        ),
                           ),
@@ -1233,4 +1357,5 @@ ui <- fluidPage(
     )
   )
 )
+
 
