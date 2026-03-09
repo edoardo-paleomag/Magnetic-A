@@ -52,135 +52,138 @@ ui <- fluidPage(
                  )
                )
              )
-    ),    
+    ),
     tabPanel("VEPs analysis",
-                   tabsetPanel(
-                     tabPanel("Vector end-points interpolation",
-                              sidebarLayout(
-                                sidebarPanel(width = 3,
-                                             fluidRow(
-                                               column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
-                                               column(6,selectInput("Zijd_f_type",label = "File type",
-                                                                    choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 1) %>%
-                                                        helper(type = "inline",
-                                                               title = "Format file",
-                                                               content = c(
-                                                                 "Magnetic-A= file processed directly by the software without conversion; 11 comma-separated columns with: Sample,step,the nine remaining columns with (3x3x3) tilt corrected data, geographic coordinates data, and sample coordinates data in cartesian coordinates.",
-                                                                 "",
-                                                                 "LASA= file produced at the paleomagnetic laboratory of the Univeristy of Milan -Italy- (i.e., old Lamont file).",
-                                                                 "",
-                                                                 "Bremen (.cor)= file produced at the Bremen paleomagnetic laboratory (Germany).",
-                                                                 "",
-                                                                 "IODP JR6A Expanded= IODP spinner magnetometer (JR6) file downloaded by from the portal https://web.iodp.tamu.edu/LORE/.",
-                                                                 "",
-                                                                 "CIT multi-samples= Sample Data file as described in https://cires1.colorado.edu/people/jones.craig/PMag_Formats.html (multiple files can be selected).",
-                                                                 "",
-                                                                 "Example data= Some paleomagnetic directions from the South Ardo Paleocene record,
+             tabsetPanel(
+               tabPanel("Vector end-points interpolation",
+                        sidebarLayout(
+                          sidebarPanel(width = 3,
+                                       fluidRow(
+                                         column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
+                                         column(6,selectInput("Zijd_f_type",label = "File type",
+                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 1) %>%
+                                                  helper(type = "inline",
+                                                         title = "Format file",
+                                                         content = c(
+                                                           "Magnetic-A= file processed directly by the software without conversion; 11 comma-separated columns with: Sample,step,the nine remaining columns with (3x3x3) tilt corrected data, geographic coordinates data, and sample coordinates data in cartesian coordinates.",
+                                                           "",
+                                                           "LASA= file produced at the paleomagnetic laboratory of the Univeristy of Milan -Italy- (i.e., old Lamont file).",
+                                                           "",
+                                                           "Bremen (.cor)= file produced at the Bremen paleomagnetic laboratory (Germany).",
+                                                           "",
+                                                           "IODP JR6A Expanded= IODP spinner magnetometer (JR6) file downloaded by from the portal https://web.iodp.tamu.edu/LORE/.",
+                                                           "",
+                                                           "CIT multi-samples= Sample Data file as described in https://cires1.colorado.edu/people/jones.craig/PMag_Formats.html (multiple files can be selected).",
+                                                           "",
+                                                           "Example data= Some paleomagnetic directions from the South Ardo Paleocene record,
                                      Dallanave et al., 2012, https://doi.org/10.1016/j.palaeo.2012.04.007",
-                                                                 "",
-                                                                 "For any inquiries or request regarding additional file types, please contact me at edoardo.dallanave@unimi.it"),
-                                                               size = "l",fade = T))
-                                             ),
-                                             fluidRow(
-                                               column(6,selectInput("Zijd_Stereo_shift",label = "Diagram",
-                                                                    choices = list("N-Right"=1,"N-Up"=2, "Equal area"=3), selected = 1)),
-                                               column(6,selectInput(inputId = "VEPcoordinates",label = "Coordinates",
-                                                                    choices = list("Specimen"=1,"Geographic"=2,"Tilt Corr."=3),selected = 3))
-                                             ),
-                                             fluidRow(
-                                               column(6, actionButton(inputId = "Zijd_detail",label = "UNITS",width = "100%")),
-                                               column(6, actionButton(inputId = "Zijd_detail2",label = "TAGS",width = "100%"))
-                                             ),
-                                             br(),
-                                             br(),
-                                             fluidRow(
-                                               column(6,selectInput("anchor",label = "Interpolation",
-                                                                    choices = list("PCA Free"=1,"PCA Anch."=2,"PCA Or. Incl."=3,"PCA Constr."= 6, "Fisher"=4, "G. Circle"=5),selected = 1)%>%
-                                                        helper(type = "inline",
-                                                               title = "Interpolation type",
-                                                               content = c(
-                                                                 "Vector end-points interpolation can be performed by:",
-                                                                 "",
-                                                                 "PCA Free- PCA free from origin of demagnetization axes",
-                                                                 "",
-                                                                 "PCA Anch.- PCA with ellipsoid centered at the origin of the demagnetization axes.",
-                                                                 "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PROBABILISTIC PCA* TEST (available in main panel)",
-                                                                 "",
-                                                                 "PCA Or. Incl.- Includes origin of the demagnetization axes as demagnetization point",
-                                                                 "",
-                                                                 "PCA Constr.- Constrained PCA*",
-                                                                 "",
-                                                                 "Fisher- Fisher spherical average of the vector end-points",
-                                                                 "",
-                                                                 "G. Circle- Interpolation of the vector end-points by a great circle",
-                                                                 "",
-                                                                 "*Heslop, D., Roberts, A.P. (2016). Analyzing paleomagnetic data: To anchor or not to anchor? Journal of Geophysical Research: Solid Earth, 121(11), 7742–7753. https://doi.org/10.1002/2016JB013387"
-                                                               ),
-                                                               size = "l",fade = T)),
-                                               column(6, textInput("comp_name",label = "Component name",value = "Ch"))
-                                             ),
-                                             fluidRow(
-                                               column(12,h4("List of loaded specimens"))
-                                             ),
-                                             fluidRow(
-                                               column(12,DT::dataTableOutput("samples_list"))
-                                             )
-                                ),
-                                mainPanel(
-                                  fluidRow(
-                                    actionButton(inputId = "del_VEPs",label = "Delete selection"),
-                                    actionButton(inputId = "restore_VEPs",label = "Restore data"),
-                                    actionButton(inputId = "PPCA",label = "Run Probabilistic PCA test"),
-                                    actionButton(inputId = "runVEPstat",label = "Run interpolation"),
-                                    actionButton(inputId = "save_PCA",label = "Save interpolation"),
-                                    downloadButton("export_PCA",label = "Export all saved directions")
-                                  ),
-                                  fluidRow(column(3,textOutput("Zijd_Unit")),
-                                           column(9,textOutput("PCA_result"))
-                                  ),
-                                  column(11,plotOutput("zijderveld",brush = brushOpts(id = "plot_brush", fill = NA))),
-                                  column(1, DT::dataTableOutput("sampledat",width = 100))
-                                )
-                              )
-                     ),
-                     tabPanel("Export figure with all diagrams",
-                              mainPanel(
-                                fluidRow(
-                                  column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
-                                  column(10,h5("Please define Units & Tags for a complete visualization"))
-                                ),
-                                column(12,plotOutput(outputId = "All_VEP_diagrams")),
-                              )
-                     ),
-                     tabPanel("All saved directions",
-                              sidebarLayout(
-                                sidebarPanel(width = 6,
-                                             fluidRow(
-                                               column(4,fileInput(inputId = "import_PCA",label = "Import saved directions")%>%
-                                                        helper(type = "inline",
-                                                               title = "Format file",
-                                                               content = c(
-                                                                 "File as exported from Vector end-points interpolation page"),
-                                                               size = "m",fade = T)),
-                                               column(4,textInput(inputId = "sel_interpol_name",label = "Name of exported file",value = "Directions")),
-                                               column(4,selectInput(inputId = "EAcoordinates",label = "Coordinates",
-                                                                    choices = list("Geographic"=1,"Tilt Corr."=2),selected = 2))
-                                             ),
-                                             fluidRow(DT::dataTableOutput(outputId = "saved_interpol"))
-                                ),
-                                mainPanel(width = 6,
-                                          fluidRow(actionButton(inputId = "del_interpol",label = "Delete selection"),
-                                                   actionButton(inputId = "undel_interpol",label = "undo delete"),
-                                                   downloadButton("export_interpol",label = "Export selected directions"),
-                                                   downloadButton("export_AllDirs_stereo",label = "Export figure"),
-                                                   actionButton(inputId = "comb_DI_GC",label = "Combine DI & GC"),
-                                                   actionButton(inputId = "save_GC",label = "Add GC dirs to list"),
-                                                   actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot"),
-                                                   actionButton(inputId = "showdiersEA",label = "Show dragged directions details")),
-                                          plotOutput("saved_interpol_EA",brush = brushOpts(id="plot_click")))
-                              )
-                     )
-                   )
+                                                           "",
+                                                           "For any inquiries or request regarding additional file types, please contact me at edoardo.dallanave@unimi.it"),
+                                                         size = "l",fade = T))
+                                       ),
+                                       fluidRow(
+                                         column(6,selectInput("Zijd_Stereo_shift",label = "Diagram",
+                                                              choices = list("N-Right"=1,"N-Up"=2, "Equal area"=3), selected = 1)),
+                                         column(6,selectInput(inputId = "VEPcoordinates",label = "Coordinates",
+                                                              choices = list("Specimen"=1,"Geographic"=2,"Tilt Corr."=3),selected = 3))
+                                       ),
+                                       fluidRow(
+                                         column(6, actionButton(inputId = "Zijd_detail",label = "UNITS",width = "100%")),
+                                         column(6, actionButton(inputId = "Zijd_detail2",label = "TAGS",width = "100%"))
+                                       ),
+                                       br(),
+                                       br(),
+                                       fluidRow(
+                                         column(6,selectInput("anchor",label = "Interpolation",
+                                                              choices = list("PCA Free"=1,"PCA Anch."=2,"PCA Or. Incl."=3,"PCA Constr."= 6, "Fisher"=4, "G. Circle"=5),selected = 1)%>%
+                                                  helper(type = "inline",
+                                                         title = "Interpolation type",
+                                                         content = c(
+                                                           "Vector end-points interpolation can be performed by:",
+                                                           "",
+                                                           "PCA Free- PCA free from origin of demagnetization axes",
+                                                           "",
+                                                           "PCA Anch.- PCA with ellipsoid centered at the origin of the demagnetization axes.",
+                                                           "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PROBABILISTIC PCA* TEST (available in main panel)",
+                                                           "",
+                                                           "PCA Or. Incl.- Includes origin of the demagnetization axes as demagnetization point",
+                                                           "",
+                                                           "PCA Constr.- Constrained PCA*",
+                                                           "",
+                                                           "Fisher- Fisher spherical average of the vector end-points",
+                                                           "",
+                                                           "G. Circle- Interpolation of the vector end-points by a great circle",
+                                                           "",
+                                                           "*Heslop, D., Roberts, A.P. (2016). Analyzing paleomagnetic data: To anchor or not to anchor? Journal of Geophysical Research: Solid Earth, 121(11), 7742–7753. https://doi.org/10.1002/2016JB013387"
+                                                         ),
+                                                         size = "l",fade = T)),
+                                         column(6, textInput("comp_name",label = "Component name",value = "Ch"))
+                                       ),
+                                       fluidRow(
+                                         column(12,h4("List of loaded specimens"))
+                                       ),
+                                       fluidRow(
+                                         column(12,DT::dataTableOutput("samples_list"))
+                                       )
+                          ),
+                          mainPanel(
+                            fluidRow(
+                              actionButton(inputId = "del_VEPs",label = "Delete selection"),
+                              actionButton(inputId = "restore_VEPs",label = "Restore data"),
+                              actionButton(inputId = "PPCA",label = "Run Probabilistic PCA test"),
+                              actionButton(inputId = "runVEPstat",label = "Run interpolation"),
+                              actionButton(inputId = "save_PCA",label = "Save interpolation"),
+                              downloadButton("export_PCA",label = "Export all saved directions")
+                            ),
+                            fluidRow(column(3,textOutput("Zijd_Unit")),
+                                     column(9,textOutput("PCA_result"))
+                            ),
+                            column(11,plotOutput("zijderveld",brush = brushOpts(id = "plot_brush", fill = NA))),
+                            column(1, DT::dataTableOutput("sampledat",width = 100))
+                          )
+                        )
+               ),
+               tabPanel("Export figure with all diagrams",
+                        mainPanel(
+                          fluidRow(
+                            column(2, downloadButton("export_VEPs_figure",label = "Export figure",width="100%")),
+                            column(10,h5("Please define Units & Tags for a complete visualization"))
+                          ),
+                          column(12,plotOutput(outputId = "All_VEP_diagrams")),
+                        )
+               ),
+               tabPanel("All saved directions",
+                        sidebarLayout(
+                          sidebarPanel(width = 6,
+                                       fluidRow(
+                                         column(4,fileInput(inputId = "import_PCA",label = "Import saved directions")%>%
+                                                  helper(type = "inline",
+                                                         title = "Format file",
+                                                         content = c(
+                                                           "File as exported from Vector end-points interpolation page"),
+                                                         size = "m",fade = T)),
+                                         column(4,textInput(inputId = "sel_interpol_name",label = "Name of exported file",value = "Directions")),
+                                         column(4,selectInput(inputId = "EAcoordinates",label = "Coordinates",
+                                                              choices = list("Geographic"=1,"Tilt Corr."=2),selected = 2))
+                                       ),
+                                       fluidRow(
+                                         column(12,h5("The component name is editable, double-click on the cell."))
+                                       ),
+                                       fluidRow(DT::dataTableOutput(outputId = "saved_interpol"))
+                          ),
+                          mainPanel(width = 6,
+                                    fluidRow(actionButton(inputId = "del_interpol",label = "Delete selection"),
+                                             actionButton(inputId = "undel_interpol",label = "undo delete"),
+                                             downloadButton("export_interpol",label = "Export selected directions"),
+                                             downloadButton("export_AllDirs_stereo",label = "Export figure"),
+                                             actionButton(inputId = "comb_DI_GC",label = "Combine DI & GC"),
+                                             actionButton(inputId = "save_GC",label = "Add GC dirs to list"),
+                                             actionButton(inputId = "GC_erase",label = "Clear GC dirs from plot"),
+                                             actionButton(inputId = "showdiersEA",label = "Show dragged directions details")),
+                                    plotOutput("saved_interpol_EA",brush = brushOpts(id="plot_click")))
+                        )
+               )
+             )
     ),
     tabPanel("Directions display & average",
              tabsetPanel(

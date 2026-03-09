@@ -1,16 +1,3 @@
-
-library(PmagDiR)
-library(plyr)
-library(dplyr)
-library(shiny)
-library(shinyWidgets)
-library(DT)
-library(shinyhelper)
-library(stats)
-library(glue)
-library(tidyverse)
-
-
 server <- function(input, output){
   
   #activate helpers
@@ -1169,17 +1156,42 @@ server <- function(input, output){
   })
   
   #turn table in a interactive table
-  output$saved_interpol <- DT::renderDataTable({TAB()}, server = FALSE, rownames=F, extension= 'Scroller',
-                                               options=list(dom='t',sort=T, paging=T,
-                                                            deferRender = TRUE,
-                                                            scrollY = 600,
-                                                            scroller = TRUE,
-                                                            "drawCallback" = JS("function(settings) {var table = this.api();table.rows().nodes().to$().css('font-size', '12px');}"),
-                                                            initComplete = JS(
-                                                              "function(settings, json) {",
-                                                              "$(this.api().table().header()).css({'font-size': '85%'});",
-                                                              "}")),
-                                               class=list(stripe=FALSE))
+  output$saved_interpol <- DT::renderDataTable({
+    req(TAB())
+    #next allows to modify on ly one value of the table, which is the component name
+    datatable(TAB(), rownames=F, extension= 'Scroller',
+              editable = list(target="cell", disable= list(columns=c(0,1,2,3,4,5,6,7))),
+              options=list(dom='t',sort=T, paging=T,
+                           deferRender = TRUE,
+                           scrollY = 600,
+                           scroller = TRUE,
+                           "drawCallback" = JS("function(settings) {var table = this.api();table.rows().nodes().to$().css('font-size', '12px');}"),
+                           initComplete = JS(
+                             "function(settings, json) {",
+                             "$(this.api().table().header()).css({'font-size': '85%'});",
+                             "}")),
+              class=list(stripe=FALSE))%>%
+      formatStyle(
+        columns = c("Sample","G_Dec","G_Inc","B_Dec","B_Inc",
+                    "MAD","a95","Type","Comp"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #modify original table by changing component name
+  observeEvent(input$saved_interpol_cell_edit, {
+    info <- input$saved_interpol_cell_edit
+    #current values in table
+    modified_data <- specim$PCA_result_file  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why, it's like a chopper flying without spinning blades)
+    modified_data[info$row, (info$col+5)] <- info$value 
+    #update table
+    specim$PCA_result_file <- modified_data
+  })
+  
+  
+  
+  
   
   #delete selected directions permanently
   observeEvent(input$del_interpol,{
