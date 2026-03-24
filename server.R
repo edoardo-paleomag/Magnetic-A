@@ -5,7 +5,7 @@ server <- function(input, output){
   
   ############ VECTOR END-POINTS MODULE
   
-  #Function for plottin zijderveld used in 2 screens
+  #Function for plotting zijderveld used in 2 screens
   #function plotting the vector end point diagram and return values without order of magnitude
   zijderveld <- function(specim,selected_steps,coordinates=1,orient=1,d_tick=0.25,ticks=T){
     
@@ -397,7 +397,8 @@ server <- function(input, output){
       
       #file is in emu e-4, next convert in Am2
       dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-7)
-    }else if(input$Zijd_f_type==3){
+    }
+    else if(input$Zijd_f_type==3){
       #Bremen cor file
       dat <- read.table(input$All_Zijd$datapath,header = F,skip = 1)
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = nrow(dat)))
@@ -408,7 +409,8 @@ server <- function(input, output){
       dat_PmagDiR[,9:11] <- dat[,3:5]
       #converts in Am2
       dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-3)
-    }else if(input$Zijd_f_type==4){
+    }
+    else if(input$Zijd_f_type==4){
       #load IODP Spinner data
       dat <- read.csv(input$All_Zijd$datapath)
       #eliminate IRM if present
@@ -429,8 +431,8 @@ server <- function(input, output){
       temp_file <- temp_file[order(temp_file[,3]),]
       temp_file <- temp_file[order(temp_file[,1]),]
       dat_PmagDiR <- temp_file[,-1]
-      #return(dat_PmagDiR)
-    }else if(input$Zijd_f_type==5){
+    }
+    else if(input$Zijd_f_type==5){
       #CIT multisamples
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
@@ -716,9 +718,6 @@ server <- function(input, output){
       specim$specim_no_OM <- Zijdervel_res[[1]]
       #save order of magnitude
       specim$OM <- Zijdervel_res[[2]]
-      
-      #save coordinates as number otherwise is a character and uses it for interpolation line
-      #coordinates <- as.numeric(input$VEPcoordinates)
       
       #add interpolation lines
       if(length(specim$DiR_da)||length(specim$DiR_df)||length(specim$DiR_doi) || length(specim$DiR_C)){
@@ -1189,10 +1188,6 @@ server <- function(input, output){
     specim$PCA_result_file <- modified_data
   })
   
-  
-  
-  
-  
   #delete selected directions permanently
   observeEvent(input$del_interpol,{
     to_delete <- input$saved_interpol_rows_selected
@@ -1436,9 +1431,7 @@ server <- function(input, output){
       replayPlot(specim$all_diagrams)
       dev.off()
     })
-  
-  
-  
+  ################DIRECTIONS PART
   ############ Takes direction input file and fix it depending on commands
   
   #create reactive file for stat
@@ -1473,9 +1466,6 @@ server <- function(input, output){
       }  
     }
   })
-  
-  
-  
   
   #fix dirs coordinate depending on input, file ncol, different cutoff
   fix_DI <- function(input_file,file=input$filetype,
@@ -1627,7 +1617,7 @@ server <- function(input, output){
   ############ DIRECTIONS DISPILAY & AVERAGE
   
   ####### DIRECTIONS DISPILAY & AVERAGE SUBPAGE
-  #modified fisher_plot function
+  #modified PmagDir fisher_plot function
   fisher_plot_S <- function(DI, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c",auto_split=TRUE) {
     data <- DI
     data <- na.omit(data)
@@ -1723,7 +1713,7 @@ server <- function(input, output){
     return(S_results)
   }
   
-  #modified ellips_plot function
+  #modified PmagDir ellips_plot function
   ellips_plot_S <- function(DI,lat=0,long=0, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c"){
     #functions converting inc(x) and dec(y) into equal area
     a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
@@ -1863,7 +1853,6 @@ server <- function(input, output){
     Dirs$dat <- input_file()
   })
   
-  
   #equal area function
   plot_dirs <- function(DI,Slat=input$lat,Slong=input$long,mode=input$mode,
                         colD=input$colD,colU=input$colU,sym=input$sym,GAD=input$addGAD){
@@ -1921,7 +1910,6 @@ server <- function(input, output){
     }
   }
   
-  
   output$directions <- renderPlot({
     #avoid errors if long and lat are missing
     req(input$lat)
@@ -1930,7 +1918,6 @@ server <- function(input, output){
     
     #apply plotting function
     plot_dirs(fix_DI(Dirs$dat))
-    
     
     #select points dragging from screen
     Dirs$to_delete <- selectedDIR()   
@@ -2142,7 +2129,6 @@ server <- function(input, output){
     #create temporary file with same row number
     temp <- data.frame(matrix(ncol=7,nrow = nrow(ext_MFish_file)))
     colnames(temp) <- c("Dec.","Inc.","a95(dec)","a95_inc","Sym.","S. Col","L. Col")
-    
     
     #create the rest depending on the file (columns number)
     #only standard Fisher
@@ -2605,7 +2591,6 @@ server <- function(input, output){
   B95_calculation <- function(n_boots=input$B95nb,p=0.05,mode=1){ 
     DI <- fix_DI(Dirs$dat)
     DI <- na.omit(DI)
-    
     dat <- DI[,1:2]
     colnames(dat) <- c("dec", "inc")
     #directions in Cartesian coordinates
@@ -2818,7 +2803,6 @@ server <- function(input, output){
     }
   )
   
-  
   output$CMDT_result1 <- renderText({
     if(!is.null(CMDT$result)){paste("V3 obs.:", round(CMDT$result[["CMDT_value"]],digit=2))}
   })
@@ -2965,16 +2949,15 @@ server <- function(input, output){
   #Calculates the zonal field for a given latitude and returns the horizontal and vertical components Btetha, Br.
   zonal <- function(lat,g10=-18,G2=0.0,G3=0.0,G4=0.0,a_r=1.0) {
     # Parameters:
-    # lat: Latitude in degrees.
-    # g10: Gauss coefficient g10 (default: -18).
-    # G2: Gauss coefficient G2 (default: 0.0).
-    # G3: Gauss coefficient G3 (default: 0.0).
-    # G4: Gauss coefficient G4 (default: 0.0).
+    # lat: Latitude in degrees
+    # g10: Gauss coefficient g10 (default: -18)
+    # G2: Gauss coefficient G2 (default: 0.0)
+    # G3: Gauss coefficient G3 (default: 0.0)
+    # G4: Gauss coefficient G4 (default: 0.0)
     # a_r: Earth radius divided by the distance from the center of the Earth (default: 1.0).
     # Returns:
-    #   tuple: Tuple containing the following elements:
-    #   - Bttot (float): Total horizontal component Btetha.
-    # - Brtot (float): Total vertical component Br.
+    #   Bttot: Total horizontal component Btetha.
+    #   Brtot: Total vertical component Br.
     
     Theta<-90-lat
     g20<-G2*g10
@@ -2998,18 +2981,11 @@ server <- function(input, output){
   #Calculates the Time Average Field (TAF) for a given GGP model dictionary.
   m_TAF <- function(GGPmodel="THG24", lat) {
     # Parameters:
-    #   GGPmodel (dict): GGP model dictionary containing the following keys:
-    # - 'g10' (float): Gauss coefficient g10.
-    # - 'g20' (float): Gauss coefficient g20.
-    # - 'g30' (float): Gauss coefficient g30.
-    # 
-    # lat (float): Latitude in degrees.
-    # 
+    # result from the GGPmodels selection of parameters
     # Returns:
-    #   ndarray: Array `m` representing the time average field with shape (3,).
-    # - m[0] (float): Bx component (negative Btetha).
-    # - m[1] (float): By component (always 0).
-    # - m[2] (float): Bz component (negative Br).
+    #  m[0] : Bx component (negative Btetha).
+    #  m[1] : By component (always 0).
+    #  m[2] : Bz component (negative Br).
     GGPmodel <- GGPmodels(GGPmodel)
     
     z <- zonal(lat = lat,g10 =GGPmodel[1],G2 = GGPmodel[2]/GGPmodel[1],G3 = GGPmodel[3]/GGPmodel[1])
@@ -3180,7 +3156,7 @@ server <- function(input, output){
     return(Cov)
   }
   
-  #requires m_TAF and Cov_modelo
+  #requires m_TAF (Time Average Field) and Cov_modelo (covariance matrix)
   GGP_vMF_cdfs <- function(GGPmodel="THG24", lat, degree, flat=1, kappa=-1, n=2e6) {
     n <- as.integer(n)
     m <- m_TAF(GGPmodel, lat)       
@@ -3221,6 +3197,7 @@ server <- function(input, output){
     return(list(Icdf=Icdf, Dcdf=Dcdf))
   }   
   
+  #return expected DI
   GGPrand <- function(GGPmodel="THG24", lat, n, degree = 8) {
     m <- m_TAF(GGPmodel=GGPmodel, lat=lat)                  
     Cov <- Cov_modelo(GGPmodel=GGPmodel, lat=lat, degree=degree)   
@@ -3235,19 +3212,11 @@ server <- function(input, output){
   # Icdf: funzione cumulativa (CDF) in radianti
   AD_inc <- function(Is, Icdf) {
     # Parameters:
-    #   Is (array-like): Array of observed inclinations in degrees.
+    # Is: observed inclinations in degrees.
     # Icdf (callable): Pchip function representing the cumulative distribution function (CDF) of inclinations for a given latitude.
-    # 
     # Returns:
-    #   float: Test statistic (A2) for inclinations.
-    # 
-    # Notes:
-    #   The Anderson-Darling (AD) test is a statistical test used to assess whether a sample of data comes from a specific probability distribution. This function calculates the AD test statistic for the distribution of inclinations based on the observed inclinations and the CDF of inclinations.
-    # 
-    # The AD test statistic measures the discrepancy between the observed data and the expected distribution. A larger AD test statistic indicates a greater discrepancy, suggesting that the observed data may not follow the expected distribution.
-    # 
-    # It is important to note that this function assumes the input inclinations are in degrees and converts them to radians internally for consistency with the CDF function.
-    
+    # Test statistic (A2) for inclinations A2I
+
     Is <- sort(Is * pi / 180)  # ordina e converte in radianti
     ns <- length(Is)
     
@@ -3264,19 +3233,12 @@ server <- function(input, output){
   # Dcdf: funzione CDF (in radianti) per le declinazioni
   AD_dec <- function(Ds, Dcdf) {
     # Parameters:
-    #   Ds (array-like): Array of observed declinations in degrees.
-    # Dcdf (callable): Pchip function representing the cumulative distribution function (CDF) of declinations for a given latitude.
+    # Ds: observed declinations in degrees.
+    # Dcdf: Pchip function representing the cumulative distribution function (CDF) of declinations for a given latitude.
     # 
     # Returns:
-    #   float: Test statistic (A2) for declinations.
-    # 
-    # Notes:
-    #   The Anderson-Darling (AD) test is a statistical test used to assess whether a sample of data comes from a specific probability distribution. This function calculates the AD test statistic for the distribution of declinations based on the observed declinations and the CDF of declinations.
-    # 
-    # The AD test statistic measures the discrepancy between the observed data and the expected distribution. A larger AD test statistic indicates a greater discrepancy, suggesting that the observed data may not follow the expected distribution.
-    # 
-    # It is important to note that this function assumes the input declinations are in degrees and converts them to radians internally for consistency with the CDF function. Additionally, if any declinations are greater than 180 degrees, they are adjusted to the range -180 to 180 degrees before performing the test.
-    
+    # Test statistic (A2) for declinations A2D
+
     Ds[Ds > 180] <- Ds[Ds > 180] - 360  # normalizza nel range [-180, 180]
     Ds <- sort(Ds * pi / 180)  # ordina e converti in radianti
     ns <- length(Ds)
@@ -3292,19 +3254,18 @@ server <- function(input, output){
   #Perform the Anderson-Darling (AD) test on observed inclinations and declinations and Monte Carlo simulation to estimate 95% confidence bounds on V2dec and E
   svei_test <- function(DI, model_name = 'THG24', degree = 8, kappa = -1, num_sims = 1000,Shiny=F,EI_test=F,Plot=T) {
     #   Returns:
-    #     res_dict (dict): Dictionary with the following parameters:
-    #     kappa (float): kappa used in simulations
+    #   kappa: kappa used in simulations
     #   H (int): 0 if the null hypothesis cannot be rejected, 1 otherwise.
-    #   A2I (float): Test statistic for inclinations.
-    #   A2D (float): Test statistic for declinations.
-    #   pID (float): Representation of combined p-values (can be used for minimization to optimize latitude).
-    #   lat (float): Latitude of the site.
-    #   V2dec (float): Declination of minor principle component of data set. 
-    #   V2sim_min, V2sim_max (floats): Bounds on V2dec from Monte Carlo simulation
-    #   V2_result (integer): 0 if V2dec not in bounds, 1 if in bounds (consistent)
-    #   E (float): Elongation (tau2/tau3) of data set 
-    #   Esim_min, Esim_max (floats): Bounds on elongation from Monte Carlo simulation
-    #   E_result (integer): 0 if V2dec not in bounds, 1 if in bounds (consistent)
+    #   A2I: Test statistic for inclinations.
+    #   A2D: Test statistic for declinations.
+    #   pID: Representation of combined p-values (can be used for minimization to optimize latitude).
+    #   lat: Latitude of the site.
+    #   V2dec : Declination of minor principle component of data set. 
+    #   V2sim_min, V2sim_max: Bounds on V2dec from Monte Carlo simulation
+    #   V2_result: 0 if V2dec not in bounds, 1 if in bounds (consistent with the model, assumed THG24 in Magnetic-A)
+    #   E: Elongation
+    #   Esim_min, Esim_max: Bounds on elongation from Monte Carlo simulation
+    #   E_result: 0 if V2dec not in bounds, 1 if in bounds (consistent with the model, assumed THG24 in Magnetic-A)
     
     A2ref <- c(0.025, 0.050, 0.075, 0.100, 0.125, 0.150, 0.175, 0.200, 0.225, 0.250, 0.275,
                0.300, 0.325, 0.350, 0.375, 0.400, 0.425, 0.450, 0.475, 0.500, 0.525, 0.550,
@@ -3426,7 +3387,7 @@ server <- function(input, output){
     E_result <- ifelse(E >= Esim_min && E <= Esim_max, 1, 0)
     
     if(Plot==T){    
-      #graphical part by Edo
+      #graphical part all recompiled by Edo
       #prepara dati D e I
       D0 <- seq(-180, 180, 1)
       # CDF empirica per Declinazione
@@ -3540,13 +3501,7 @@ server <- function(input, output){
   
   #reactive function
   SVEI_testPlot <- eventReactive(input$SVEIgo,{
-    #set parameters
-    # if(input$model_name==1) modelname <- "THG24"
-    # if(input$model_name==2) modelname <- "TK03"
-    # if(input$model_name==3) modelname <- "CP88"
-    # if(input$model_name==4) modelname <- "QC96"
-    # if(input$model_name==5) modelname <- "CJ98"
-    # if(input$model_name==6) modelname <- "BCE19"
+    #SVEI test is performed assuming the THG24 field model! no choice allowed in Magnetic-A, although it can be done theoretically
     if(input$SVEI_k==1) sveikappa <- -1
     if(input$SVEI_k==2) sveikappa <- 50
     if(input$SVEI_k==3) sveikappa <- 100
@@ -3804,7 +3759,7 @@ server <- function(input, output){
     )
   },width = 850,height = 700)
   
-  ##################### END OF SVEI MODULE
+  ##################### END OF SVEI MODULE 
   
   
   ############ TK03.GAD INCLINATION FLATTENING MODULE
