@@ -33,7 +33,12 @@ ui <- fluidPage(
                  fluidRow(column(12,h5("• Parametric and non-parametric statistics and test for consistency with field model"))),
                  fluidRow(column(12,h5("• Virtual geomagnetic pole analysis"))),
                  fluidRow(column(12,h5("• Multiple paleomagnetic poles analysis"))),
-                 fluidRow(column(12,h5("• Magnetic polarity stratigraphy")))
+                 fluidRow(column(12,h5("• Magnetic polarity stratigraphy"))),
+                 br(),
+                 fluidRow(
+                   column(12,h4("Please cite: "), h4(tags$a(href="https://doi.org/10.1029/2025EA004863", 
+                                                            "Dallanave, E. (2026). Earth and Space Science, 13(e2025EA004863).", target="_blank")))
+                 )
                ),
                mainPanel(
                  fluidRow(
