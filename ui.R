@@ -1095,7 +1095,7 @@ ui <- fluidPage(
                           mainPanel(width=7,
                                     fluidRow(
                                       downloadButton("MVGP_G","Export graph"),
-                                      downloadButton("VGP_ALL_stat","Export selected VGPs average"),
+                                      #downloadButton("VGP_ALL_stat","Export selected VGPs average"),
                                       downloadButton("MVGP_list",label = "Export Pole list"),
                                       downloadButton("Down_ALL_VGPs",label = "Export selected VGPs")
                                     ),
