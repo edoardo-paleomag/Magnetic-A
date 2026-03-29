@@ -42,6 +42,12 @@ ui <- fluidPage(
                ),
                mainPanel(
                  fluidRow(
+                   column(12, h2("Version 1.0")),
+                 ),
+                 fluidRow(
+                   column(12, h4("Version 2.0, with simplfied VGPs calculation and plotting, is under development.")),
+                 ),
+                 fluidRow(
                    column(12,h4("Web version: ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
                                                        "Magnetic-A")))
                  ),
