@@ -4046,7 +4046,7 @@ server <- function(input, output){
     
     #define name with locality and various details not to replicate bootstrap
     vgp_temp_stat_name <- paste(
-      ifelse(input$filetype==5,input$import_PCA$name,
+      ifelse(input$filetype==5,"Internal_File",
              ifelse(input$filetype==6, "Ardo",Dirs$dirsFileName)),
       "stat_temp",nrow(VGPS),input$lat,input$long,input$coord,input$known_f,input$apply_known_f,input$vgpbootn,input$dirs_vgp,input$cutoff,sep = "_")
     if(input$plotA95==3 && exists(vgp_temp_stat_name,envir = MVGP_temp)==FALSE) {
