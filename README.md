@@ -1,10 +1,11 @@
-# Magnetic-A - How to run locally
+# Magnetic-A2.0
+# How to run locally
 
 The documents and data within this git-hub folder form the basis for the Magnetic-A application available online at https://edoardodallanave.shinyapps.io/MagneticA/. The code for the application can be found in the documents “server.R” and “ui.R”. 
 
 If you use this code for publication purposes, please cite (for now):
 
-Dallanave, E. (2024). Assessing the reliability of paleomagnetic datasets using the R package PmagDiR. Scientific Reports, 14(1666). https://doi.org/10.1038/s41598-024-52001-x
+Dallanave, E. (2026). Magnetic-A: The New R‐Based Toolbox for Analysis of Paleomagnetic Data. Earth and Space Science, 13(e2025EA004863). https://doi.org/10.1029/2025EA004863
 
 A dedicated publication is under review!
 
@@ -25,6 +26,7 @@ all package used by Magnetic-A are stored in CRAN (Except PmagDiR) and can be do
 * install.packages("shinyWidgets")
 * install.packages("DT")
 * install.packages("shinyhelper")
+* install.packages("shinyjqui")
 * install.packages("glue")
 * install.packages("tidyverse")
   
@@ -49,5 +51,6 @@ The latter option allows to operate offline.
 For help and inquiries, please contact me: 
 
 * edoardo.dallanave@unimi.it
+
 
 

@@ -6,6 +6,7 @@ library(shiny)
 library(shinyWidgets)
 library(DT)
 library(shinyhelper)
+library(shinyjqui)
 library(stats)
 library(glue)
 library(tidyverse)
@@ -27,36 +28,39 @@ ui <- fluidPage(
                  ),
                  #br(),
                  fluidRow(
-                   column(12,h4("A R-Shiny-based complete toolbox for paleomagnetic analyses."))
+                   column(12,h4("A R-Shiny-based comprehensive toolbox for paleomagnetic analyses."))
                  ),
                  fluidRow(column(12,h5("• Paleomagnetic directions analysis"))),
                  fluidRow(column(12,h5("• Parametric and non-parametric statistics and test for consistency with field model"))),
                  fluidRow(column(12,h5("• Virtual geomagnetic pole analysis"))),
                  fluidRow(column(12,h5("• Multiple paleomagnetic poles analysis"))),
-                 fluidRow(column(12,h5("• Magnetic polarity stratigraphy"))),
-                 br(),
-                 fluidRow(
-                   column(12,h4("Please cite: "), h4(tags$a(href="https://doi.org/10.1029/2025EA004863", 
-                                                            "Dallanave, E. (2026). Earth and Space Science, 13(e2025EA004863).", target="_blank")))
-                 )
+                 fluidRow(column(12,h5("• Magnetic polarity stratigraphy")))
                ),
                mainPanel(
                  fluidRow(
-                   column(12, h2("Version 1.0")),
-                 ),
-                 fluidRow(
-                   column(12, h4("Version 2.0, with simplfied VGPs calculation and plotting, is under development.")),
-                 ),
-                 fluidRow(
-                   column(12,h4("Web version: ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
-                                                       "Magnetic-A")))
+                   column(12, h2("Magnetic-A 2.0"))
                  ),
                  br(),
                  fluidRow(
-                   column(12,h4("Source and instructions: ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
-                                                                   "click here.")))
+                   column(12, h3("What's new?"))
                  ),
-                 br(),
+                 fluidRow(
+                   column(12,h3("• Updated and simplified VGPs and Pmag Poles part"))
+                 ),                 
+                 fluidRow(
+                   column(12,h3("• Draggable interactive pop-up windows"))
+                 ),
+                 fluidRow(
+                   column(12,h4("Non-parametric fold test is under development"))
+                 ),
+                 fluidRow(
+                   column(12,h4("Version 1.0 still available at ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
+                                                                         "Magnetic-A")))
+                 ),
+                 fluidRow(
+                   column(12,h4("Or you can run Magnetic-A locally (and faster!)  by following the instructions ",tags$a(href="https://github.com/edoardo-paleomag/Magnetic-A/blob/main/README.md",
+                                                                                                                         "in the GitHub repository where it is stored.")))
+                 ),
                  fluidRow(
                    column(12,h4("The User Guide is available as pdf file on my ",tags$a(href="https://edoardodallanave.wixsite.com/mysite", 
                                                                                         "personal Webpage")))
@@ -112,18 +116,18 @@ ui <- fluidPage(
                                                          content = c(
                                                            "Vector end-points interpolation can be performed by:",
                                                            "",
-                                                           "PCA Free- PCA free from origin of demagnetization axes",
+                                                           "PCA Free: PCA free from origin of demagnetization axes",
                                                            "",
-                                                           "PCA Anch.- PCA with ellipsoid centered at the origin of the demagnetization axes.",
+                                                           "PCA Anch.: PCA with ellipsoid centered at the origin of the demagnetization axes.",
                                                            "THIS OPTION IS WARMLY DISCOURAGED UNLESS JUSTIFIED BY THE PROBABILISTIC PCA* TEST (available in main panel)",
                                                            "",
-                                                           "PCA Or. Incl.- Includes origin of the demagnetization axes as demagnetization point",
+                                                           "PCA Or. Incl.: Includes origin of the demagnetization axes as demagnetization point",
                                                            "",
-                                                           "PCA Constr.- Constrained PCA*",
+                                                           "PCA Constr.: Constrained PCA*",
                                                            "",
-                                                           "Fisher- Fisher spherical average of the vector end-points",
+                                                           "Fisher: Fisher spherical average of the vector end-points",
                                                            "",
-                                                           "G. Circle- Interpolation of the vector end-points by a great circle",
+                                                           "G. Circle: Interpolation of the vector end-points by a great circle",
                                                            "",
                                                            "*Heslop, D., Roberts, A.P. (2016). Analyzing paleomagnetic data: To anchor or not to anchor? Journal of Geophysical Research: Solid Earth, 121(11), 7742–7753. https://doi.org/10.1002/2016JB013387"
                                                          ),
@@ -201,6 +205,7 @@ ui <- fluidPage(
                tabPanel("Directions display & average",
                         sidebarLayout(
                           sidebarPanel(width = 5,
+                                       h4("Please assign different Site names to different datasets!"),
                                        fluidRow(
                                          column(6,fileInput("file", label= "Load directions file")),
                                          column(6,textInput("fileN",label = "Site name",value = "Site"))
@@ -514,10 +519,15 @@ ui <- fluidPage(
                         sidebarLayout(
                           sidebarPanel(width=3,
                                        fluidRow(
-                                         column(12,h4("Reversal Test*"))
+                                         column(12,h4("Reversal Test"))
                                        ),
                                        fluidRow(
-                                         column(12,h6("Checks if the two modes flipped on the same hemisphere of the equal area share a common mean direction at a 95% confidence"))
+                                         column(12,h5("Checks if the two modes flipped on the same hemisphere of the equal area share a common mean direction at a 95% confidence"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
+                                                                               "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
                                        ),
                                        br(),
                                        fluidRow(
@@ -541,11 +551,6 @@ ui <- fluidPage(
                                          column(12,h4(textOutput(outputId = "CMDT_result3")))),
                                        fluidRow(
                                          column(12,h4(textOutput(outputId = "CMDT_result4")))),
-                                       br(),
-                                       fluidRow(
-                                         column(12,h5("*Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
-                                                                                "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
-                                       )
                           ),
                           mainPanel(
                             fluidRow(downloadButton("revexpG","Export graph"),
@@ -554,14 +559,19 @@ ui <- fluidPage(
                           )
                         )
                ),
-               tabPanel("Common mean direction test (CMDT) of two datasets",         
+               tabPanel("Common mean direction test of two datasets",         
                         sidebarLayout(
                           sidebarPanel(width=3,
                                        fluidRow(
-                                         column(12,h4("CMDT*"))
+                                         column(12,h4("Common mean direction test"))
                                        ),
                                        fluidRow(
-                                         column(12,h6("Checks if the set of directions loaded in the main page and another set loaded here share a common mean direction at a 95% confidence"))
+                                         column(12,h5("Checks if the set of directions loaded in the main page and another set loaded here share a common mean direction at a 95% confidence"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
+                                                                               "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
                                        ),
                                        br(),
                                        fluidRow(
@@ -572,7 +582,7 @@ ui <- fluidPage(
                                        ),
                                        br(),
                                        fluidRow(
-                                         column(6,textInput("fileN_RT2",label = "Export name",value = "Site")),
+                                         column(6,textInput("fileN_RT2",label = "Export name",value = "CMDT")),
                                          column(6,numericInput("revnb2", label="Bootstraps n.",value=10000))),
                                        fluidRow(
                                          column(12,actionButton("revgo2", label= "Perform",width = "100%"))),
@@ -592,11 +602,6 @@ ui <- fluidPage(
                                          column(12,h4(textOutput(outputId = "CMDT_result3_2")))),
                                        fluidRow(
                                          column(12,h4(textOutput(outputId = "CMDT_result4_2")))),
-                                       br(),
-                                       fluidRow(
-                                         column(12,h5("*Please cite: "), tags$a(href="https://doi.org/10.1029/2023JB026983", 
-                                                                                "Heslop, D., Scealy, J.L., Wood, A.T.A., Tauxe, L., Roberts, A.P. (2023). JGR: SolidEarth, 128, e2023JB026983", target="_blank"))
-                                       ),
                           ),                                
                           mainPanel(
                             fluidRow(downloadButton("revexpG2","Export graph"),
@@ -645,7 +650,7 @@ ui <- fluidPage(
                             )
                           ),
                           mainPanel(
-                            fluidRow(downloadButton(outputId = "SVEIexp",label = "Download graph")),
+                            fluidRow(downloadButton(outputId = "SVEIexp",label = "Export graph")),
                             plotOutput("SVEI_test_fig")
                           )
                         )
@@ -719,8 +724,8 @@ ui <- fluidPage(
                           ),
                           mainPanel(
                             fluidRow(
-                              downloadButton(outputId = "SVEI_EI_exp",label = "Download graph"),
-                              downloadButton(outputId = "SVEI_EI_tab_exp",label = "Download result table")),
+                              downloadButton(outputId = "SVEI_EI_exp",label = "Export graph"),
+                              downloadButton(outputId = "SVEI_EI_tab_exp",label = "Export result table")),
                             plotOutput("SVEI_EI_test_fig")
                           )
                         )
@@ -781,476 +786,101 @@ ui <- fluidPage(
              )
     ),
     tabPanel("VGP and Pmag Poles",
-             tabsetPanel(
-               tabPanel("VGPs plot and average",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(12,h4("Loaded directions  VGPs")),
-                                       ),
-                                       fluidRow(
-                                         column(4,textInput("fileN_VGP",label = "Export name",value = "Site")),
-                                         column(4,selectInput("intVGPflip",label = "Hemisphere",choices = list("North"=1,"South"=2),selected = 1)),
-                                         column(4,selectInput("centercoord",label="Center of plot",
-                                                              choices=list("Automatic"= 1,"Manual"= 2), selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(4,numericInput("centerlat",label="Center lat", value=90)),
-                                         column(4,numericInput("centerlong",label="Center long", value=0)),
-                                         column(4,numericInput("intGrid",label = "Grid", value = 30))
-                                       ),
-                                       fluidRow(
-                                         column(4,selectInput("coastyesno", label = "Coastline",
-                                                              choices = list("Yes"=1,"no"=2),selected=1)),
-                                         column(4,selectInput("vgpscolor", label= "Color",
-                                                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9, "gray"=10,"white"= 11), selected=3)),
-                                         column(4,selectInput("vgpssymbol",label = "Symbol",
-                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(4,selectInput("plotA95", label="Statistic",
-                                                              choices=list("None"=1,"Fisher"=2,"Bootstrap"=3),selected=1)),
-                                         column(4,numericInput("vgpbootn",label="Bootstraps n.",value=2000)),
-                                         column(4,selectInput("VGPtype", label = "VGPs to export",
-                                                              choices = list("Single mode"=1,"Bimodal"=2,"Rotated"=3),selected = 1))
-                                       ),
-                                       h4(textOutput("geowarning")),
-                                       h4(textOutput("coordwarning")),
-                                       h4(textOutput("flatwarning")),
-                                       br(),
-                                       fluidRow(
-                                         column(12,progressBar(
-                                           id = "vgpboot",
-                                           value = 0,total=1000,
-                                           title = "VGPs bootstrap",
-                                           display_pct = TRUE))
-                                       ),
-                                       fluidRow(
-                                         column(12,actionButton("saveVGP",label = "Add to List of loaded VGPs",width = "100%"))
-                                       ),
-                                       br(),
-                                       h4("Preliminary list of loaded VGPs:"),
-                                       h5("(Interactive list on Analysis)"),
-                                       br(),
-                                       tableOutput("Ext_VGP_list3")
-                          ),
-                          mainPanel(width = 7,
-                                    fluidRow(
-                                      downloadButton("VGPs_S","Export Pole"),
-                                      downloadButton("VGPs_Exp","Export VGPs"),
-                                      downloadButton("VGPs_G","Export graph")
-                                    ),
-                                    fluidRow(column(12,textOutput("fishpole"))
-                                    ),
-                                    column(1),
-                                    plotOutput("VGPplot")
-                          )
-                        )
-               ),
-               tabPanel("External VGP",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(12,h4("Externally loaded VGPs")),
-                                       ),
-                                       fluidRow(
-                                         column(4,fileInput("vgpfile", label = "Load VGPs file") %>%
-                                                  helper(type = "inline",
-                                                         title = "Format file",
-                                                         content = c(
-                                                           "File consists of two comma separated columns, with (any text) header, containing:",
-                                                           "",
-                                                           "1- Longitude of the VGP",
-                                                           "2- Latitude of the VGP"
-                                                         ),
-                                                         size = "m",fade = T)),
-                                         column(4,textInput("EVGP_sitename", label = "VGPs name",value = "Locality")),
-                                         column(4,selectInput("VGP_ext_center",label="Center of plot",
-                                                              choices=list("Automatic"= 1,"Manual"= 2), selected=1)),
-                                       ),
-                                       fluidRow(
-                                         column(3,numericInput("VGP_ext_clat",label="Center lat", value=90)),
-                                         column(3,numericInput("VGP_ext_clong",label="Center long", value=0)),
-                                         column(3,numericInput(inputId = "VGP_ext_grid",label = "Grid",value = 30)),
-                                         column(3,selectInput("VGP_ext_coast", label = "Coastline",
-                                                              choices = list("Yes"=1,"no"=2),selected=1)),
-                                       ),
-                                       fluidRow(
-                                         column(3,selectInput("EVGPcolor", label= "Color",
-                                                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=3)),
-                                         column(3,selectInput("EVGPsymbol", label= "Symbol",
-                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
-                                         column(3,selectInput("MVGP_stat", label="Statistic",
-                                                              choices=list("None"=1,"Fisher"=2,"Bootstrap"=3),selected=1)),
-                                         column(3,numericInput("MVGPnb_ext", label = "Bootstrap n.", value = 2000))
-                                       ),
-                                       fluidRow(
-                                         column(4,selectInput("VGP_ext_mode",label = "Hemisphere",choices = list("North"=1,"South"=2),selected = 1)),
-                                         column(4,selectInput("VGP_ext_cut_type",label = "Cut-off",choices = list("None"=1,"Vandamme"=2,"Fixed"=3),selected = 1)),
-                                         column(4,numericInput("VGP_ext_cutoff",label = "VGP fixed-filter radius",value = 45))
-                                       ),
-                                       fluidRow(
-                                         column(12,progressBar(
-                                           id = "Ext_vgpboot",
-                                           value = 0,total=2000,
-                                           title = "VGP bootstrap",
-                                           display_pct = TRUE))
-                                       ),
-                                       tableOutput("MVGPpolestat"),
-                                       fluidRow(
-                                         column(6,actionButton("resetMVGP",label = "Clear current VGP", width = "100%")),
-                                         column(6,actionButton("saveMVGP",label = "Add to List of loaded VGPs",width = "100%"))
-                                       ),
-                                       br(),
-                                       h4("Preliminary list of loaded VGPs:"),
-                                       h5("(Interactive list on Analysis)"),
-                                       br(),
-                                       tableOutput("Ext_VGP_list")
-                          ),
-                          mainPanel(width = 7,
-                                    fluidRow(
-                                      downloadButton("Ext_VGP_G","Export graph"),
-                                      downloadButton("VGP_site_stat","Export current site stat")
-                                    ),
-                                    column(1),
-                                    plotOutput("Ext_VGP_plot")
-                          )
-                        )
-               ),
-               tabPanel("VGP simulator",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(12,h4("VGP (Fisherian) simulator")),
-                                       ),
-                                       fluidRow(
-                                         column(6, textInput("SVGPname",label = "VGPs name",value = "VGP_sim")),
-                                         column(3,numericInput("SVGPlon",label = "Longitude",value = 0)),
-                                         column(3,numericInput("SVGPlat",label = "Latitude",value = 90,max = 90,min = -90))
-                                       ),
-                                       fluidRow(
-                                         column(3,numericInput("SVGPN",label = "N",value = 100)),
-                                         column(3,numericInput("SVGPk",label = "K",value = 20)),
-                                         column(3,numericInput("k_tol",label = "K tolerance",value = 0.5) %>%
-                                                  helper(type = "inline",
-                                                         title = "K tolerance",
-                                                         content = c("Maximum difference between selected and simulated k. If set 0, it does not apply any tolerance test."),
-                                                         size = "m",fade = T)),
-                                         column(3,selectInput("SVGP_center",label="Center of plot",
-                                                              choices=list("Automatic"= 1,"Manual"= 2), selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(3,numericInput("SVGP_clat",label="Center lat", value=90)),
-                                         column(3,numericInput("SVGP_clong",label="Center long", value=0)),
-                                         column(3, numericInput(inputId = "SVGP_grid",label = "Grid",value = 30)),
-                                         column(3,selectInput("SVGP_coast", label = "Coastline",
-                                                              choices = list("Yes"=1,"no"=2),selected=1)),
-                                       ),
-                                       fluidRow(
-                                         column(3,selectInput("SVGPcolor", label= "Color",
-                                                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=2)),
-                                         column(3,selectInput("SVGPsymbol", label= "Symbol",
-                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
-                                         column(3,selectInput("SVGP_stat", label="Statistic",
-                                                              choices=list("None"=1,"Fisher"=2,"Bootstrap"=3),selected=2)),
-                                         column(3,numericInput("SVGPnb", label = "Bootstrap n.", value = 2000))
-                                       ),
-                                       fluidRow(
-                                         column(12,progressBar(
-                                           id = "SVGPboot",
-                                           value = 0,total=2000,
-                                           title = "VGP bootstrap",
-                                           display_pct = TRUE))
-                                       ),
-                                       tableOutput("SVGPstat"),
-                                       fluidRow(
-                                         column(6, actionButton("SVGPgo",label = "GENERATE VGP",width = "100%")),
-                                         column(6,actionButton("saveSVGP",label = "Add to List of loaded VGPs",width = "100%"))
-                                       ),
-                                       br(),
-                                       h4("Preliminary list of loaded VGPs:"),
-                                       h5("(Interactive list on Analysis)"),
-                                       br(),
-                                       tableOutput("Ext_VGP_list2")
-                                       
-                          ),
-                          mainPanel(width = 7,
-                                    fluidRow(
-                                      downloadButton("SVGP_G","Export graph"),
-                                      downloadButton("SVGP_list","Export VGP"),
-                                      downloadButton("SVGP_S","Export VGP stat")
-                                    ),
-                                    column(1),
-                                    plotOutput("SVGP_plot")
-                          )
-                        )
-               ),
-               tabPanel("VGP rotator",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(5,h4("VGPs Euler Rotation")%>%
-                                                  helper(type = "inline",
-                                                         title = "Info",
-                                                         content = c("It works ONLY on one site at a time"),
-                                                         size = "m",fade = T))
-                                       ),
-                                       fluidRow(
-                                         column(6, textInput("eul_name",label = "VGPs name",value = "VGP_Rotated")),
-                                         column(6,selectInput("eul_center",label="Center of plot",
-                                                              choices=list("Automatic"= 1,"Manual"= 2), selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(3,numericInput("eul_clat",label="Center lat", value=90)),
-                                         column(3,numericInput("eul_clong",label="Center long", value=0)),
-                                         column(3,numericInput(inputId = "RVGP_grid",label = "Grid",value = 30)),
-                                         column(3,selectInput("eul_coast", label = "Coastline",
-                                                              choices = list("Yes"=1,"no"=2),selected=1)),
-                                       ),
-                                       fluidRow(
-                                         column(4, numericInput("eul_long",label = "EPole Long",value = 0,min = 0,max = 360)),
-                                         column(4, numericInput("eul_lat",label = "EPole Lat",value = 90,min = -90,max = 90)),
-                                         column(4, numericInput("eul_rot",label = "Rotation",value = 0,min = 0,max = 360)),
-                                       ),
-                                       fluidRow(
-                                         column(4,selectInput("eulPlotType",label = "Type",
-                                                              choices = list("VGPs"=1,"Fisher"=2,"Bootstrapped"=3),selected = 1)),
-                                         column(4,selectInput("eulcolor", label= "Color",
-                                                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=8)),
-                                         column(4,selectInput("eulsymbol", label= "Symbol",
-                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(6, actionButton("eulerrot",label = "Rotate",width = "100%")),
-                                         column(6, actionButton("eulersave",label = "Add to List of loaded VGPs", width = "100%"))
-                                       ),
-                                       br(),
-                                       tableOutput("eul_temp_table"),
-                                       fluidRow(
-                                         column(5,h4("List of loaded VGPs"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(12,DT::dataTableOutput("MVGPlist2"))
-                                       ),
-                          ),
-                          mainPanel(width=7,
-                                    fluidRow(
-                                      downloadButton("euler_G","Export graph"),
-                                      downloadButton("euler_vgp","Export rotated VGP")
-                                    ),
-                                    column(1),
-                                    plotOutput("eulerplot")
-                          )
-                        )
-                        
-               ),
-               tabPanel("Analysis - 1 - Combine VGPs",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(8,h4("Multiple VGPs Analysis"))
-                                       ),
-                                       fluidRow(
-                                         column(4,textInput("fileN_MVGP",label = "Merged VGPs Name",value = "M-VGPs")),
-                                         column(4,selectInput("MVGP_names_YN",label = "Plot poles name",
-                                                              choices = list("No"=1,"Yes"=2),selected = 1)),
-                                         column(4,selectInput("MVGP_center",label="Center of plot",
-                                                              choices=list("Automatic"= 1,"Manual"= 2), selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(3,numericInput("MVGP_clat",label="Center lat", value=90)),
-                                         column(3,numericInput("MVGP_clong",label="Center long", value=0)),
-                                         column(3,numericInput("MultiVGPGrid",label = "Grid", value = 30)),
-                                         column(3,selectInput("MVGP_coast", label = " Coastline",
-                                                              choices = list("Yes"=1,"no"=2),selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(4,selectInput("MVGPsPlotType",label = "Type",
-                                                              choices = list("VGPs"=1,"Fisher"=2,"Bootstrapped"=3),selected = 1)),
-                                         column(4,selectInput("MVGP_Pole_Stat", label = "Multi VGPs average",
-                                                              choices = list("None"=1,"Fisher of VGPs"=2,"Bootstrap of VGPs"=3), selected = 1)),
-                                         column(4,numericInput("MVGPnb", label = "Bootstrap n.", value = 2000))
-                                       ),
-                                       fluidRow(
-                                         column(6,selectInput("MVGP_aver_sym", label = "Mean symbol",
-                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
-                                         column(6,selectInput("MVGP_aver_color", label = "Mean color",
-                                                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10,"white"=11), selected=10))
-                                       ),
-                                       fluidRow(
-                                         column(12,progressBar(
-                                           id = "Mvgpboot",
-                                           value = 0,total=2000,
-                                           title = "VGP bootstrap",
-                                           display_pct = TRUE))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(6,actionButton("add_MVGPs",label = "Add merged VGPs to list",width = "100%")),
-                                         column(6,actionButton("deletevgp",label = "Delete selected VGPs",width = "100%"))
-                                       ),
-                                       fluidRow(
-                                         column(12,h4("List of loaded VGPs"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(12,DT::dataTableOutput("MVGPlist"))
-                                       ),
-                          ),
-                          mainPanel(width=7,
-                                    fluidRow(
-                                      downloadButton("MVGP_G","Export graph"),
-                                      #downloadButton("VGP_ALL_stat","Export selected VGPs average"),
-                                      downloadButton("MVGP_list",label = "Export Pole list"),
-                                      downloadButton("Down_ALL_VGPs",label = "Export selected VGPs")
-                                    ),
-                                    fluidRow(column(12,textOutput("MVGP_ALLVGPS_stat"))
-                                    ),
-                                    column(1),
-                                    plotOutput("MVGP_plot")
-                          )
-                        )
-               ),
-               tabPanel("Analysis - 2 - Add Pmag poles & Fisher mean",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(8,h4("External poles list"))
-                                       ),
-                                       fluidRow(
-                                         column(6,fileInput("extrapolelist",label = "Load pole list") %>%
-                                                  helper(type = "inline",
-                                                         title = "Format file",
-                                                         content = c(
-                                                           "File as exported from this page (Export Pole list):",
-                                                           "",
-                                                           "Five columns, comma separated, with (any text) header. Columns (left to right) consist of:",
-                                                           "1- Locality name",
-                                                           "2- Symbol color",
-                                                           "3- Symbol (c= circle,d= diamond, t= triangle,s= square)",
-                                                           "4- Pole longitude",
-                                                           "5- Pole latitude",
-                                                           "6- Confidence angle (A95)"
-                                                         ),
-                                                         size = "m",fade = T)),
-                                         column(6,selectInput("addextreanames",label = "Plot pole names",
-                                                              choices = list("No"=1,"Yes"=2),selected = 1))
-                                       ),
-                                       fluidRow(
-                                         column(6, actionButton("addextrapolelist",label = "ADD LOADED FILE TO LIST",width = "100%")),
-                                         column(6, actionButton(inputId = "PmagPole_manual",label = "ADD POLE MANUALLY",width = "100%"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(6, actionButton("rotPmagPole", label = "ROTATE POLE",width = "100%")),
-                                         column(6, actionButton("deleteextrapole",label = "DELETE SELECTED POLES",width = "100%"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(12,h4("Interpolation of all selected poles"))
-                                       ),
-                                       fluidRow(
-                                         column(3,selectInput("extrapolesfisher",label = "Statistic",
-                                                              choices = list("None"=1,"Fisher"=2,"Great circle"=3),selected = 1)),
-                                         column(3,selectInput("extrameansymbol",label = "Average symbol",
-                                                              choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected = 1)),
-                                         column(3,selectInput("extrameancolor", label= "Average color",
-                                                              choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=2)),
-                                         column(3,textInput("extreameanname",label = "Name",value = "Ext_F_mean")),
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(12,actionButton(inputId = "add_F_2_ext_list",label = "Add average to list of external poles",width = "100%"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(6,h4("List of external poles"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(12,DT::dataTableOutput("EP_list"))
-                                       ),
-                          ),
-                          mainPanel(width = 7,
-                                    fluidRow(
-                                      downloadButton("MVGP_G2",label = "Export graph"),
-                                      downloadButton("Ext_pole_fisher_S",label = "Export average"),
-                                      downloadButton("ExportPoleList",label = "Export Pole list")
-                                    ),
-                                    fluidRow(column(12,textOutput("extpolefisher"))
-                                    ),
-                                    column(1),
-                                    plotOutput("MVGP_plot2"))
-                        )
-               ),
-               tabPanel("Analysis - 3 - Add APWP & Geo Loc.",
-                        sidebarLayout(
-                          sidebarPanel(width = 5,
-                                       fluidRow(
-                                         column(8,h4("Add APWP"))
-                                       ),
-                                       fluidRow(
-                                         column(12,h5("Compiled available global synthetic APWPs: "), tags$a(href="https://doi.org/10.1016/j.earscirev.2023.104547", 
-                                                                                                             "(V2023): Vaes, B. et al. (2023). Earth-Science Reviews, 245(104547), 1–35.", target="_blank")),
-                                         column(12, tags$a(href="http://linkinghub.elsevier.com/retrieve/pii/S0012825212000797", 
-                                                           "(T2012): Torsvik, T.H., et al. (2012). Earth-Science Reviews, 114(3–4), 325–368.", target="_blank"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(4,selectInput("APWP", label = "APWP",
-                                                              choices = list("None"=1,"V2023"=2,"T2012"=3,"Custom"=4),selected=1)),
-                                         column(4,selectInput("frameV23", label= "V2023 frames",
-                                                              choices= list("South Africa"=1,"North America"=2,
-                                                                            "South America"=3,"Europe"=4,
-                                                                            "India"=5,"Australia"=6,"Antarctica"=7,
-                                                                            "Pacific (0-80Ma)"=8,"Iberia (0-80Ma)"=9), selected=1)),
-                                         column(4,selectInput("frameT12", label= "T2012 frames",
-                                                              choices= list("South Africa"= 1,"North America"=2,
-                                                                            "Europe"=3,"India"=4,"Amazonia"=5,
-                                                                            "Australia"=6,"East Antarctica"=7), selected=1))
-                                       ),
-                                       fluidRow(
-                                         column(4,fileInput("customAPWP",label = "Custom APWP")%>%
-                                                  helper(type = "inline",
-                                                         title = "Format file",
-                                                         content = c(
-                                                           "Custom APWP file consists of four columns, comma separated, with (any text) header:",
-                                                           "",
-                                                           "1- Age (Ma)",
-                                                           "2- Pole longitude",
-                                                           "3- Pole latitude",
-                                                           "4- Confidence angle (A95)"
-                                                         ),
-                                                         size = "m",fade = T)),
-                                         column(4,numericInput("apwp_Y",label = "APWP min age",value = 0)),
-                                         column(4,numericInput("apwp_O",label = "APWP max age",value = 320))
-                                       ),
-                                       fluidRow(
-                                         column(8,h4("Add geographic localities:"))
-                                       ),
-                                       fluidRow(
-                                         column(6, actionButton(inputId = "localitydetails",label = "INSERT LOCALITY DETAILS",width = "100%")),
-                                         column(6, actionButton(inputId = "cutlocality",label = "DELETE LOCALITY FROM LIST",width = "100%"))
-                                       ),
-                                       br(),
-                                       fluidRow(
-                                         column(12,h5("The localities table is editable by double-click on the cells"))),
-                                       br(),
-                                       fluidRow(
-                                         column(12,DT::dataTableOutput("LocList"))
-                                       ),
-                          ),
-                          mainPanel(
-                            width = 7,
+             sidebarLayout(
+               sidebarPanel(width = 6,
                             fluidRow(
-                              downloadButton("MVGP_G3",label = "Export graph")
+                              column(3,textInput("fileN_VGP",label = "Export name",value = "VGP_&_Poles")),     
+                              column(3,selectInput(inputId = "VGPsType",label = "Type",
+                                                   choices = list("VGPs"=1,"Fisher"=2,"Bootstrapped"=3),selected = 1)),
+                              column(3,selectInput("MVGP_names_YN",label = "Plot poles name",
+                                                   choices = list("No"=1,"Yes"=2),selected = 1)),
+                              column(3,selectInput("MVGP_coast", label = " Coastline",
+                                                   choices = list("Yes"=1,"no"=2),selected=1))
                             ),
-                            column(1),
-                            plotOutput("MVGP_plot3")
-                          )
-                        )
+                            fluidRow(
+                              column(3,selectInput("MVGP_center",label="Center of plot",
+                                                   choices=list("Automatic"= 1,"Manual"= 2), selected=1)),
+                              column(3,numericInput("MVGP_clat",label="Center lat", value=90)),
+                              column(3,numericInput("MVGP_clong",label="Center long", value=0)),
+                              column(3,numericInput("MultiVGPGrid",label = "Grid", value = 30))
+                            ),
+                            fluidRow(
+                              column(3, h4("Action buttons")%>%
+                                       helper(type = "inline",
+                                              title = "Buttons description",
+                                              content = c(
+                                                "Internal: generate VGPs from directions in 'Directions display & average' window.",
+                                                "",
+                                                "External: load VGPs file.",
+                                                "",
+                                                "Simulate: simulates fisheran VGPs from known parameters.",
+                                                "",
+                                                "Merge VGPs: merge different VGPs sets into one.",
+                                                "",
+                                                "Pmag Pole: paleomagnetic pole(s) manually or from list exported from this window.",
+                                                "",
+                                                "Rotate: rotate VGPs or poles applying Euler parameters.",
+                                                "",
+                                                "Fisher A95: calculate and add to list Fisher mean and parameters.",
+                                                "",
+                                                "APWP: add on plot APWP either from Magnetic-A or from file (four columns, comma separated, with any header: 1-Age, 2-Long, 3-Lat, 4-A95).",
+                                                "",
+                                                "Locality: add any geopoint onto the plot.",
+                                                "",
+                                                "Small circle: add circles to plot, defined by center longitude and latitude, and radius.",
+                                                "",
+                                                "Great circle: calculate pole of plane and plot great circles through selected poles and (if requested) localities",
+                                                "",
+                                                "Delete: delete selected entries from list."
+                                              ),
+                                              size = "m",fade = T))
+                            ),
+                            fluidRow(
+                              column(3, actionButton(inputId = "inter_VGPs",label = "Internal",width = "100%")),
+                              column(3, actionButton(inputId = "ext_VGPs",label = "External",width = "100%")),
+                              column(3, actionButton(inputId = "sim_VGPs",label = "Simulate",width = "100%")),
+                              column(3,actionButton(inputId = "merg_VGPs",label = "Merge",width = "100%")),
+                            ),
+                            br(),
+                            fluidRow(
+                              column(3,actionButton("add_PPole",label = "Pmag Pole",width = "100%")),
+                              column(3, actionButton(inputId = "rot_VGPs",label = "Rotate",width = "100%")),
+                              column(3,actionButton(inputId = "add_A95",label = "Fisher A95",width = "100%")),
+                              column(3,actionButton(inputId = "add_apwp",label = "APWP",width = "100%")),
+                            ),
+                            br(),
+                            fluidRow(
+                              column(3,actionButton(inputId = "localitydetails",label = "Locality",width = "100%")),
+                              column(3,actionButton(inputId = "smCircle",label = "Small circle",width = "100%")),
+                              column(3,actionButton(inputId = "add_GCircle",label = "Great circle",width = "100%")),
+                              column(3,actionButton("deletevgp",label = "Delete",width = "100%")),
+                            ),
+                            br(),
+                            h4("List of loaded VGPs and Poles:"),
+                            fluidRow(
+                              column(12,DT::dataTableOutput("VGPs_List")),
+                            ),
+                            fluidRow(
+                              column(12,h5("Name, color, and symbol are editable, double-click on the cell.")),
+                            ),
+                            fluidRow(
+                              column(12,h6("Valid symbols: c= circle, d= diamond, s= square, t= triangle. Any color accepted by R can be typed in.")),
+                            ),
+                            br(),
+                            
                ),
+               mainPanel(width = 6,
+                         fluidRow(
+                           actionButton(inputId = "plusSize",label = "Bigger"),
+                           actionButton(inputId = "minusSize",label = "Smaller"),
+                           downloadButton("VGPs_G","Export graph"),           
+                           downloadButton("VGPs_table","Export Pole Table"),
+                           downloadButton("VGPs_Sets","Export selected VGPs sets"),
+                           downloadButton(outputId = "VGPs_stats",label = "Export selected stats"),
+                         ),
+                         # column(1),
+                         plotOutput("MVGP_plot")
+               )
              )
     ),
     tabPanel("Magnetic polarity",
@@ -1290,7 +920,7 @@ ui <- fluidPage(
                                                                   "red"=7,"yellow"=8,"cyan"=9,"gray"=10,"white"=11),selected = 7))
                             ),
                             fluidRow(
-                              column(6,numericInput("Doffset",label = "Decl. offset (°)",value = 0)),
+                              column(6,numericInput("Doffset",label = "Decl. offset (0-360°)",value = 0)),
                               column(6,selectInput(inputId = "VGP_inc",label = "VGP/Incl.",choices = list("Use VGP"=1,"Use Inc. (N.Hem.)"=2,"Use Inc. (S.Hem.)"=3),selected = 1))
                             ),
                             br(),
@@ -1371,5 +1001,4 @@ ui <- fluidPage(
     )
   )
 )
-
 

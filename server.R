@@ -3,9 +3,9 @@ server <- function(input, output){
   #activate helpers
   observe_helpers()
   
-  ############ VECTOR END-POINTS MODULE
+  ############ VECTOR END-POINTS MODULE##########
   
-  #Function for plotting zijderveld used in 2 screens
+  #Function for plottin zijderveld used in 2 screens
   #function plotting the vector end point diagram and return values without order of magnitude
   zijderveld <- function(specim,selected_steps,coordinates=1,orient=1,d_tick=0.25,ticks=T){
     
@@ -397,8 +397,7 @@ server <- function(input, output){
       
       #file is in emu e-4, next convert in Am2
       dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-7)
-    }
-    else if(input$Zijd_f_type==3){
+    }else if(input$Zijd_f_type==3){
       #Bremen cor file
       dat <- read.table(input$All_Zijd$datapath,header = F,skip = 1)
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = nrow(dat)))
@@ -409,8 +408,7 @@ server <- function(input, output){
       dat_PmagDiR[,9:11] <- dat[,3:5]
       #converts in Am2
       dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-3)
-    }
-    else if(input$Zijd_f_type==4){
+    }else if(input$Zijd_f_type==4){
       #load IODP Spinner data
       dat <- read.csv(input$All_Zijd$datapath)
       #eliminate IRM if present
@@ -431,8 +429,8 @@ server <- function(input, output){
       temp_file <- temp_file[order(temp_file[,3]),]
       temp_file <- temp_file[order(temp_file[,1]),]
       dat_PmagDiR <- temp_file[,-1]
-    }
-    else if(input$Zijd_f_type==5){
+      #return(dat_PmagDiR)
+    }else if(input$Zijd_f_type==5){
       #CIT multisamples
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
@@ -642,7 +640,7 @@ server <- function(input, output){
       Normalization <- 1
     }
     
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size = "l",
       tags$h2('Enter NRM and demagnetization unit'),
       tags$h4(normtext),
@@ -658,17 +656,18 @@ server <- function(input, output){
         column(4,selectInput("VEPticks",label = "Ticks",
                              choices = list("x0.05"=1,"x0.1"=2,"x0.25"=3,"x0.5"=4,"x1.0"=5,"No ticks"=6),selected = 4))
       ),
+      easyClose = TRUE,
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   # display a modal dialog with a header, textinput and action buttons
   observeEvent(input$Zijd_detail2, {
     req(sample_list())
     req(specimens())
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size = "m",
       tags$h2('Enter tags details'),
       fluidRow(
@@ -679,10 +678,11 @@ server <- function(input, output){
         column(4,selectInput(inputId = "labelspace",label = "Labels spacing",
                              choices = list("Every 1"=1,"Every 2"=2, "Every 3"=3,"Every 4"=4),selected = 3))
       ),
+      easyClose = TRUE,
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   
@@ -718,6 +718,9 @@ server <- function(input, output){
       specim$specim_no_OM <- Zijdervel_res[[1]]
       #save order of magnitude
       specim$OM <- Zijdervel_res[[2]]
+      
+      #save coordinates as number otherwise is a character and uses it for interpolation line
+      #coordinates <- as.numeric(input$VEPcoordinates)
       
       #add interpolation lines
       if(length(specim$DiR_da)||length(specim$DiR_df)||length(specim$DiR_doi) || length(specim$DiR_C)){
@@ -981,7 +984,7 @@ server <- function(input, output){
     })
     
     # display a modal dialog with a header, textinput and action buttons
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size= "m",
       tags$h2('Probabilistic PCA'),
       tags$h4("Models:"),
@@ -992,11 +995,11 @@ server <- function(input, output){
       br(),
       tags$h5("*Please cite: "), tags$a(href=" https://doi.org/10.1002/2016JB013387", 
                                         "Heslop & Roberts (2016), JGR: Solid Earth, 121, 7742–7753", target="_blank"),
-      
+      easyClose = TRUE,
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   # creates text with results
@@ -1124,7 +1127,7 @@ server <- function(input, output){
       temp <- specim$tab_result_ext
       temp$pa <- rep(0)
       temp$pd <- rep(0)
-      showModal(modalDialog(
+      showModal(jqui_draggable(modalDialog(
         size="m",
         tags$h3("Warning"),
         tags$h5("Bayesian PPCA values p(Ha|D) and p(Hc|D) missing from file, probably exported from an old version of Magnetic-A. Added columns with 0"),
@@ -1132,7 +1135,7 @@ server <- function(input, output){
         footer=tagList(
           modalButton('close')
         )
-      ))
+      ),options = list(cancel = ".shiny-input-container")))
       specim$tab_result_ext <- temp
     }
     colnames(specim$tab_result_ext) <- c("Sample","N","S_Dec","S_Inc",
@@ -1343,7 +1346,7 @@ server <- function(input, output){
   
   #show directions dragged in figure in an extra window
   observeEvent(input$showdiersEA,{
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size="l",
       title = "Directions selected on the equal area:",
       renderTable(dirsEA$df[,-c(10,11)]),
@@ -1351,7 +1354,7 @@ server <- function(input, output){
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   ####### END OF ALL SAVED SAMPLES PAGE
@@ -1431,7 +1434,7 @@ server <- function(input, output){
       replayPlot(specim$all_diagrams)
       dev.off()
     })
-  ################DIRECTIONS PART
+  
   ############ Takes direction input file and fix it depending on commands
   
   #create reactive file for stat
@@ -1614,10 +1617,10 @@ server <- function(input, output){
   output$geowarning4 <- renderText({geowarn()})
   
   
-  ############ DIRECTIONS DISPILAY & AVERAGE
+  ############ DIRECTIONS DISPILAY & AVERAGE##########
   
   ####### DIRECTIONS DISPILAY & AVERAGE SUBPAGE
-  #modified PmagDir fisher_plot function
+  #modified fisher_plot function
   fisher_plot_S <- function(DI, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c",auto_split=TRUE) {
     data <- DI
     data <- na.omit(data)
@@ -1713,7 +1716,7 @@ server <- function(input, output){
     return(S_results)
   }
   
-  #modified PmagDir ellips_plot function
+  #modified ellips_plot function
   ellips_plot_S <- function(DI,lat=0,long=0, plot=TRUE, col_d="red",col_u="white",col_l="black",symbol="c"){
     #functions converting inc(x) and dec(y) into equal area
     a2cx <- function(x,y) {sqrt(2)*sin((PmagDiR::d2r(90-x))/2)*sin(PmagDiR::d2r(y))}
@@ -1804,7 +1807,7 @@ server <- function(input, output){
     result <- PmagDiR::Watson_Random(DI)
     
     #watson's test result
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size= "m",
       tags$h2("Watson's test of randomness"),
       br(),
@@ -1812,11 +1815,11 @@ server <- function(input, output){
       tags$h4(paste("R:",round(result[[2]],digits = 2))),
       tags$h4(paste("R_critical:",round(result[[3]],digits = 2))),
       tags$h4(paste(result[[4]])),
+      easyClose = TRUE,
       footer=tagList(
         modalButton('close')
       )
-    ))
-    
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   #function that select directions from screen
@@ -1909,7 +1912,7 @@ server <- function(input, output){
       assign("inc_warn",NULL, envir = .GlobalEnv)
     }
   }
-  
+  #send plot to UI
   output$directions <- renderPlot({
     #avoid errors if long and lat are missing
     req(input$lat)
@@ -1918,6 +1921,7 @@ server <- function(input, output){
     
     #apply plotting function
     plot_dirs(fix_DI(Dirs$dat))
+    
     
     #select points dragging from screen
     Dirs$to_delete <- selectedDIR()   
@@ -2130,6 +2134,7 @@ server <- function(input, output){
     temp <- data.frame(matrix(ncol=7,nrow = nrow(ext_MFish_file)))
     colnames(temp) <- c("Dec.","Inc.","a95(dec)","a95_inc","Sym.","S. Col","L. Col")
     
+    
     #create the rest depending on the file (columns number)
     #only standard Fisher
     if(ncol(ext_MFish_file)==3){
@@ -2257,7 +2262,7 @@ server <- function(input, output){
   #open window to enter fisher mean details manually
   observeEvent(input$MultiFishDetails, {
     # display a modal dialog with a header, textinput and action buttons
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       tags$h2('Enter average direction details'),
       fluidRow(
         column(3,numericInput("MFdec",label = "Declination",value = 0)),
@@ -2279,10 +2284,11 @@ server <- function(input, output){
       fluidRow(
         column(12, actionButton(inputId = "addMultiFish",label = "ADD TO LIST",width = "100%"))
       ),
+      easyClose = TRUE,
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   #add manually typed average direction to list
@@ -2388,10 +2394,6 @@ server <- function(input, output){
       b <- input$multiBootTab_rows_selected
       if(length(b)){
         multiBoot$table_b <- multiBoot$table_b[-b,]
-        # for(i in b){
-        #   nome_riga <- rownames(multiBoot$table_b)[i]
-        #   multiEllips$ellips[[nome_riga]] <- NULL
-        #   }
       }
       if(nrow(multiBoot$table_b)==0){multiBoot$table_b <- NULL}
     }
@@ -2583,7 +2585,7 @@ server <- function(input, output){
   ####### END OF MULTIPLE DIRECTIONS AND AVERAGED PLOT SUBPAGES
   ############ END OF DIRECTIONS DISPILAY & AVERAGE
   
-  ############ BOOTSTRAPPED CONFIDENCE MODULE
+  ############ BOOTSTRAPPED CONFIDENCE MODULE###############
   #create reactive file to append things
   B95 <- reactiveValues(result_1=NULL)
   
@@ -2591,6 +2593,7 @@ server <- function(input, output){
   B95_calculation <- function(n_boots=input$B95nb,p=0.05,mode=1){ 
     DI <- fix_DI(Dirs$dat)
     DI <- na.omit(DI)
+    
     dat <- DI[,1:2]
     colnames(dat) <- c("dec", "inc")
     #directions in Cartesian coordinates
@@ -2754,7 +2757,7 @@ server <- function(input, output){
   })
   ############ END OF BOOTSTRAPPED CONFIDENCE MODULE
   
-  ############ REVERSAL TEST MODULE
+  ############ REVERSAL TEST MODULE#############
   #create result reactive file
   CMDT <- reactiveValues(result=NULL)
   
@@ -2803,6 +2806,7 @@ server <- function(input, output){
     }
   )
   
+  
   output$CMDT_result1 <- renderText({
     if(!is.null(CMDT$result)){paste("V3 obs.:", round(CMDT$result[["CMDT_value"]],digit=2))}
   })
@@ -2825,7 +2829,7 @@ server <- function(input, output){
   },width = 1200,height = 700)
   ############ END OF REVERSAL TEST MODULE
   
-  ############ CMDT OF TWO DATASETS MODULE
+  ############ CMDT OF TWO DATASETS MODULE##############
   second_DI <- observeEvent(input$CMDT_2_file,{
     dat <- read.csv(input$CMDT_2_file$datapath)
     CMDT$DI2 <- dat
@@ -2884,7 +2888,7 @@ server <- function(input, output){
   
   observeEvent(input$show_DI2,{
     req(CMDT$DI2)
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size="m",
       tags$h4("Equal area of the second set of directions"),
       plotOutput(outputId = "CMDT_DI2",height = 520),
@@ -2893,7 +2897,7 @@ server <- function(input, output){
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   output$CMDT_result1_2 <- renderText({
@@ -2912,7 +2916,6 @@ server <- function(input, output){
             round(CMDT$result2[["mean_direction"]][["inc"]], digits = 1))}
   })
   
-  
   #execute CMDT test
   output$revtest2 <- renderPlot({
     revtest_plot2()
@@ -2921,7 +2924,7 @@ server <- function(input, output){
   ############ END OF CMDT OF TWO DATASETS MODULE
   
   
-  ##################### SVEI MODULE 
+  ##################### SVEI MODULE ###################
   # Restituisce la lista con i parametri del modello GGP richiesto 
   GGPmodels <- function(model = 'THG24') {
     CP88 <- data.frame(t(c(g10 = -30, g20 = -1.8, g30 = 0.0, sig10 = 3.0, sig11 = 3.0,
@@ -2950,14 +2953,15 @@ server <- function(input, output){
   zonal <- function(lat,g10=-18,G2=0.0,G3=0.0,G4=0.0,a_r=1.0) {
     # Parameters:
     # lat: Latitude in degrees
-    # g10: Gauss coefficient g10 (default: -18)
-    # G2: Gauss coefficient G2 (default: 0.0)
-    # G3: Gauss coefficient G3 (default: 0.0)
-    # G4: Gauss coefficient G4 (default: 0.0)
-    # a_r: Earth radius divided by the distance from the center of the Earth (default: 1.0).
+    # g10: Gauss coefficient g10
+    # G2: Gauss coefficient G2
+    # G3: Gauss coefficient G3 
+    # G4: Gauss coefficient G4 
+    # a_r: Earth radius divided by the distance from the center of the Earth 
     # Returns:
-    #   Bttot: Total horizontal component Btetha.
-    #   Brtot: Total vertical component Br.
+    # tuple: List containing the following elements:
+    # Bttot (float): Total horizontal component Btetha.
+    # Brtot (float): Total vertical component Br.
     
     Theta<-90-lat
     g20<-G2*g10
@@ -2981,11 +2985,18 @@ server <- function(input, output){
   #Calculates the Time Average Field (TAF) for a given GGP model dictionary.
   m_TAF <- function(GGPmodel="THG24", lat) {
     # Parameters:
-    # result from the GGPmodels selection of parameters
+    #   GGPmodel (dict): GGP model dictionary containing the following keys:
+    # 'g10': Gauss coefficient g10.
+    # 'g20': Gauss coefficient g20.
+    # 'g30': Gauss coefficient g30.
+    # 
+    # lat: Latitude in degrees.
+    # 
     # Returns:
-    #  m[0] : Bx component (negative Btetha).
-    #  m[1] : By component (always 0).
-    #  m[2] : Bz component (negative Br).
+    #   ndarray: Array `m` representing the time average field with shape (3,).
+    # m[0]: Bx component (negative Btetha).
+    # m[1]: By component (always 0).
+    # m[2]: Bz component (negative Br).
     GGPmodel <- GGPmodels(GGPmodel)
     
     z <- zonal(lat = lat,g10 =GGPmodel[1],G2 = GGPmodel[2]/GGPmodel[1],G3 = GGPmodel[3]/GGPmodel[1])
@@ -3044,22 +3055,6 @@ server <- function(input, output){
     return(sum_l)
   }
   
-  #Calculate the covariance between Br and Btheta for a given maximum degree and co-latitude.
-  # Uses the s_lm2(), P_lm(), and dP_lm_dt() functions.
-  cov_br_bt <- function(l,alpha,beta,theta,sig10_2,sig11_2,sig20_2,sig21_2,sig22_2) {
-    # - The function utilizes the s_lm2(), P_lm(), and dP_lm_dt() functions.  
-    sum_l<-0
-    for(i in 1:l) {
-      A <- s_lm2(i,0,alpha,beta,sig10_2,sig11_2,sig20_2,sig21_2,sig22_2)*P_lm(i,0,theta)*dP_lm_dt(i,0,theta)
-      sum_m<-0
-      for(j in 1:i) {
-        B<-(factorial(i-j)/factorial(i+j))*s_lm2(i,j,alpha,beta,sig10_2,sig11_2,sig20_2,sig21_2,sig22_2)*P_lm(i,j,theta)*dP_lm_dt(i,j,theta)
-        sum_m<-sum_m+B
-      }
-      sum_l<-sum_l-(i+1)*(A+2*sum_m)
-    }
-    return(sum_l)
-  }
   
   #Calculate the variance in the r-direction for the magnetic field components.
   # Uses the s_lm2() and P_lm() functions.
@@ -3156,7 +3151,7 @@ server <- function(input, output){
     return(Cov)
   }
   
-  #requires m_TAF (Time Average Field) and Cov_modelo (covariance matrix)
+  #requires m_TAF and Cov_modelo
   GGP_vMF_cdfs <- function(GGPmodel="THG24", lat, degree, flat=1, kappa=-1, n=2e6) {
     n <- as.integer(n)
     m <- m_TAF(GGPmodel, lat)       
@@ -3197,7 +3192,6 @@ server <- function(input, output){
     return(list(Icdf=Icdf, Dcdf=Dcdf))
   }   
   
-  #return expected DI
   GGPrand <- function(GGPmodel="THG24", lat, n, degree = 8) {
     m <- m_TAF(GGPmodel=GGPmodel, lat=lat)                  
     Cov <- Cov_modelo(GGPmodel=GGPmodel, lat=lat, degree=degree)   
@@ -3212,11 +3206,17 @@ server <- function(input, output){
   # Icdf: funzione cumulativa (CDF) in radianti
   AD_inc <- function(Is, Icdf) {
     # Parameters:
-    # Is: observed inclinations in degrees.
+    # Is (array-like): Array of observed inclinations in degrees.
     # Icdf (callable): Pchip function representing the cumulative distribution function (CDF) of inclinations for a given latitude.
+    # 
     # Returns:
-    # Test statistic (A2) for inclinations A2I
-
+    # Test statistic (A2) for inclinations.
+    # 
+    # Notes:
+    # The Anderson-Darling (AD) test is a statistical test used to assess whether a sample of data comes from a specific probability distribution. This function calculates the AD test statistic for the distribution of inclinations based on the observed inclinations and the CDF of inclinations.
+    # The AD test statistic measures the discrepancy between the observed data and the expected distribution. A larger AD test statistic indicates a greater discrepancy, suggesting that the observed data may not follow the expected distribution.
+    # It is important to note that this function assumes the input inclinations are in degrees and converts them to radians internally for consistency with the CDF function.
+    
     Is <- sort(Is * pi / 180)  # ordina e converte in radianti
     ns <- length(Is)
     
@@ -3233,12 +3233,12 @@ server <- function(input, output){
   # Dcdf: funzione CDF (in radianti) per le declinazioni
   AD_dec <- function(Ds, Dcdf) {
     # Parameters:
-    # Ds: observed declinations in degrees.
+    #   Ds: declinations in degrees.
     # Dcdf: Pchip function representing the cumulative distribution function (CDF) of declinations for a given latitude.
     # 
     # Returns:
-    # Test statistic (A2) for declinations A2D
-
+    #   Test statistic (A2) for declinations.
+    
     Ds[Ds > 180] <- Ds[Ds > 180] - 360  # normalizza nel range [-180, 180]
     Ds <- sort(Ds * pi / 180)  # ordina e converti in radianti
     ns <- length(Ds)
@@ -3254,18 +3254,18 @@ server <- function(input, output){
   #Perform the Anderson-Darling (AD) test on observed inclinations and declinations and Monte Carlo simulation to estimate 95% confidence bounds on V2dec and E
   svei_test <- function(DI, model_name = 'THG24', degree = 8, kappa = -1, num_sims = 1000,Shiny=F,EI_test=F,Plot=T) {
     #   Returns:
-    #   kappa: kappa used in simulations
-    #   H (int): 0 if the null hypothesis cannot be rejected, 1 otherwise.
+    #   kappa (float): kappa used in simulations
+    #   H: 0 if the null hypothesis cannot be rejected, 1 otherwise.
     #   A2I: Test statistic for inclinations.
     #   A2D: Test statistic for declinations.
     #   pID: Representation of combined p-values (can be used for minimization to optimize latitude).
     #   lat: Latitude of the site.
-    #   V2dec : Declination of minor principle component of data set. 
-    #   V2sim_min, V2sim_max: Bounds on V2dec from Monte Carlo simulation
-    #   V2_result: 0 if V2dec not in bounds, 1 if in bounds (consistent with the model, assumed THG24 in Magnetic-A)
-    #   E: Elongation
-    #   Esim_min, Esim_max: Bounds on elongation from Monte Carlo simulation
-    #   E_result: 0 if V2dec not in bounds, 1 if in bounds (consistent with the model, assumed THG24 in Magnetic-A)
+    #   V2dec: Declination of minor principle component of data set. 
+    #   V2sim_min, V2sim_max : Bounds on V2dec from Monte Carlo simulation
+    #   V2_result : 0 if V2dec not in bounds, 1 if in bounds (consistent)
+    #   E: Elongation (tau2/tau3) of data set 
+    #   Esim_min, Esim_max : Bounds on elongation from Monte Carlo simulation
+    #   E_result : 0 if V2dec not in bounds, 1 if in bounds (consistent)
     
     A2ref <- c(0.025, 0.050, 0.075, 0.100, 0.125, 0.150, 0.175, 0.200, 0.225, 0.250, 0.275,
                0.300, 0.325, 0.350, 0.375, 0.400, 0.425, 0.450, 0.475, 0.500, 0.525, 0.550,
@@ -3387,7 +3387,7 @@ server <- function(input, output){
     E_result <- ifelse(E >= Esim_min && E <= Esim_max, 1, 0)
     
     if(Plot==T){    
-      #graphical part all recompiled by Edo
+      #graphical part by Edo
       #prepara dati D e I
       D0 <- seq(-180, 180, 1)
       # CDF empirica per Declinazione
@@ -3501,7 +3501,14 @@ server <- function(input, output){
   
   #reactive function
   SVEI_testPlot <- eventReactive(input$SVEIgo,{
-    #SVEI test is performed assuming the THG24 field model! no choice allowed in Magnetic-A, although it can be done theoretically
+    #set parameters
+    #MODEL NAME IS DEACTIVATED, IT WORKS WITH THG24 BY DEFAULT
+    # if(input$model_name==1) modelname <- "THG24"
+    # if(input$model_name==2) modelname <- "TK03"
+    # if(input$model_name==3) modelname <- "CP88"
+    # if(input$model_name==4) modelname <- "QC96"
+    # if(input$model_name==5) modelname <- "CJ98"
+    # if(input$model_name==6) modelname <- "BCE19"
     if(input$SVEI_k==1) sveikappa <- -1
     if(input$SVEI_k==2) sveikappa <- 50
     if(input$SVEI_k==3) sveikappa <- 100
@@ -3695,16 +3702,17 @@ server <- function(input, output){
   #window showing list of applied f
   observeEvent(input$check_f, {
     # display a modal dialog with a header, textinput and action buttons
-    showModal(modalDialog(
+    showModal(jqui_draggable(modalDialog(
       size = "l",
       tags$h2('Series of applied f'),
       fluidRow(
         column(12,textOutput(outputId = "f_series"))
       ),
+      easyClose = TRUE,
       footer=tagList(
         modalButton('close')
       )
-    ))
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   #print sequence of flattening factor to window above
@@ -3732,14 +3740,13 @@ server <- function(input, output){
     flats <- sort(flats,decreasing = T)
   })
   
-  
-  
+  #send plot to UI
   output$SVEI_EI_test_fig <- renderPlot({
     EI_table <- SVEI_EI_testPlot()
     SVEI_EI_Plot <- recordPlot()
     output$SVEI_EI_exp <- downloadHandler(
       filename = function() {
-        paste(input$sveiEXPname,"_SVEI_incFlat_test_", Sys.Date(), ".pdf", sep="")
+        paste(input$SVEI_EI_expname,"_SVEI_incFlat_test_", Sys.Date(), ".pdf", sep="")
       },
       content = function(file) {
         pdf(file, onefile = TRUE,width = 12,height = 10.5)
@@ -3749,7 +3756,7 @@ server <- function(input, output){
     )
     output$SVEI_EI_tab_exp <- downloadHandler(
       filename = function() {
-        paste(input$sveiEXPname,"_SVEI_Inclination_flattening_", Sys.Date(), ".csv", sep="")
+        paste(input$SVEI_EI_expname,"_SVEI_Inclination_flattening_", Sys.Date(), ".csv", sep="")
       },
       content = function(file) {
         if(!is.null(EI_table)){
@@ -3758,11 +3765,10 @@ server <- function(input, output){
       }
     )
   },width = 850,height = 700)
+  ##################### END OF SVEI MODULE
   
-  ##################### END OF SVEI MODULE 
   
-  
-  ############ TK03.GAD INCLINATION FLATTENING MODULE
+  ############ TK03.GAD INCLINATION FLATTENING MODULE###############
   #Function that correct inclination shallowing after tk03.GAD model
   
   #create reactive file
@@ -3810,7 +3816,7 @@ server <- function(input, output){
   ############ END OF TK03.GAD INCLINATION FLATTENING MODULE
   
   
-  ############ VIRTUAL GEOMAGNETIC POLES MODULE
+  ############ VIRTUAL GEOMAGNETIC POLES MODULE###########
   #create service environment
   MVGP_temp <- new.env()
   assign("MVGP_temp", MVGP_temp, envir = .GlobalEnv)
@@ -3822,13 +3828,14 @@ server <- function(input, output){
   #modified VGP plot function ; VGPint defines if VGP calculation are coming from VGP screen 1,2, or 3
   plot_VGP_S <- function(VGP,lat=90,long=0,grid=30,plot_vgp=TRUE, symbol="c",cex=1,
                          col_sym_out="black", col="black",col_f="cyan",col_boot=rgb(1,0,0,0.15),
-                         on_plot=FALSE,auto_cent=TRUE,coast=FALSE, title="",save=TRUE,A95=FALSE,B95=FALSE,nb=1000,VGPint=1,plot=T){
+                         on_plot=FALSE,auto_cent=TRUE,coast=T, title="",save=TRUE,A95=FALSE,B95=FALSE,nb=1000,VGPint=1,plot=T){
     
     #functions converting long & lat to xy
-    c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-lon0))}
-    c2y <- function(lon,lat) {(cos(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
+    c2x <- function(lon,lat) {cos(d2r(lat))*sin(d2r(lon-lon0))}
+    c2y <- function(lon,lat) {(cos(d2r(lat0))*sin(d2r(lat)))-(sin(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
     #cut is cosin of c, when negative is behind projections, needs to be cut
-    cut <- function(lon,lat) {(sin(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
+    cut <- function(lon,lat) {(sin(d2r(lat0))*sin(d2r(lat)))+(cos(d2r(lat0))*cos(d2r(lat))*cos(d2r(lon-lon0)))}
+    
     
     #manipulate data
     colnames(VGP) <- c("lon","lat")
@@ -3853,10 +3860,9 @@ server <- function(input, output){
     
     coord <- as.data.frame(lon0)
     coord$lat0 <- lat0
-    VGP$x <- c2x(VGP$lon,VGP$lat)
-    VGP$y <- c2y(VGP$lon,VGP$lat)
-    VGP$cut <- cut(VGP$lon,VGP$lat)
-    
+    VGP$x <- c2x(lon = VGP$lon,lat = VGP$lat)
+    VGP$y <- c2y(lon = VGP$lon,lat = VGP$lat)
+    VGP$cut <- cut(lon = VGP$lon,VGP$lat)
     #select symbol
     if(symbol=="c") {pch <- 21}
     else if(symbol=="s") {pch <- 22}
@@ -3893,9 +3899,9 @@ server <- function(input, output){
         blat <- VGPb_av[1,2]
         blonlat <- as.data.frame(t(c(blon,blat)))
         bootlonlat <- rbind(bootlonlat,blonlat)
-        x <- c2x(blon,blat)
-        y <- c2y(blon,blat)
-        cutt <- cut(blon,blat)
+        x <- PmagDiR::c2x(blon,blat,centLon = lon0)
+        y <- PmagDiR::c2y(blon,blat,centLon = lon0,centLat = lat0)
+        cutt <- PmagDiR::cut(blon,blat,centLon = lon0,centLat = lat0)
         
         #update progress bar of VGP calculated from directions internally
         if(VGPint==1){
@@ -3942,16 +3948,16 @@ server <- function(input, output){
       angular_conf <- ang_dis[Uconf]
       
       #add cartesian coordinates
-      bootlonlat$x <- c2x(bootlonlat$vgp_lon,bootlonlat$vgp_lat)
-      bootlonlat$y <- c2y(bootlonlat$vgp_lon,bootlonlat$vgp_lat)
-      bootlonlat$cutt <- cut(bootlonlat$vgp_lon,bootlonlat$vgp_lat)
+      bootlonlat$x <- PmagDiR::c2x(bootlonlat$vgp_lon,bootlonlat$vgp_lat,centLon = lon0)
+      bootlonlat$y <- PmagDiR::c2y(bootlonlat$vgp_lon,bootlonlat$vgp_lat,centLon = lon0,centLat = lat0)
+      bootlonlat$cutt <- PmagDiR::cut(bootlonlat$vgp_lon,bootlonlat$vgp_lat,centLon = lon0,centLat = lat0)
       
       if(plot==T){
         #plot bootstrapped data
         points(bootlonlat$x,bootlonlat$y,pch=ifelse(bootlonlat$cutt>0,16,1),col=col_boot)
-        PPole_x <- c2x(PPole[1,1],PPole[1,2])
-        PPole_y <- c2y(PPole[1,1],PPole[1,2])
-        PPole_cut <- cut(PPole[1,1],PPole[1,2])
+        PPole_x <- PmagDiR::c2x(PPole[1,1],PPole[1,2],centLon = lon0)
+        PPole_y <- PmagDiR::c2y(PPole[1,1],PPole[1,2],centLon = lon0,centLat = lat0)
+        PPole_cut <- PmagDiR::cut(PPole[1,1],PPole[1,2],centLon = lon0,centLat = lat0)
         #plot average
         if(PPole_cut>0){
           points(PPole_x,PPole_y, pch=pch,cex=1.5, col="black",
@@ -3966,14 +3972,14 @@ server <- function(input, output){
     Plot_VGP_result <- list(0)
     Paleopole_F <- cbind(PPole[,4],PPole[,1:3],PPole[,6])
     colnames(Paleopole_F) <- c("N","Long","Lat","A95","K")
-    rownames(Paleopole_F) <- input$fileN_VGP
+    rownames(Paleopole_F) <- input$fileN
     if(B95==TRUE){
       Paleopole_B <- data.frame(matrix(ncol=4,nrow=1))
       Paleopole_B[1,1] <- PPole[1,4]
       Paleopole_B[1,2:3] <- PPole[1,1:2]
       Paleopole_B[1,4] <- angular_conf
       colnames(Paleopole_B) <- c("N","Long","Lat","B95")
-      rownames(Paleopole_B) <- input$fileN_VGP
+      rownames(Paleopole_B) <- input$fileN
     }
     
     Plot_VGP_result[[1]] <- Paleopole_F
@@ -3986,24 +3992,30 @@ server <- function(input, output){
   
   #function that built list of sites
   sites_list <- function(){
-    sites <- ls(VGP_saved$list)
-    
-    MVGP_list_t <- data.frame(matrix(nrow=0,ncol = 8))
-    colnames(MVGP_list_t) <- c("Loc","Col", "Sym","N","Lon","Lat","A95","B95")
-    #populate list
-    for(i in 1:length(sites)){
-      newTabLine <- data.frame(t(c(sites[i],
-                                   VGP_saved$list[[sites[i]]][[1]][1,3],
-                                   VGP_saved$list[[sites[i]]][[1]][1,4],
-                                   nrow(VGP_saved$list[[sites[i]]][[1]]),
-                                   round(VGP_saved$list[[sites[i]]][[2]][[1]][1,2], digits=1),
-                                   round(VGP_saved$list[[sites[i]]][[2]][[1]][1,3], digits=1),
-                                   round(VGP_saved$list[[sites[i]]][[2]][[1]][1,4], digits=1),
-                                   round(VGP_saved$list[[sites[i]]][[2]][[2]][1,4], digits=1))))
-      colnames(newTabLine) <- c("Loc.","Col", "Sym","N","Lon","Lat","A95","B95")
-      MVGP_list_t <- rbind(MVGP_list_t,newTabLine)
+    MVGP_list_t <- data.frame(matrix(nrow=0,ncol = 9))
+    colnames(MVGP_list_t) <- c("Loc.","Col", "Sym","N","Lon","Lat","A95","B95","K")
+    #check global vgp list
+    if(length(VGP_saved$list)){
+      sites <- ls(VGP_saved$list)
+      #populate list
+      for(i in 1:length(sites)){
+        newTabLine <- data.frame(t(c(sites[i],
+                                     VGP_saved$list[[sites[i]]][[1]][1,3],
+                                     VGP_saved$list[[sites[i]]][[1]][1,4],
+                                     nrow(VGP_saved$list[[sites[i]]][[1]]),
+                                     round(VGP_saved$list[[sites[i]]][[2]][[1]][1,2], digits=1),
+                                     round(VGP_saved$list[[sites[i]]][[2]][[1]][1,3], digits=1),
+                                     round(VGP_saved$list[[sites[i]]][[2]][[1]][1,4], digits=1),
+                                     round(VGP_saved$list[[sites[i]]][[2]][[2]][1,4], digits=1),
+                                     round(VGP_saved$list[[sites[i]]][[2]][[1]][1,5], digits=1))))     
+        colnames(newTabLine) <- c("Loc.","Col", "Sym","N","Lon","Lat","A95","B95","K")
+        MVGP_list_t <- rbind(MVGP_list_t,newTabLine)
+      }
     }
-    return(MVGP_list_t)
+    if(!is.null(Added_poles$list)){
+      MVGP_list_t <- rbind(MVGP_list_t,Added_poles$list)
+    }
+    if(nrow(MVGP_list_t>0)) {return(MVGP_list_t)}
   }
   
   #create reactive value
@@ -4011,7 +4023,68 @@ server <- function(input, output){
   IVGP <- reactiveValues(VGP_list=NULL)
   
   
-  ### VGP calculation Part
+  ###########################MODAL DIALOG WITH INTERNAL VGPs DETAILS ##################
+  ####opens modal window
+  observeEvent(input$inter_VGPs, {
+    # display a modal dialog with a header, textinput and action buttons
+    showModal(jqui_draggable(modalDialog(size = "l",
+                                         tags$h3('Enter VGPs details calculated from internal directions'),
+                                         br(),
+                                         fluidRow(
+                                           column(3,selectInput("intVGPflip",label = "Hemisphere",choices = list("North"=1,"South"=2),selected = 1)),
+                                           column(3,selectInput("vgpscolor", label= "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9, "gray"=10,"white"= 11), selected=3)),
+                                           column(3,selectInput("vgpssymbol",label = "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(3,selectInput("VGPtype", label = "VGPs to export",
+                                                                choices = list("Single mode"=1,"Bimodal"=2,"Rotated"=3),selected = 1))
+                                         ),
+                                         fluidRow(
+                                           column(3,numericInput("vgpbootn",label="Bootstraps n.",value=2000)),
+                                           
+                                           column(9,progressBar(
+                                             id = "vgpboot",
+                                             value = 0,total=1000,
+                                             title = "VGPs bootstrap",
+                                             display_pct = TRUE))
+                                         ),
+                                         #warning messages for particular situations
+                                         h4(textOutput("geowarning")),
+                                         h4(textOutput("coordwarning")),
+                                         h4(textOutput("flatwarning")),
+                                         br(),
+                                         fluidRow(
+                                           column(6,actionButton("saveVGP",label = "Add to List of loaded VGPs and Poles",width = "100%")),
+                                           column(6, downloadButton("VGPs_Exp",label = "Export VGPs",style = "width:100%;")),
+                                         ),
+                                         #result of statistic 
+                                         h5(textOutput("fishpole")),
+                                         #plot here internal VGPs
+                                         fluidRow(
+                                           column(1),
+                                           plotOutput(outputId = "VGPplot")
+                                         ),
+                                         #make window deeper
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))
+  })
+  
+  ### VGP calculation and plotting Part
   output$VGPplot <- renderPlot({
     req(Dirs$dat)
     DIrs<- fix_DI(Dirs$dat)
@@ -4026,135 +4099,49 @@ server <- function(input, output){
     VGPS <- IVGP$VGP_list[[1]]
     
     #select color
-    if(input$vgpscolor==1) IVGP$vgpscolor <- "black"
-    if(input$vgpscolor==2) IVGP$vgpscolor <- "blue"
-    if(input$vgpscolor==3) IVGP$vgpscolor <- "green"
-    if(input$vgpscolor==4) IVGP$vgpscolor <- "pink"
-    if(input$vgpscolor==5) IVGP$vgpscolor <- "purple"
-    if(input$vgpscolor==6) IVGP$vgpscolor <- "brown"
-    if(input$vgpscolor==7) IVGP$vgpscolor <- "red"
-    if(input$vgpscolor==8) IVGP$vgpscolor <- "yellow"
-    if(input$vgpscolor==9) IVGP$vgpscolor <- "cyan"
-    if(input$vgpscolor==10) IVGP$vgpscolor <- "gray"
-    if(input$vgpscolor==11) IVGP$vgpscolor <- "white"
+    if(input$vgpscolor==1 || is.null(input$vgpscolor)) IVGP$vgpscolor <- "black"
+    else if(input$vgpscolor==2) IVGP$vgpscolor <- "blue"
+    else if(input$vgpscolor==3) IVGP$vgpscolor <- "green"
+    else if(input$vgpscolor==4) IVGP$vgpscolor <- "pink"
+    else if(input$vgpscolor==5) IVGP$vgpscolor <- "purple"
+    else if(input$vgpscolor==6) IVGP$vgpscolor <- "brown"
+    else if(input$vgpscolor==7) IVGP$vgpscolor <- "red"
+    else if(input$vgpscolor==8) IVGP$vgpscolor <- "yellow"
+    else if(input$vgpscolor==9) IVGP$vgpscolor <- "cyan"
+    else if(input$vgpscolor==10) IVGP$vgpscolor <- "gray"
+    else if(input$vgpscolor==11) IVGP$vgpscolor <- "white"
     
     #select symbol
-    if(input$vgpssymbol==1) IVGP$vgpssymbol <- "c"
-    if(input$vgpssymbol==2) IVGP$vgpssymbol <- "s"
-    if(input$vgpssymbol==3) IVGP$vgpssymbol <- "d"
-    if(input$vgpssymbol==4) IVGP$vgpssymbol <- "t"
-    
-    #define name with locality and various details not to replicate bootstrap
-    vgp_temp_stat_name <- paste(
-      ifelse(input$filetype==5,"Internal_File",
-             ifelse(input$filetype==6, "Ardo",Dirs$dirsFileName)),
-      "stat_temp",nrow(VGPS),input$lat,input$long,input$coord,input$known_f,input$apply_known_f,input$vgpbootn,input$dirs_vgp,input$cutoff,sep = "_")
-    if(input$plotA95==3 && exists(vgp_temp_stat_name,envir = MVGP_temp)==FALSE) {
-      boot_run <- TRUE
-    }else{boot_run <- FALSE}
+    if(input$vgpssymbol==1 || is.null(input$vgpssymbol)) IVGP$vgpssymbol <- "c"
+    else if(input$vgpssymbol==2) IVGP$vgpssymbol <- "s"
+    else if(input$vgpssymbol==3) IVGP$vgpssymbol <- "d"
+    else if(input$vgpssymbol==4) IVGP$vgpssymbol <- "t"
     
     #plot data and save stat
     Pole$FishPole <- plot_VGP_S(VGP = VGPS,
-                                lat = input$centerlat,
-                                long = input$centerlong,
-                                grid = input$intGrid,
-                                auto_cent = ifelse(input$centercoord==1,TRUE,FALSE),
-                                coast = ifelse(input$coastyesno==1,TRUE,FALSE),
                                 col = IVGP$vgpscolor,symbol = IVGP$vgpssymbol,nb=input$vgpbootn,
-                                A95 = ifelse(input$plotA95==2,TRUE,FALSE),
-                                B95 = boot_run,
+                                A95 = T,
+                                B95 =F,
+                                #B95 = boot_run,
                                 VGPint = 1)
-    if(boot_run==TRUE){assign(x = vgp_temp_stat_name,value = Pole$FishPole,envir = MVGP_temp)}
-    
-    #if bootstrap is selected but already exist, plot bootstrapped data
-    if(input$plotA95==3 && exists(vgp_temp_stat_name,envir = MVGP_temp)==TRUE) {
-      plot_VGP_S(VGP = MVGP_temp[[vgp_temp_stat_name]][[3]][,1:2],
-                 lat = input$centerlat,
-                 long = input$centerlong,
-                 auto_cent = ifelse(input$centercoord==1,TRUE,FALSE),
-                 on_plot = TRUE, col = rgb(1,0,0,0.15),col_sym_out = rgb(1,0,0,0.15))
-      PmagDiR::plot_PA95(lon = MVGP_temp[[vgp_temp_stat_name]][[2]][1,2],
-                         lat = MVGP_temp[[vgp_temp_stat_name]][[2]][1,3],
-                         A = 0,
-                         lat0 = ifelse(input$centercoord==2,input$centerlat,MVGP_temp[[vgp_temp_stat_name]][[2]][1,3]),
-                         lon0 = ifelse(input$centercoord==2,input$centerlong,MVGP_temp[[vgp_temp_stat_name]][[2]][1,2]),
-                         col_f = "cyan",
-                         symbol = IVGP$vgpssymbol,
-                         size = 1.5,on_plot = T)
-      
-    }
-    
-    #make sure the pole reactive file is complete
-    if(input$plotA95==3){Pole$FishPole <- MVGP_temp[[vgp_temp_stat_name]]}
-    
-    #send fisher or bootstrap text on main window
-    output$fishpole <- renderText({
-      if(input$plotA95==1) {Polestat <- NULL}
-      if(input$plotA95==2) {
-        Polestat <- paste("N: ",Pole$FishPole[[1]][1,1],",",
-                          " Long: ",round(Pole$FishPole[[1]][1,2], digits = 1),",",
-                          " Lat: ", round(Pole$FishPole[[1]][1,3], digits = 1),",",
-                          " A95: ",round(Pole$FishPole[[1]][1,4],digits = 1),",",
-                          " K: ",round(Pole$FishPole[[1]][1,5], digits = 1),
-                          sep = "")
-        
-      }
-      if(input$plotA95==3) {
-        Polestat <- paste("N: ",Pole$FishPole[[2]][1,1],",",
-                          " Long: ",round(Pole$FishPole[[2]][1,2], digits = 1),",",
-                          " Lat: ", round(Pole$FishPole[[2]][1,3], digits = 1),",",
-                          " B95: ",round(Pole$FishPole[[2]][1,4],digits = 1),
-                          sep = "")
-      }
-      Polestat
-    })
-    
-    
-    
-    
-    # #warning for geographic coordinates
-    # geowarn <- ifelse(input$coord!=2,"WARNING: data are not in Tilt Corrected coordinates","")
-    # output$geowarning <- renderText({geowarn})
-    # output$geowarning2 <- renderText({geowarn})
-    # output$geowarning3 <- renderText({geowarn})
-    # output$geowarning4 <- renderText({geowarn})
-    # 
     #warning for site coordinates not set
     coordwarn <- ifelse(input$lat==0 | input$long==0, "WARNING: site latitude and longitude are set as zero","")
     output$coordwarning <- renderText({coordwarn})
     
-    VGPs_plot <- recordPlot()
-    #Export graphic
-    output$VGPs_G <- downloadHandler(
-      filename = function() {
-        paste(input$fileN_VGP,"_VGPs_", Sys.Date(), ".pdf", sep="")
-      },
-      content = function(file) {
-        pdf(file, onefile = TRUE,width = 11,height = 11)
-        replayPlot(VGPs_plot)
-        dev.off()
-      }
-    )
-    output$VGPs_S <- downloadHandler(
-      filename = function() {
-        paste(input$fileN_VGP,"_POLE_", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        if(input$plotA95==1){write.csv(NULL,file)}
-        else if(input$plotA95==2){
-          rownames(Pole$FishPole[[1]]) <- input$fileN_VGP
-          write.csv(round(Pole$FishPole[[1]], digits = 2),file)
-        }
-        else if(input$plotA95==3){
-          bootPole <- .GlobalEnv[[vgp_temp_stat_name]][[2]]
-          rownames(bootPole) <- input$fileN_VGP
-          write.csv(round(bootPole, digits = 2),file)
-        }
-      }
-    )
+    output$fishpole <- renderText({
+      Polestat <- paste("N: ",Pole$FishPole[[1]][1,1],",",
+                        " Long: ",round(Pole$FishPole[[1]][1,2], digits = 1),",",
+                        " Lat: ", round(Pole$FishPole[[1]][1,3], digits = 1),",",
+                        " A95: ",round(Pole$FishPole[[1]][1,4],digits = 1),",",
+                        " K: ",round(Pole$FishPole[[1]][1,5], digits = 1),
+                        sep = "")
+      Polestat_out <- paste("Average Pole: ", Polestat)
+      Polestat_out
+    })
+    
     output$VGPs_Exp <- downloadHandler(
       filename = function(){
-        paste(input$fileN_VGP,
+        paste(input$fileN,
               if(input$VGPtype==1){"_VGPs_SingleMod_"}
               else if(input$VGPtype==2){"_VGP_Rev_"}
               else if(input$VGPtype==3){"_VGP_Rot_"},
@@ -4166,9 +4153,10 @@ server <- function(input, output){
         else if(input$VGPtype==3){write.csv(round(IVGP$VGP_list[[3]], digits = 2),file, row.names = F)}
       }
     )
-  }, width = 700, height = 700)
+  }, width = 710, height = 710)
   
-  #send current VGP to list and reactive VGP_saved_list
+  
+  #send INTERNAL VGP to list and reactive VGP_saved_list
   observeEvent(input$saveVGP,{
     req(IVGP$VGP_list[[1]])
     VGP <- IVGP$VGP_list[[1]]
@@ -4182,44 +4170,91 @@ server <- function(input, output){
     if(length(Pole$FishPole)<=1){
       VGPsaved[[2]] <- plot_VGP_S(VGP = VGP,A95 = T,B95 = T,nb = input$vgpbootn,VGPint = 1,plot=F)
     }else{VGPsaved[[2]] <- Pole$FishPole}
-    VGP_saved$list[[input$fileN_VGP]] <- VGPsaved
+    VGP_saved$list[[input$fileN]] <- VGPsaved
     MVGP_list$vgps <- sites_list()
   })
   
-  #preliminary table for loaded VGP
-  output$Ext_VGP_list3 <- renderTable({
-    if(length(VGP_saved$list)==0){
-      MVGP_list$vgps <- NULL
-    }else{
-      MVGP_list$vgps <- sites_list()
-    }
-    MVGP_list$vgps
-  }, digits = 1,align = "l", rownames = T)
-  
-  ### External and Multiple vgps part
-  #creates reactive value for checking if file is uploaded
-  extvgp <- reactiveValues(mvgp = NULL)
-  #check for uploaded file
-  observeEvent(input$vgpfile,{extvgp$mvgp <- "uploaded"})
-  #reset upload if requested
-  observeEvent(input$resetMVGP,{extvgp$mvgp <- "reset"})
-  #read file if present, reset if requested
-  VGPfile <- reactive({
-    if (is.null(extvgp$mvgp)) {
-      return(NULL)
-    } else if (extvgp$mvgp == 'uploaded') {
-      read.csv(file = input$vgpfile$datapath)
-    } else if (extvgp$mvgp == 'reset') {
-      return(NULL)
-    }
+  ################################### External and Multiple vgps part
+  extVGP <- reactiveValues(loaded="NO")
+  observeEvent(input$vgpfile,{
+    extVGP$loaded <- "YES"
+  })
+  #erease file if modal dialog is opened again
+  observeEvent(input$ext_VGPs,{
+    extVGP$loaded <- "NO"
   })
   
+  #read file if present, reset if requested
+  VGPfile <- reactive({
+    if(extVGP$loaded=="YES"){
+      read.csv(file = input$vgpfile$datapath)
+    }else{return(NULL)}
+  })
+  
+  
+  #########################MODAL DIALOG WITH EXTERNAL VGPs DETAILS################
   #create External VGPs reactive value for color and symbol and average
   EVGP <- reactiveValues(EVGPcolor=NULL)
   
-  #plot current vgp and save plotting detail in temporary environment
+  #Open window
+  observeEvent(input$ext_VGPs, {
+    # display a modal dialog with a header, textinput and action buttons
+    showModal(jqui_draggable(modalDialog(size = "l",
+                                         tags$h3('Enter VGPs details from external file'),
+                                         br(),
+                                         fluidRow(
+                                           column(3,fileInput("vgpfile", label = "Load VGPs file")),
+                                           column(3,textInput("EVGP_sitename", label = "VGPs name",value = "Locality")),
+                                           column(3,selectInput("VGP_ext_mode",label = "Hemisphere",choices = list("North"=1,"South"=2),selected = 1)),
+                                           column(3,selectInput("EVGPcolor", label= "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=3)),
+                                           
+                                         ),
+                                         fluidRow(
+                                           column(3,selectInput("EVGPsymbol", label= "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(3,selectInput("VGP_ext_cut_type",label = "Cut-off",choices = list("None"=1,"Vandamme"=2,"Fixed"=3),selected = 1)),
+                                           column(3,numericInput("VGP_ext_cutoff",label = "VGP filter radius",value = 45)),
+                                           column(3,numericInput("EVGPnb", label = "Bootstrap n.", value = 2000))
+                                         ),
+                                         fluidRow(
+                                           column(12,progressBar(
+                                             id = "Ext_vgpboot",
+                                             value = 0,total=2000,
+                                             title = "VGP bootstrap",
+                                             display_pct = TRUE))
+                                         ),
+                                         fluidRow(
+                                           column(12,actionButton("saveEVGP",label = "Add to List of loaded VGPs and Poles",width = "100%")),
+                                         ),
+                                         #result of statistic 
+                                         h5(textOutput("Ext_fishpole")),
+                                         fluidRow(
+                                           column(1),
+                                           plotOutput(outputId = "Ext_VGP_plot")
+                                         ),
+                                         #makes window deeper
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close'))
+    ),options = list(cancel = ".shiny-input-container"))
+    )
+  })
+  
+  #function that plots EXTERNAL vgp and save plotting detail in temporary environment
   plot_current_VGP <- function(){
-    req(VGPfile())
     VGP <- VGPfile()
     colnames(VGP) <- c("Long","Lat")
     #decide how to plot poles (north, or sud)
@@ -4248,80 +4283,41 @@ server <- function(input, output){
     if(input$EVGPsymbol==3) EVGP$EVGPsymbol <- "d"
     if(input$EVGPsymbol==4) EVGP$EVGPsymbol <- "t"
     
-    #plot vgp and save statistic on temporary file
-    #ask if bootrstrapped stat with same localitiy name an VGPs number already exists and does not perform it iyes
-    temp_stat_name <- paste(input$EVGP_sitename,"_stat_temp_",nrow(VGP),"_nb_",input$MVGPnb_ext,sep = "")
-    if(input$MVGP_stat==3 && exists(temp_stat_name,envir = MVGP_temp)==FALSE) {
-      boot_run <- TRUE
-    }else{boot_run <- FALSE}
+    #Plot external vgp with no statistics, it will send it through add button to main list to download
     EVGP$Pole <- plot_VGP_S(VGP = VGP,
-                            lat = input$VGP_ext_clat,
-                            long = input$VGP_ext_clong,
-                            grid = input$VGP_ext_grid,
-                            auto_cent = ifelse(input$VGP_ext_center==1,TRUE,FALSE),
-                            coast = ifelse(input$VGP_ext_coast==1,TRUE,FALSE),
-                            col = EVGP$EVGPcolor, symbol = EVGP$EVGPsymbol,nb = input$MVGPnb,
-                            A95 = ifelse(input$MVGP_stat==2,TRUE,FALSE),
-                            B95 = boot_run,
+                            auto_cent = TRUE,
+                            coast = TRUE,
+                            col = EVGP$EVGPcolor, symbol = EVGP$EVGPsymbol,
+                            A95 = T,
+                            B95 = F,
                             VGPint=2)
-    
-    #if bootstrap is selected but already exist, plot bootstrapped data
-    if(input$MVGP_stat==3 && exists(temp_stat_name,envir = MVGP_temp)==TRUE) {
-      plot_VGP_S(VGP = MVGP_temp[[temp_stat_name]][[3]][,1:2],
-                 lat = input$VGP_ext_clat,
-                 long = input$VGP_ext_clong,
-                 auto_cent = ifelse(input$VGP_ext_center==1,TRUE,FALSE),
-                 on_plot = TRUE, col = rgb(1,0,0,0.15),col_sym_out = rgb(1,0,0,0.15))
-      plot_VGP_S(VGP = MVGP_temp[[temp_stat_name]][[2]][1,2:3],
-                 lat = input$VGP_ext_clat,
-                 long = input$VGP_ext_clong,
-                 auto_cent = ifelse(input$VGP_ext_center==1,TRUE,FALSE),
-                 on_plot = TRUE, cex=1.5, col= "cyan",symbol = "d")
-    }
-    #save statistic in a file with name of locality and number of VGPs, so bootstrap is not performed again if already exists
-    if(input$MVGP_stat==3){
-      if(exists(temp_stat_name,envir = MVGP_temp)==FALSE){assign(x = temp_stat_name,value = EVGP$Pole,envir = MVGP_temp)}
-    }
-    final_pole <- MVGP_temp[[temp_stat_name]]
-    
-    #populate and plot CURRENT VGP pole statistic
-    output$MVGPpolestat <- renderTable({
-      if(input$MVGP_stat==1) {MVGPpolestat <- NULL}
-      if(input$MVGP_stat==2) {
-        MVGPpolestat <- EVGP$Pole[[1]]
-        rownames(MVGPpolestat) <- input$EVGP_sitename
-      }
-      if(input$MVGP_stat==3) {
-        MVGPpolestat <- MVGP_temp[[temp_stat_name]][[2]]
-        rownames(MVGPpolestat) <- input$EVGP_sitename
-      }
-      if(extvgp$mvgp == 'reset'){MVGPpolestat <- NULL}
-      MVGPpolestat
-    }, digits = 1,align = "l", rownames = T)
-    
-    #export locality level stat
-    output$VGP_site_stat <- downloadHandler(
-      filename = function() {
-        paste(input$EVGP_sitename,"_POLE_", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        if(input$MVGP_stat==1){write.csv(NULL,file)}
-        else if(input$MVGP_stat==2){
-          POLE <- EVGP$Pole[[1]]
-          rownames(POLE) <- paste(input$EVGP_sitename,"_fisher",sep="")
-          write.csv(round(POLE, digits = 2),file)
-        }
-        else if(input$MVGP_stat==3){
-          POLE <- MVGP_temp[[temp_stat_name]][[2]]
-          rownames(POLE) <- paste(input$EVGP_sitename,"_bootstrap",sep="")
-          write.csv(round(POLE, digits = 2),file)
-        }
-      }
-    )
   }
   
-  #send current VGP to list and reactive VGP_saved_list
-  observeEvent(input$saveMVGP,{
+  #send figures to ui external VGP
+  output$Ext_VGP_plot <- renderPlot({
+    req(VGPfile())
+    plot_current_VGP()
+    
+    #record plot
+    Ext_VGP_plot <- recordPlot()
+  },width = 710, height = 710)
+  
+  #send fisher  OF EXTERNAL POLE on modal window                     
+  output$Ext_fishpole <- renderText({
+    if(extVGP$loaded=="YES"){
+      E_Polestat <- paste("N: ",EVGP$Pole[[1]][1,1],",",
+                          " Long: ",round(EVGP$Pole[[1]][1,2], digits = 1),",",
+                          " Lat: ", round(EVGP$Pole[[1]][1,3], digits = 1),",",
+                          " A95: ",round(EVGP$Pole[[1]][1,4],digits = 1),",",
+                          " K: ",round(EVGP$Pole[[1]][1,5], digits = 1),
+                          sep = "")
+      E_Polestat_out <- paste("Average Pole: ", E_Polestat)
+      E_Polestat_out
+    }
+  })
+  
+  #send external VGP to list and reactive VGP_saved_list
+  observeEvent(input$saveEVGP,{
     req(VGPfile())
     VGP <- VGPfile()
     colnames(VGP) <- c("Long","Lat")
@@ -4337,290 +4333,77 @@ server <- function(input, output){
     VGPsaved <- list()
     VGPsaved[[1]] <- VGP
     #if statistics does not exists, it makes it
-    if(length(EVGP$Pole)<=1){
-      VGPsaved[[2]] <- plot_VGP_S(VGP = VGP,A95 = T,B95 = T,nb = input$MVGPnb_ext,VGPint = 2,plot=F)
-    }else{VGPsaved[[2]] <- EVGP$Pole}
+    # if(length(EVGP$Pole)<=1){
+    VGPsaved[[2]] <- plot_VGP_S(VGP = VGP,A95 = T,B95 = T,nb = input$EVGPnb,VGPint = 2,plot=F)
+    # }else{VGPsaved[[2]] <- EVGP$Pole}
     VGP_saved$list[[input$EVGP_sitename]] <- VGPsaved
     
     MVGP_list$vgps <- sites_list()
   })
   
-  #delete VGP from reactive lists
-  observeEvent(input$deletevgp,{
-    e <- input$MVGPlist_rows_selected
-    for(i in e){
-      #eliminate selected names from list
-      VGP_saved$list <- VGP_saved$list[names(VGP_saved$list) %in% MVGP_list$vgps[i,1]==F]
-    }
-    if(length(VGP_saved$list)==0){
-      MVGP_list$vgps <- NULL
-    }else{
-      MVGP_list$vgps <- sites_list()
-    }
+  #########################MODAL DIALOG WITH SIMULATED VGPs DETAILS##########
+  #####open modal window
+  observeEvent(input$sim_VGPs,{
+    # display a modal dialog with a header, text input and action buttons
+    showModal(jqui_draggable(modalDialog(size = "l",
+                                         tags$h3("Generate a set of Fìsherian VGPs with known Longitude, Latitude, and K"),
+                                         br(),
+                                         fluidRow(
+                                           column(3, textInput("SVGPname",label = "VGPs name",value = "VGP_sim")),
+                                           column(3,selectInput("SVGPcolor", label= "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=2)),
+                                           column(3,selectInput("SVGPsymbol", label= "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(3,numericInput("SVGPN",label = "N",value = 100))
+                                           # column(3,selectInput("SVGP_stat", label="Statistic",
+                                           #                      choices=list("None"=1,"Fisher"=2,"Bootstrap"=3),selected=1)),
+                                         ),
+                                         fluidRow(
+                                           column(3,numericInput("SVGPlon",label = "Longitude",value = 0)),
+                                           column(3,numericInput("SVGPlat",label = "Latitude",value = 90,max = 90,min = -90)),
+                                           column(3,numericInput("SVGPk",label = "K",value = 20)),
+                                           column(3,numericInput("k_tol",label = "K tol.",value = 0.1,min = 0.02)),
+                                         ),
+                                         fluidRow(
+                                           column(3,numericInput("SVGPnb", label = "Bootstrap n.", value = 2000)),
+                                           column(9,progressBar(
+                                             id = "SVGPboot",
+                                             value = 0,total=2000,
+                                             title = "VGP bootstrap",
+                                             display_pct = TRUE))
+                                         ),                        
+                                         fluidRow(
+                                           column(6,actionButton("SVGPgo",label = "Generate VGPs",width = "100%")),
+                                           column(6,actionButton("saveSVGP",label = "Add to List of loaded VGPs and Poles",width = "100%")),
+                                         ),
+                                         #result of statistic 
+                                         h5(textOutput("Sim_fishpole")),     
+                                         fluidRow(
+                                           column(1),
+                                           plotOutput(outputId = "SVGP_plot")
+                                         ),
+                                         #makes window deeper
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
-  #merge different VGPs into one and create statistics
-  observeEvent(input$add_MVGPs,{
-    s <- input$MVGPlist_rows_selected
-    if(length(s)){
-      MergedVGP <- list()
-      MergedVGP_t <- data.frame(matrix(ncol = 2,nrow = 0))
-      colnames(MergedVGP_t) <- c("Long","Lat")
-      for(i in s){
-        VGP <- VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][,1:2]
-        colnames(VGP) <- c("Long","Lat")
-        MergedVGP_t <- rbind(MergedVGP_t,VGP)
-      }
-      MergedVGP_t$Col <- rep(MrVGP$col_f)
-      MergedVGP_t$Sym <- rep(MrVGP$MVGPaversym)
-      MergedVGP[[1]] <- MergedVGP_t
-      #add fisher and Bootstrap statistics and bootstrapped data (to fix with condition if boot already exists)
-      MergedVGP[[2]] <- plot_VGP_S(VGP = MergedVGP_t[,1:2],A95 = T,B95 = T,nb = input$MVGPnb_ext,VGPint = 3,plot=F)
-      #add to VGP saved list
-      VGP_saved$list[[input$fileN_MVGP]] <- MergedVGP
-      #add to interactive and preliminary tables
-      MVGP_list$vgps <- sites_list()
-    }
-  })
-  
-  #send figures to ui external VGP
-  output$Ext_VGP_plot <- renderPlot({
-    plot_current_VGP()
-    
-    #record plot
-    Ext_VGP_plot <- recordPlot()
-    
-    #Export graphic
-    output$Ext_VGP_G <- downloadHandler(
-      filename = function() {
-        paste(input$EVGP_sitename,"_MultiVGP_", Sys.Date(), ".pdf", sep="")
-      },
-      content = function(file) {
-        pdf(file, onefile = TRUE,width = 11,height = 11)
-        replayPlot(Ext_VGP_plot)
-        dev.off()
-      }
-    )},width = 700, height = 700)
-  
-  #preliminary table for loaded VGP
-  output$Ext_VGP_list <- renderTable({
-    if(length(VGP_saved$list)==0){
-      MVGP_list$vgps <- NULL
-    }else{
-      MVGP_list$vgps <- sites_list()
-    }
-    MVGP_list$vgps
-  }, digits = 1,align = "l", rownames = T)
-  
-  #interactive table for loaded VGP
-  output$MVGPlist <- DT::renderDataTable(MVGP_list$vgps, server = F)
-  
-  #interactive table for loaded VGP in Euler rotation page
-  output$MVGPlist2 <- DT::renderDataTable(MVGP_list$vgps, server = F,selection="single")
-  
-  #plot VGPs selected from list for euler rotation
-  plot_selected_VGP_eul <- function(r,lat0,lon0){
-    #selects what to plot
-    if(input$eulPlotType==1){
-      plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][,1:2],
-                 lat = lat0,
-                 long = lon0,
-                 auto_cent = F, on_plot = T,
-                 col = VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][1,3],
-                 symbol = VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][1,4])
-    }else if(input$eulPlotType==2){
-      #plot fisher means and not VGPs if requested
-      PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,2],
-                         lat = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,3],
-                         A = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,4],
-                         lat0 = lat0,lon0 = lon0,
-                         col_A = rgb(0,0,1,0.15),
-                         symbol = VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][1,4],
-                         col_f = VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][1,3],
-                         on_plot = T)
-    }else if(input$eulPlotType==3){
-      plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[3]][,1:2],
-                 lat = lat0,long = lon0,
-                 auto_cent = F, on_plot = T,
-                 col = rgb(1,0,0,0.1),col_sym_out = rgb(1,0,0,0.1),
-                 symbol = "c")
-      PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,2],
-                         lat = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,3],
-                         A = 0,
-                         lon0 = lon0,lat0 = lat0,
-                         col_f = VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][1,3],
-                         symbol = VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][1,4],
-                         size = 1.2,on_plot = T)
-    }
-  }
-  
-  #creates reactive file
-  vgprotate <- reactiveValues(new=NULL)
-  
-  
-  #function rotating the data and stats
-  observeEvent(input$eulerrot,{
-    r <- input$MVGPlist2_rows_selected
-    if(length(r)){
-      #choose color of average
-      if(input$eulcolor==1) eulcolor <- "black"
-      if(input$eulcolor==2) eulcolor <- "blue"
-      if(input$eulcolor==3) eulcolor <- "green"
-      if(input$eulcolor==4) eulcolor <- "pink"
-      if(input$eulcolor==5) eulcolor <- "purple"
-      if(input$eulcolor==6) eulcolor <- "brown"
-      if(input$eulcolor==7) eulcolor <- "red"
-      if(input$eulcolor==8) eulcolor <- "yellow"
-      if(input$eulcolor==9) eulcolor <- "cyan"
-      if(input$eulcolor==10) eulcolor <- "gray"
-      if(input$eulcolor==11) eulcolor <- "white"
-      
-      #select symbol of average
-      if(input$eulsymbol==1) eulsymbol <- "c"
-      if(input$eulsymbol==2) eulsymbol <- "s"
-      if(input$eulsymbol==3) eulsymbol <- "d"
-      if(input$eulsymbol==4) eulsymbol <- "t"
-      
-      vgp_rot <- list()
-      
-      #copy file to rotate in new list
-      vgp_rot[[1]] <- VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]]
-      #rotate VGPs
-      vgp_rot[[1]][,1:2] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[1]][,1:2],
-                                            P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
-      #copy color and symbol to file for saving it in list
-      vgp_rot[[1]][,3] <- rep(eulcolor)
-      vgp_rot[[1]][,4] <- rep(eulsymbol)
-      
-      
-      #copy original VGPs stats to be rotated
-      vgp_rot[[2]] <- VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]]
-      #rotate fisher
-      vgp_rot[[2]][[1]][1,2:3] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[2]][[1]][1,2:3],
-                                                  P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
-      #rotate B95
-      vgp_rot[[2]][[2]][1,2:3] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[2]][[2]][1,2:3],
-                                                  P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
-      #rotate bootstrapped dirs
-      vgp_rot[[2]][[3]][,1:2] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[2]][[3]][,1:2],
-                                                 P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
-      #transfer data to reactive file
-      vgprotate$new <- vgp_rot
-    }
-  })
-  
-  #function adding rotated data to list
-  observeEvent(input$eulersave,{
-    VGP_saved$list[[input$eul_name]] <- vgprotate$new
-    MVGP_list$vgps <- sites_list()
-    vgprotate$new <- NULL
-  })
-  
-  #build rotated stat temporary table
-  output$eul_temp_table <- renderTable({
-    #check if rotated file exists
-    if(is.null(vgprotate$new)==F){
-      rot_temp_stat <- data.frame(matrix(nrow=0,ncol = 8))
-      colnames(rot_temp_stat) <- c("Loc","Col", "Sym","N","Lon","Lat","A95","B95")
-      rot_temp_stat[1,1] <- input$eul_name
-      rot_temp_stat[1,2] <- vgprotate$new[[1]][1,3]
-      rot_temp_stat[1,3] <- vgprotate$new[[1]][1,4]
-      rot_temp_stat[1,4] <- nrow(vgprotate$new[[1]])
-      rot_temp_stat[1,5:6] <- vgprotate$new[[2]][[1]][1,2:3]
-      rot_temp_stat[1,7] <- vgprotate$new[[2]][[1]][1,4]
-      rot_temp_stat[1,8] <- vgprotate$new[[2]][[2]][1,4]
-      rot_temp_stat
-    }
-  },digits = 1)
-  
-  #send figure to ui
-  output$eulerplot <- renderPlot({
-    r <- input$MVGPlist2_rows_selected
-    
-    if(length(r)>1){r <- r[1]}
-    if(length(r)){
-      centerLat = ifelse(input$eul_center==1, VGP_saved$list[[MVGP_list$vgps[r[1],1]]][[2]][[1]][1,3],input$eul_clat)
-      centerLong = ifelse(input$eul_center==1, VGP_saved$list[[MVGP_list$vgps[r[1],1]]][[2]][[1]][1,2],input$eul_clong)
-    }else{
-      centerLat <- input$eul_clat
-      centerLong <- input$eul_clong
-    }
-    if(length(r)){
-      
-      #plot empty spherical orthographic
-      PmagDiR::sph_ortho(lat = centerLat,long = centerLong,
-                         grid=input$RVGP_grid,
-                         coast = ifelse(input$eul_coast==1,TRUE,FALSE))        
-      #plot
-      plot_selected_VGP_eul(r = r,lat0 = centerLat,lon0 = centerLong)
-      if(is.null(vgprotate$new)==F){
-        if(input$eulPlotType==1){
-          plot_VGP_S(VGP = vgprotate$new[[1]],
-                     lat = centerLat,
-                     long = centerLong,
-                     col= vgprotate$new[[1]][1,3],
-                     symbol = vgprotate$new[[1]][1,4],
-                     on_plot = T, auto_cent = F)
-        }else if(input$eulPlotType==2){
-          PmagDiR::plot_PA95(lon = vgprotate$new[[2]][[1]][1,2],
-                             lat = vgprotate$new[[2]][[1]][1,3],
-                             A = vgprotate$new[[2]][[1]][1,4],
-                             lat0 = centerLat,
-                             lon0 = centerLong,
-                             col_A = rgb(1,0,1,0.15),
-                             symbol = vgprotate$new[[1]][1,4],
-                             col_f = vgprotate$new[[1]][1,3],
-                             on_plot = T)
-        }else if(input$eulPlotType==3){
-          plot_VGP_S(VGP=vgprotate$new[[2]][[3]][,1:2],
-                     lat = centerLat,
-                     long = centerLong,
-                     auto_cent = F, on_plot = T,
-                     col = rgb(1,0,0,0.1),col_sym_out = rgb(1,0,0,0.1),
-                     symbol = "c")
-          PmagDiR::plot_PA95(lon = vgprotate$new[[2]][[2]][1,2],
-                             lat = vgprotate$new[[2]][[2]][1,3],
-                             A = 0,
-                             lon0 = centerLong,
-                             lat0 = centerLat,
-                             col_f = vgprotate$new[[1]][1,3],
-                             symbol = vgprotate$new[[1]][1,4],
-                             size = 1.2,on_plot = T)
-        }
-      }
-    }
-    #record plot
-    euler_plot <- recordPlot()
-    
-    #Export graphic
-    output$euler_G <- downloadHandler(
-      filename = function() {
-        paste(input$eul_name,"_rot_vgp_", Sys.Date(), ".pdf", sep="")
-      },
-      content = function(file) {
-        pdf(file, onefile = TRUE,width = 11,height = 11)
-        replayPlot(euler_plot)
-        dev.off()
-      }
-    )
-    
-    #export rotated vgps
-    output$euler_vgp <- downloadHandler(
-      filename = function() {
-        paste(input$eul_name,"_rot_vgp_", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        if(is.null(vgprotate$new)==F){
-          write.csv(round(vgprotate$new[[1]][,1:2], digits = 2),file,row.names = F)
-        }
-      }
-    )
-    
-  },width = 700, height = 700)
-  
-  ### Simulated VGP Part ############
   #function that generates vgp with Fisher pars
-  SVGP_generator <- function(N,k,lon,lat,k_tol){
+  SVGP_generator <- function(N,k,lon,lat,k_tol){     
     #sub-function generating random long lat
     fisherDiR <- function(k){
       L <- exp(-2*k)
@@ -4659,6 +4442,11 @@ server <- function(input, output){
   SVGP <- reactiveValues(vgps_old = NULL)
   SVGPS <- reactiveValues(stat = NULL)
   
+  #Delete file if simulating window is opened again
+  observeEvent(input$sim_VGPs,{
+    SVGP$vgps <- NULL
+  })
+  
   #populate reactive file
   observeEvent(input$SVGPgo,{
     SVGP$vgps <- SVGP_generator(N = input$SVGPN,k = input$SVGPk,lon = input$SVGPlon,lat = input$SVGPlat,k_tol=input$k_tol)
@@ -4691,33 +4479,15 @@ server <- function(input, output){
     assign("SVGP_symbol",SVGPsymbol, envir = MVGP_temp)
     
     SVGPS$stats <- plot_VGP_S(VGP = VGP,
-                              lat = input$SVGP_clat,
-                              long = input$SVGP_clong,
-                              grid = input$SVGP_grid,
-                              coast = ifelse(input$SVGP_coast==1,TRUE,FALSE),
-                              auto_cent = ifelse(input$SVGP_center==1,TRUE,FALSE),
+                              coast = TRUE,
+                              auto_cent = TRUE,
                               col = SVGPcolor,symbol = SVGPsymbol,nb = input$SVGPnb,
-                              A95 = ifelse(input$SVGP_stat==2,TRUE,FALSE),
-                              B95 = ifelse(input$SVGP_stat==3,TRUE,FALSE),
-                              # B95 = bootTF,
+                              A95 = T,
+                              B95 = F,
                               VGPint = 4)
-    
-    
-    output$SVGPstat <- renderTable({
-      if(input$SVGP_stat==1) {SVGPpolestat <- NULL}
-      if(input$SVGP_stat==2) {
-        SVGPpolestat <- SVGPS$stats[[1]]
-        rownames(SVGPpolestat) <- input$SVGPname
-      }
-      if(input$SVGP_stat==3) {
-        SVGPpolestat <- SVGPS$stats[[2]]
-        rownames(SVGPpolestat) <- input$SVGPname
-      }
-      SVGPpolestat
-    }, digits = 1,align = "l", rownames = T)
   }
   
-  #send current VGP to list and reactive VGP_saved_list
+  #send current VGP to list and reactive VGP_saved_list        
   observeEvent(input$saveSVGP,{
     req(SVGP$vgps)
     VGP <- SVGP$vgps
@@ -4727,446 +4497,514 @@ server <- function(input, output){
     VGPsaved <- list()
     VGPsaved[[1]] <- VGP
     #if statistics does not exists, it makes it
-    if(length(SVGPS$stats)<=1){
-      VGPsaved[[2]] <- plot_VGP_S(VGP = VGP,A95 = T,B95 = T,nb = input$SVGPnb,VGPint = 4,plot=F)
-    }else{VGPsaved[[2]] <- SVGPS$stats}
+    # if(length(SVGPS$stats)<=1){
+    VGPsaved[[2]] <- plot_VGP_S(VGP = VGP,A95 = T,B95 = T,nb = input$SVGPnb,VGPint = 4,plot=F)
+    # }else{VGPsaved[[2]] <- SVGPS$stats}
     VGP_saved$list[[input$SVGPname]] <- VGPsaved
     MVGP_list$vgps <- sites_list()
   })
   
-  #preliminary table for loaded VGP
-  output$Ext_VGP_list2 <- renderTable({
-    if(length(VGP_saved$list)==0){
-      MVGP_list$vgps <- NULL
-    }else{
-      MVGP_list$vgps <- sites_list()
-    }
-    MVGP_list$vgps
-  }, digits = 1,align = "l", rownames = T)
-  
-  #send to ui
+  #send SIMULATED FIGURE TO UI
   output$SVGP_plot <- renderPlot({
     plot_SVGP()
-    #record plot
-    SVGP_plot <- recordPlot()
-    
-    #Export graphic
-    output$SVGP_G <- downloadHandler(
-      filename = function() {
-        paste(input$SVGPname,"_Siumlated_VGP_N_",input$SVGPN,"_K_",input$SVGPk,"_", Sys.Date(), ".pdf", sep="")
-      },
-      content = function(file) {
-        pdf(file, onefile = TRUE,width = 11,height = 11)
-        replayPlot(SVGP_plot)
-        dev.off()
-      }
-    )
-    #export stat
-    output$SVGP_S <- downloadHandler(
-      filename = function() {
-        paste(input$SVGPname,"_Pole_Siumlated_VGP_N_",input$SVGPN,"_K_",input$SVGPk,"_", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        if(input$SVGP_stat==1){write.csv(NULL,file)}
-        else if(input$SVGP_stat==2){
-          SVGP_pole <- SVGPS$stats[[1]]
-          rownames(SVGP_pole) <- paste(input$SVGPname,"_fisher",sep="")
-          write.csv(round(SVGP_pole, digits = 2),file)
-        }
-        else if(input$SVGP_stat==3){
-          SVGP_pole <- SVGPS$stats[[2]]
-          rownames(SVGP_pole) <- paste(input$SVGPname,"_bootstrap",sep="")
-          write.csv(round(SVGP_pole, digits = 2),file)
-        }
-      }
-    )
-    output$SVGP_list <- downloadHandler(
-      filename = function() {
-        paste(input$SVGPname,"_List_Siumlated_VGP_N_",input$SVGPN,"_K_",input$SVGPk,"_", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        write.csv(round(SVGP$vgps,digits = 2),file = file,row.names = F)
-      }
-    )
-  }, width = 700,height = 700)
+  }, width = 710,height = 710)
   
-  
-  ####ADD EXTERNAL POLES PART ############
-  #create reactive tab file
-  Added_poles <- reactiveValues(list=NULL)
-  
-  
-  #creates reactive value for checking if file is uploaded
-  extpole <- reactiveValues(listfile = NULL)
-  #check for uploaded file
-  observeEvent(input$extrapolelist,{extpole$listfile <- "uploaded"})
-  #reset upload if requested
-  observeEvent(input$delextrapolelist,{extpole$listfile <- "reset"})
-  #read file if present, reset if requested
-  Extra_poles_list <- reactive({
-    if(is.null(extpole$listfile)){
-      return(NULL)
-    }else if(extpole$listfile == "uploaded"){
-      temp <- read.csv(file = input$extrapolelist$datapath)
-      colnames(temp) <- c("Loc.","Col","Sym","Lon","Lat","A95")
-      return(temp)
-    }else if(extpole$listfile == "reset"){
-      return(NULL)
-    }
+  #send SIMULATED VGPs fisher or bootstrap OF EXTERNAL POLE on main window                     
+  output$Sim_fishpole <- renderText({
+    req(SVGPS$stats)
+    S_Polestat <- paste("N: ",SVGPS$stats[[1]][1,1],",",
+                        " Long: ",round(SVGPS$stats[[1]][1,2], digits = 1),",",
+                        " Lat: ", round(SVGPS$stats[[1]][1,3], digits = 1),",",
+                        " A95: ",round(SVGPS$stats[[1]][1,4],digits = 1),",",
+                        " K: ",round(SVGPS$stats[[1]][1,5], digits = 1),
+                        sep = "")
+    S_Polestat_out <- paste("Average Pole: ", S_Polestat)
+    S_Polestat_out
   })
   
+  #########################MODAL DIALOG WITH ROTATED VGPs DETAILS##########
   
-  #set  details of external pole
-  observeEvent(input$PmagPole_manual, {
-    # display a modal dialog with a header, textinput and action buttons
-    showModal(modalDialog(
-      tags$h2('Enter Paleomagnetic Pole details'),
-      fluidRow(
-        column(4,numericInput("extrapolelong",label = "Pole long",value = NULL,min = -360,max = 360)),
-        column(4,numericInput("extrapolelat",label = "Pole lat",value = NULL,min = -90,max = 90)),
-        column(4,numericInput("extrapoleA95",label = "95% confidence",value = NULL,min = 0,max = 180))
-      ),
-      fluidRow(
-        column(4,selectInput("extrapolecolor", label= "Pole color",
-                             choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=2)),
-        column(4,selectInput("extrapolesimbol", label= "Pole symbol",
-                             choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
-        column(4,textInput("extrapolename",label = " Manual pole name",value = "E_pole"))
-      ),
-      fluidRow(
-        column(12, actionButton("addextrapole",label = "ADD TO EXTERNAL POLES LIST",width = "100%"))
-      ),
-      
-      footer=tagList(
-        modalButton('close')
-      )
-    ))
+  #####opens modal window
+  observeEvent(input$rot_VGPs,{
+    # display a modal dialog with a header, text input and action buttons
+    showModal(jqui_draggable(modalDialog(size = "l",
+                                         tags$h3("Rotate selected VGPs with known Euler parameters (E_Pole, Rotation)"),
+                                         br(),
+                                         fluidRow(
+                                           column(4,selectInput("eulcolor", label= "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=8)),
+                                           column(4,selectInput("eulsymbol", label= "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(4,selectInput("eulPlotType",label = "Type",
+                                                                choices = list("VGPs"=1,"Fisher"=2,"Bootstrapped"=3),selected = 1)),
+                                         ),
+                                         fluidRow(
+                                           column(4, numericInput("eul_long",label = "E_Pole Long",value = 0,min = 0,max = 360)),
+                                           column(4, numericInput("eul_lat",label = "E_Pole Lat",value = 90,min = -90,max = 90)),
+                                           column(4, numericInput("eul_rot",label = "Rotation",value = 0,min = 0,max = 360)),
+                                         ),
+                                         fluidRow(
+                                           column(6, actionButton("eulerrot",label = "Rotate",width = "100%")),
+                                           column(6, actionButton("eulersave",label = "Add to List of loaded VGPs and Poles", width = "100%"))
+                                         ),
+                                         fluidRow(
+                                           column(1),
+                                           plotOutput(outputId = "eulerplot")
+                                         ),
+                                         #makes window deeper
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
-  #add external poles from loaded list to list if exists
-  observeEvent(input$addextrapolelist,{
-    #check if list already exists
-    if(is.null(Added_poles$list)==T){
-      Added_poles$list <- data.frame(matrix(ncol=6,nrow = 0))
-      colnames(Added_poles$list) <- c("Loc.","Col","Sym","Lon","Lat","A95")
-    }
-    #add file only if exist
-    if(!is.null(extpole$listfile)){Added_poles$list <- rbind(Added_poles$list,Extra_poles_list())}
-    
-    #eliminates duplicates
-    Added_poles$list <- dplyr::distinct(Added_poles$list)
-    if(nrow(Added_poles$list)==0){Added_poles$list <- NULL}
-  })
-  
-  #add manual pole to list if exists
-  observeEvent(input$addextrapole,{
-    #check if list already exists
-    if(is.null(Added_poles$list)==T){
-      Added_poles$list <- data.frame(matrix(ncol=6,nrow = 0))
-      colnames(Added_poles$list) <- c("Loc.","Col","Sym","Lon","Lat","A95")
-    }
-    #choose color of pole
-    if(input$extrapolecolor==1) EPcol <- "black"
-    if(input$extrapolecolor==2) EPcol <- "blue"
-    if(input$extrapolecolor==3) EPcol <- "green"
-    if(input$extrapolecolor==4) EPcol <- "pink"
-    if(input$extrapolecolor==5) EPcol <- "purple"
-    if(input$extrapolecolor==6) EPcol <- "brown"
-    if(input$extrapolecolor==7) EPcol <- "red"
-    if(input$extrapolecolor==8) EPcol <- "yellow"
-    if(input$extrapolecolor==9) EPcol <- "cyan"
-    if(input$extrapolecolor==10) EPcol <- "gray"
-    if(input$extrapolecolor==11) EPcol <- "white"
-    
-    #select symbol of pole
-    if(input$extrapolesimbol==1) EPsym <- "c"
-    if(input$extrapolesimbol==2) EPsym <- "s"
-    if(input$extrapolesimbol==3) EPsym <- "d"
-    if(input$extrapolesimbol==4) EPsym <- "t"
-    
-    temp <- data.frame(matrix(ncol=6,nrow = 0))
-    colnames(temp) <- c("Loc.","Col","Sym","Lon","Lat","A95")
-    temp[1,1] <- input$extrapolename
-    temp[1,2] <- EPcol
-    temp[1,3] <- EPsym
-    temp[1,4] <- input$extrapolelong
-    temp[1,5] <- input$extrapolelat
-    temp[1,6] <- input$extrapoleA95
-    
-    if(is.na(input$extrapolelong)==F && is.na(input$extrapolelat)==F && is.na(input$extrapoleA95)==F) {
-      Added_poles$list <- rbind(Added_poles$list,temp)
-    }
-    
-    if(nrow(Added_poles$list)==0){Added_poles$list <- NULL}
-  })
-  
-  #set detail of Euler pole and rotated Pole
-  observeEvent(input$rotPmagPole, {
-    # display a modal dialog with a header, textinput and action buttons
-    showModal(modalDialog(
-      tags$h2('Enter Euler Pole details'),
-      tags$h4("Works on one entry. If more are selected, it rotates only the first"),
-      fluidRow(
-        column(4, numericInput("PPeul_long",label = "EPole Long",value = 0,min = 0,max = 360)),
-        column(4, numericInput("PPeul_lat",label = "EPole Lat",value = 90,min = -90,max = 90)),
-        column(4, numericInput("PPeul_rot",label = "Rotation",value = 0,min = 0,max = 360))                                  ),
-      fluidRow(
-        column(4, textInput("PPeul_name",label = "Name",value = "PP_rot")),
-        column(4,selectInput("PProtcolor", label= "Pole color",
-                             choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=8)),
-        column(4,selectInput("PProtsymbol", label= "Pole symbol",
-                             choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1))
-      ),
-      fluidRow(
-        column(4, actionButton("PPeulerrot",label = "ROTATE",width = "100%")),
-        column(4, actionButton("PPeulerDelete",label = "Delete",width = "100%")),
-        column(4, actionButton("PPeulersave",label = "Add to  List", width = "100%"))
-      ),
-      
-      footer=tagList(
-        modalButton('close')
-      )
-    )
-    )
-  })
-  
-  #create reactive file for rotated pole, so it keeps the details for add to list is selected
-  PPR <- reactiveValues(PPRcolor= NULL)
-  
-  #Rotate external pole
-  observeEvent(input$PPeulerrot, {
-    r <- input$EP_list_rows_selected
-    #select the top of the list
-    if(length(r)>1) r <- r[1]
-    
-    #choose color of pole
-    if(input$PProtcolor==1) PPR$PPRcolor <- "black"
-    if(input$PProtcolor==2) PPR$PPRcolor <- "blue"
-    if(input$PProtcolor==3) PPR$PPRcolor <- "green"
-    if(input$PProtcolor==4) PPR$PPRcolor <- "pink"
-    if(input$PProtcolor==5) PPR$PPRcolor <- "purple"
-    if(input$PProtcolor==6) PPR$PPRcolor <- "brown"
-    if(input$PProtcolor==7) PPR$PPRcolor <- "red"
-    if(input$PProtcolor==8) PPR$PPRcolor <- "yellow"
-    if(input$PProtcolor==9) PPR$PPRcolor <- "cyan"
-    if(input$PProtcolor==10) PPR$PPRcolor <- "gray"
-    if(input$PProtcolor==11) PPR$PPRcolor <- "white"
-    
-    #select symbol of pole
-    if(input$PProtsymbol==1) PPR$PPRsymbol <- "c"
-    if(input$PProtsymbol==2) PPR$PPRsymbol <- "s"
-    if(input$PProtsymbol==3) PPR$PPRsymbol <- "d"
-    if(input$PProtsymbol==4) PPR$PPRsymbol <- "t"
-    
-    #save name
-    PPR$PPRname <- input$PPeul_name
-    
-    #calculate rotated long and lat
-    RotatedLongLat <- PmagDiR::rot_DI(Lonlat = t(c(Added_poles$list[r,4],lat = Added_poles$list[r,5])),
-                                      P_long = input$PPeul_long,
-                                      P_lat = input$PPeul_lat,
-                                      rot = input$PPeul_rot)
-    PPR$A95 <- Added_poles$list[r,6]
-    
-    #create temporary line with rotated pole, to add with further command
-    PPR$RotatedExtPole <- data.frame(matrix(ncol=6,nrow = 1))
-    colnames(PPR$RotatedExtPole) <- c("Loc.","Col","Sym","Lon","Lat","A95")
-    PPR$RotatedExtPole[1,1] <- PPR$PPRname
-    PPR$RotatedExtPole[1,2] <- PPR$PPRcolor
-    PPR$RotatedExtPole[1,3] <- PPR$PPRsymbol
-    PPR$RotatedExtPole[1,4] <- round(RotatedLongLat[1,1],digits = 1)
-    PPR$RotatedExtPole[1,5] <- round(RotatedLongLat[1,2], digits = 1)
-    PPR$RotatedExtPole[1,6] <- PPR$A95
-  })
-  
-  #delete rotated pole before saving
-  observeEvent(input$PPeulerDelete,{
-    PPR$RotatedExtPole <- NULL
-  })
-  
-  #save rotated external pole to list
-  observeEvent(input$PPeulersave,{
-    Added_poles$list <- rbind(Added_poles$list,PPR$RotatedExtPole)
-    PPR$RotatedExtPole <- NULL
-  })
-  
-  #delete elements from list
-  observeEvent(input$deleteextrapole,{
-    if(!is.null(Added_poles$list)){
-      d <- input$EP_list_rows_selected
-      if(length(d)){Added_poles$list <- Added_poles$list[-d,]}
-    }
-    if(nrow(Added_poles$list)==0){Added_poles$list <- NULL}
-  })
-  
-  
-  #send to ui the interactive extra pole list
-  output$EP_list <- DT::renderDataTable(Added_poles$list, server= F,rownames = F) 
-  
-  #Calculate Fisher of selected poles, SENT TO UI within "all_poles_plotter"                
-  
-  extfisher <- reactive({                
-    if(input$extrapolesfisher!=1){
-      extlist <- data.frame(matrix(ncol=2,nrow=0))
-      colnames(extlist) <- c("Lon","Lat")
-      
-      ext <- input$EP_list_rows_selected
-      s <- input$MVGPlist_rows_selected
-      
-      if(length(s)){
-        lonlat_temp <- MVGP_list$vgps[s,5:6]
-        lonlat_temp$Lon <- as.numeric(lonlat_temp$Lon)
-        lonlat_temp$Lat <- as.numeric(lonlat_temp$Lat)
-        extlist <- rbind(extlist,lonlat_temp)
-      }
-      if(length(ext)){
-        lonlat_temp2 <- Added_poles$list[ext,4:5]
-        extlist <- rbind(extlist,lonlat_temp2)
-      }
-      
-      #if something is selected operates
-      if(nrow(extlist)>1){
-        #calculate fisher of poles
-        if(input$extrapolesfisher==2){
-          Fisher <- PmagDiR::fisher(extlist)
-          Fisher <- Fisher[,-5]
-          colnames(Fisher) <- c("Long","Lat","A95","N","K")
-          rownames(Fisher) <- input$extreameanname
-          extpole$Fisher <- Fisher
-        }
-        #calculate great circles through poles and MAD following Kirschvink 1980
-        else if(input$extrapolesfisher==3){
-          circle <- PmagDiR::circle_DI(extlist)
-          #turn solution in data.frame
-          circle <- data.frame(t(circle))
-          colnames(circle) <- c("PoleLong","PoleLat","MAD")
-          rownames(circle) <- paste(input$extreameanname,"_GCPole",sep = "")
-          extpole$Fisher <- circle
-        } 
-      }
-    }else{extpole$Fisher <- NULL}
-    #if only one entry it makes it null, otherwise it stays memorised
-    if(nrow(extlist)==1){extpole$Fisher <- NULL}
-    #function return values used in all_poles_plotter
-    return(extpole$Fisher)  
-  })
-  
-  #send fisher to UI
-  output$extpolefisher<- renderText({                      
-    if(input$extrapolesfisher==2){
-      extpolefish <- paste("N: ",extpole$Fisher[1,4],",",
-                           " Long: ",round(as.numeric(extpole$Fisher[1,1]), digits = 1),",",
-                           " Lat: ", round(as.numeric(extpole$Fisher[1,2]), digits = 1),",",
-                           " A95: ",round(as.numeric(extpole$Fisher[1,3]),digits = 1),",",
-                           " K: ",round(as.numeric(extpole$Fisher[1,5]), digits = 1),
-                           sep = "")
-      
-    }
-    else if(input$extrapolesfisher==3){
-      extpolefish <- paste(" Long: ",round(extpole$Fisher[1,1], digits = 1),",",
-                           " Lat: ", round(extpole$Fisher[1,2], digits = 1),",",
-                           " MAD: ",round(extpole$Fisher[1,3],digits = 1),",",
-                           sep = "")
-    }
-    else{extpolefish <- NULL}
-    extpolefish
-  })
-  
-  #send fisher to download
-  output$Ext_pole_fisher_S <- downloadHandler(
-    filename = function(){
-      paste(input$fileN_MVGP,"_All_Poles_Fisher_", Sys.Date(), ".csv", sep="")
-    },
-    content = function(file){
-      Ext_poles_S <- extfisher()
-      write.csv(round(Ext_poles_S,digits = 2),file = file,row.names = T)
-    }
-  )
-  
-  #Export pole list to device
-  output$ExportPoleList <- downloadHandler(
-    filename = function(){
-      paste("Paleomagnetic_pole_list_", Sys.Date(), ".csv", sep="")
-    },
-    content = function(file){
-      write.csv(Added_poles$list,file = file,row.names = F)
-    }
-  )
-  
-  
-  #Add external pole list Fisher to external pole list
-  observeEvent(input$add_F_2_ext_list,{
-    if(is.null(extpole$Fisher)==F){
-      temp <- data.frame(matrix(ncol=6,nrow = 1))
-      colnames(temp) <- c("Loc.","Col","Sym","Lon","Lat","A95")
-      temp[1,1] <- input$extreameanname
-      temp[1,2] <- extpole$extrameancolor
-      temp[1,3] <- extpole$extrameansymbol
-      temp[1,4:6] <- round(extpole$Fisher[1,1:3],digits = 2)
-      Added_poles$list <- rbind(Added_poles$list,temp)
-    }
-  })
-  
-  
-  ######## FUNCTIONS FOR PLOTTING MULTIPLE VGP PARTS #########
-  #plot VGPs selected from list
-  plot_selected_VGP <- function(s,lat0,lon0){
-    #set bootfile name
-    for(i in s){
-      #selects what to plot
-      if(input$MVGPsPlotType==1){
-        plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][,1:2],
-                   lat = lat0,
-                   long = lon0,
-                   auto_cent = F, on_plot = T,
-                   col = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,3],
-                   symbol = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,4])
-      }else if(input$MVGPsPlotType==2){
-        #plot fisher means and not VGPs if requested
-        PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,2],
-                           lat = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,3],
-                           A = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,4],
-                           lat0 = lat0,lon0 = lon0,
-                           col_A = rgb(0,0,1,0.15),
-                           symbol = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,4],
-                           col_f = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,3],
-                           on_plot = T)
-      }else if(input$MVGPsPlotType==3){
-        plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[3]][,1:2],
-                   lat = lat0,long = lon0,
-                   auto_cent = F, on_plot = T,
-                   col = rgb(1,0,0,0.1),col_sym_out = rgb(1,0,0,0.1),
-                   symbol = "c")
-        PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,2],
-                           lat = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,3],
-                           A = 0,
-                           lon0 = lon0,lat0 = lat0,
-                           col_f = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,3],
-                           symbol = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,4],
-                           size = 1.2,on_plot = T)
-      }
-      
-      #plot pole names if required
-      if(input$MVGP_names_YN==2){
-        #functions converting long & lat to xy
-        c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-lon0))}
-        c2y <- function(lon,lat) {(cos(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
-        #cut is cosin of c, when negative is behind projections, needs to be cut
-        cut <- function(lon,lat) {(sin(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
-        
-        #define coordinate for name of pole
-        x <- c2x(VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][[1,2]],VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][[1,3]])
-        y <- c2y(VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][[1,2]],VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][[1,3]])
-        name <- MVGP_list$vgps[i,1]
-        #plot names
-        text(x=x, y=y,pos=3,substitute(paste(bold(name))), cex= 1.2)
-      }
+  #plot VGPs selected from list for euler rotation
+  plot_selected_VGP_eul <- function(r,lat0,lon0){
+    #selects what to plot
+    if(input$eulPlotType==1){
+      plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]][,1:2],
+                 lat = lat0,
+                 long = lon0,
+                 auto_cent = F, on_plot = T,
+                 col = MVGP_list$vgps[r,2],               
+                 symbol = MVGP_list$vgps[r,3])
+    }else if(input$eulPlotType==2){
+      #plot fisher means and not VGPs if requested
+      PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,2],
+                         lat = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,3],
+                         A = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,4],
+                         lat0 = lat0,lon0 = lon0,
+                         col_A = rgb(0,0,1,0.15),
+                         symbol = MVGP_list$vgps[r,3],     
+                         col_f = MVGP_list$vgps[r,2],
+                         on_plot = T)
+    }else if(input$eulPlotType==3){
+      plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[3]][,1:2],
+                 lat = lat0,long = lon0,
+                 auto_cent = F, on_plot = T,
+                 col = rgb(1,0,0,0.1),col_sym_out = rgb(1,0,0,0.1),
+                 symbol = "c")
+      PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,2],
+                         lat = VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]][[1]][1,3],
+                         A = 0,
+                         lon0 = lon0,lat0 = lat0,
+                         col_f = MVGP_list$vgps[r,2],       
+                         symbol = MVGP_list$vgps[r,3],
+                         size = 1.2,on_plot = T)
     }
   }
   
-  #create reactive file for merged VGPs color and symbol
-  MrVGP <- reactiveValues(col_f=NULL)
+  #creates reactive file
+  vgprotate <- reactiveValues(new=NULL)
+  A95rotate <- reactiveValues(new=NULL)
   
+  #empty rotated file when new pop up opens
+  observeEvent(input$rot_VGPs,{
+    vgprotate$new <- NULL
+    A95rotate$new <- NULL
+  })
+  
+  #function rotating the data and stats                     
+  observeEvent(input$eulerrot,{                         
+    n <- input$VGPs_List_rows_selected
+    if(length(n)){
+      #since A95rotate$new is treated like a table, it is created, if nrow is 0 then is made NULL in the end
+      A95rotate$new <- data.frame(matrix(ncol=9,nrow = 0))
+      colnames(A95rotate$new) <- c("Loc.","Col","Sym","N","Lon","Lat","A95","B95","K")
+      for(r in n){
+        #assign name to new dataset, original plus _Rt
+        NAME <- paste(MVGP_list$vgps[r,1],"_Rt",sep = "")
+        #choose color
+        if(input$eulcolor==1) eulcolor <- "black"
+        if(input$eulcolor==2) eulcolor <- "blue"
+        if(input$eulcolor==3) eulcolor <- "green"
+        if(input$eulcolor==4) eulcolor <- "pink"
+        if(input$eulcolor==5) eulcolor <- "purple"
+        if(input$eulcolor==6) eulcolor <- "brown"
+        if(input$eulcolor==7) eulcolor <- "red"
+        if(input$eulcolor==8) eulcolor <- "yellow"
+        if(input$eulcolor==9) eulcolor <- "cyan"
+        if(input$eulcolor==10) eulcolor <- "gray"
+        if(input$eulcolor==11) eulcolor <- "white"
+        
+        #select symbol of average
+        if(input$eulsymbol==1) eulsymbol <- "c"
+        if(input$eulsymbol==2) eulsymbol <- "s"
+        if(input$eulsymbol==3) eulsymbol <- "d"
+        if(input$eulsymbol==4) eulsymbol <- "t"
+        
+        
+        if(MVGP_list$vgps[r,8]==""){
+          #Added_poles$list
+          temp <- MVGP_list$vgps[r,]
+          #next because otherwise gives error
+          temp$Lon <- as.numeric(temp$Lon)
+          temp$Lat <- as.numeric(temp$Lat)
+          temp$A95 <- as.numeric(temp$A95)
+          assign("butta",input$eul_long,.GlobalEnv)
+          temp[1,5:6] <- round(PmagDiR::rot_DI(temp[1,5:6],               
+                                               P_long = input$eul_long,
+                                               P_lat = input$eul_lat,
+                                               rot = input$eul_rot),digits = 2)
+          temp[1,2:3] <- t(c(eulcolor,eulsymbol))
+          temp[1,1] <- paste(temp[1,1],"_Rt",sep="")
+          A95rotate$new <- rbind(A95rotate$new,temp)
+        }else{
+          #new list with single rotated entry
+          vgp_rot <- list()
+          
+          
+          #copy file to rotate in new list
+          vgp_rot[[1]] <- VGP_saved$list[[MVGP_list$vgps[r,1]]][[1]]
+          #rotate VGPs
+          vgp_rot[[1]][,1:2] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[1]][,1:2],
+                                                P_long = input$eul_long,P_lat = input$eul_lat,
+                                                rot = input$eul_rot)
+          #copy color and symbol to file for saving it in list
+          vgp_rot[[1]][,3] <- rep(eulcolor)
+          vgp_rot[[1]][,4] <- rep(eulsymbol)
+          
+          
+          #copy original VGPs stats to be rotated
+          vgp_rot[[2]] <- VGP_saved$list[[MVGP_list$vgps[r,1]]][[2]]
+          #rotate fisher
+          vgp_rot[[2]][[1]][1,2:3] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[2]][[1]][1,2:3],
+                                                      P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
+          #rotate B95
+          vgp_rot[[2]][[2]][1,2:3] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[2]][[2]][1,2:3],
+                                                      P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
+          #rotate bootstrapped dirs
+          vgp_rot[[2]][[3]][,1:2] <- PmagDiR::rot_DI(Lonlat = vgp_rot[[2]][[3]][,1:2],
+                                                     P_long = input$eul_long,P_lat = input$eul_lat,rot = input$eul_rot)
+          #transfer data to reactive file
+          vgprotate$new[[NAME]] <- vgp_rot
+        }
+      }
+    }
+    #since A95rotate$new is treated like a table, it is created but made null if nrow is zero
+    if(nrow(A95rotate$new)==0){A95rotate$new <- NULL}
+  })
+  
+  #function adding rotated data to list                 
+  observeEvent(input$eulersave,{
+    if(!is.null(vgprotate$new)){
+      VGP_saved$list <- append(VGP_saved$list,vgprotate$new)
+    }
+    if(!is.null(A95rotate$new)){
+      Added_poles$list <- rbind(Added_poles$list,A95rotate$new)
+    }
+    MVGP_list$vgps <- sites_list()
+    vgprotate$new <- NULL
+    A95rotate$new <- NULL
+  })
+  
+  #send figure to ui
+  output$eulerplot <- renderPlot({
+    req(MVGP_list$vgps)
+    r <- input$VGPs_List_rows_selected
+    if(length(r)){
+      centerLat <-  as.numeric(MVGP_list$vgps[r[1],6])
+      centerLong <- as.numeric(MVGP_list$vgps[r[1],5])
+      
+      #plot empty spherical orthographic
+      PmagDiR::sph_ortho(lat = centerLat,long = centerLong,
+                         coast = T)        
+      #plot original selected data
+      for(i in r){
+        if(MVGP_list$vgps[i,8]==""){
+          PmagDiR::plot_PA95(lon = as.numeric(MVGP_list$vgps[i,5]),
+                             lat = as.numeric(MVGP_list$vgps[i,6]),
+                             A = as.numeric(MVGP_list$vgps[i,7]),
+                             lon0 = centerLong,
+                             lat0 = centerLat,
+                             col_f = MVGP_list$vgps[i,2],
+                             symbol = MVGP_list$vgps[i,3],
+                             on_plot = TRUE)
+        }else{
+          plot_selected_VGP_eul(r = i,lat0 = centerLat,lon0 = centerLong)
+        }
+      }
+      #check if there are rotated data
+      if(!is.null(vgprotate$new)){ 
+        #it plots the  the rotated entries one by one
+        for(i in 1:length(vgprotate$new)){
+          #isolates the dataset
+          Rt_Data_to_plot <- vgprotate$new[[i]]
+          if(input$eulPlotType==1){
+            plot_VGP_S(VGP = Rt_Data_to_plot[[1]],
+                       lat = centerLat,
+                       long = centerLong,
+                       col= Rt_Data_to_plot[[1]][1,3],
+                       symbol = Rt_Data_to_plot[[1]][1,4],
+                       on_plot = T, auto_cent = F)
+          }else if(input$eulPlotType==2){
+            PmagDiR::plot_PA95(lon = Rt_Data_to_plot[[2]][[1]][1,2],
+                               lat = Rt_Data_to_plot[[2]][[1]][1,3],
+                               A = Rt_Data_to_plot[[2]][[1]][1,4],
+                               lat0 = centerLat,
+                               lon0 = centerLong,
+                               col_A = rgb(1,0,1,0.15),
+                               symbol = Rt_Data_to_plot[[1]][1,4],
+                               col_f = Rt_Data_to_plot[[1]][1,3],
+                               on_plot = T)
+          }else if(input$eulPlotType==3){
+            plot_VGP_S(VGP=Rt_Data_to_plot[[2]][[3]][,1:2],
+                       lat = centerLat,
+                       long = centerLong,
+                       auto_cent = F, on_plot = T,
+                       col = rgb(1,0,0,0.1),col_sym_out = rgb(1,0,0,0.1),
+                       symbol = "c")
+            PmagDiR::plot_PA95(lon = Rt_Data_to_plot[[2]][[2]][1,2],
+                               lat = Rt_Data_to_plot[[2]][[2]][1,3],
+                               A = 0,
+                               lon0 = centerLong,
+                               lat0 = centerLat,
+                               col_f = Rt_Data_to_plot[[1]][1,3],
+                               symbol = Rt_Data_to_plot[[1]][1,4],
+                               size = 1.2,on_plot = T)
+          }
+        }
+      }
+      if(!is.null(A95rotate$new)){
+        for(i in 1:nrow(A95rotate$new)){
+          PmagDiR::plot_PA95(lon = as.numeric(A95rotate$new[i,5]),
+                             lat = as.numeric(A95rotate$new[i,6]),
+                             A = as.numeric(A95rotate$new[i,7]),
+                             lon0 = centerLong,
+                             lat0 = centerLat,on_plot = T,
+                             col_f = A95rotate$new[i,2],
+                             symbol = A95rotate$new[i,3])
+        }
+      }
+    }
+    
+    
+  },width = 710, height = 710)
+  
+  #########################MODAL DIALOG WITH MERGED VGPs DETAILS##########
+  ####Opens modal window
+  observeEvent(input$merg_VGPs,{
+    # display a modal dialog with a header, text input and action buttons
+    showModal(jqui_draggable(modalDialog(size = "l",
+                                         tags$h3('Merge multiple VGPs sets into a single set'),
+                                         br(),
+                                         fluidRow(
+                                           column(3,textInput("fileN_MVGP",label = "M-VGPs Name",value = "M-VGPs")),
+                                           column(3,selectInput("MVGPsPlotType",label = "Type plotted",
+                                                                choices = list("VGPs"=1,"Fisher"=2,"Bootstrapped"=3),selected = 1)),
+                                           column(3,selectInput("MVGP_aver_sym", label = "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(3,selectInput("MVGP_aver_color", label = "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10,"white"=11), selected=7)),
+                                         ),
+                                         br(),
+                                         fluidRow(
+                                           column(3,numericInput("MVGPnb", label = "Bootstrap n.", value = 2000)),
+                                           column(9,progressBar(
+                                             id = "Mvgpboot",
+                                             value = 0,total=2000,
+                                             title = "VGPs bootstrap",
+                                             display_pct = TRUE))
+                                         ),
+                                         fluidRow(
+                                           column(12,actionButton("add_MVGPs",label = "Add to list of loaded VGPs and Poles",width = "100%")),
+                                         ),
+                                         #result of statistic 
+                                         h5(textOutput("MVGP_ALLVGPS_stat")),
+                                         fluidRow(
+                                           column(1),
+                                           plotOutput(outputId = "MergeVGP_plot")
+                                         ),
+                                         #makes window deeper
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),
+                                         br(),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))  
+  })
+  
+  #POLE output editable list
+  output$VGPs_List <- DT::renderDataTable({
+    req(MVGP_list$vgps)  
+    datatable(MVGP_list$vgps, editable = list(target="cell", disable= list(columns=c(3,4,5,6,7,8))),
+              rownames = F)%>%
+      formatStyle(
+        columns = c("Loc.","Col","Sym","N","Lon","Lat","A95","B95","K"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #Modify poles table throught UI               
+  observeEvent(input$VGPs_List_cell_edit, {
+    info <- input$VGPs_List_cell_edit
+    #current values in table
+    modified_data <-  MVGP_list$vgps  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #select old data to change also list
+    old_data <- MVGP_list$vgps[info$row,]
+    #select only old name for VGP list modification
+    old_Loc_name <- MVGP_list$vgps[info$row,1]
+    #update table
+    MVGP_list$vgps <- modified_data
+    #MODIFY ALSO LIST WITH NEW NAME, COLOR AND SYMBOL
+    #if it is a paleomagnetic pole comparing old line with saved list, if it is the same it changes with new
+    if(MVGP_list$vgps[info$row,8]==""){
+      for(i in 1:nrow(Added_poles$list)){
+        if(all(Added_poles$list[i,]==old_data)){
+          Added_poles$list[i,] <- MVGP_list$vgps[info$row,]
+        }
+      }
+    }else{
+      #if it is a VGPs file
+      names(VGP_saved$list)[names(VGP_saved$list)==old_Loc_name] <- MVGP_list$vgps[info$row,1]
+      VGP_saved$list[[MVGP_list$vgps[info$row,1]]][[1]][["color"]] <- MVGP_list$vgps[info$row,2]
+      VGP_saved$list[[MVGP_list$vgps[info$row,1]]][[1]][["symbol"]] <- MVGP_list$vgps[info$row,3]
+      assign("butta",VGP_saved$list,.GlobalEnv)
+    }
+  })
+  
+  #delete VGP or POLE from reactive lists
+  observeEvent(input$deletevgp,{                      
+    e <- input$VGPs_List_rows_selected
+    for(i in e){
+      #if is an external paleopole it deletes it from the loaded list
+      if(MVGP_list$vgps[i,8]==""){
+        Added_poles$list <- Added_poles$list[-which(Added_poles$list[,1]==MVGP_list$vgps[i,1],arr.ind = T),] 
+      } 
+      #eliminate selected names from global list
+      VGP_saved$list <- VGP_saved$list[names(VGP_saved$list) %in% MVGP_list$vgps[i,1]==F]
+    }
+    MVGP_list$vgps <- sites_list()
+  })
+  
+  #merge different VGPs into one and create statistics
+  observeEvent(input$add_MVGPs,{
+    #Vanno ridefiniti qui se no mi da un errore
+    #choose color of average
+    if(input$MVGP_aver_color==1) MrVGP$col_f <- "black"
+    if(input$MVGP_aver_color==2) MrVGP$col_f <- "blue"
+    if(input$MVGP_aver_color==3) MrVGP$col_f <- "green"
+    if(input$MVGP_aver_color==4) MrVGP$col_f <- "pink"
+    if(input$MVGP_aver_color==5) MrVGP$col_f <- "purple"
+    if(input$MVGP_aver_color==6) MrVGP$col_f <- "brown"
+    if(input$MVGP_aver_color==7) MrVGP$col_f <- "red"
+    if(input$MVGP_aver_color==8) MrVGP$col_f <- "yellow"
+    if(input$MVGP_aver_color==9) MrVGP$col_f <- "cyan"
+    if(input$MVGP_aver_color==10) MrVGP$col_f <- "gray"
+    if(input$MVGP_aver_color==11) MrVGP$col_f <- "white"
+    
+    #select symbol of average
+    if(input$MVGP_aver_sym==1) MrVGP$MVGPaversym <- "c"
+    if(input$MVGP_aver_sym==2) MrVGP$MVGPaversym <- "s"
+    if(input$MVGP_aver_sym==3) MrVGP$MVGPaversym <- "d"
+    if(input$MVGP_aver_sym==4) MrVGP$MVGPaversym <- "t"
+    
+    s <- input$VGPs_List_rows_selected
+    
+    #rebuild name for checking if stats exist and not replicate
+    MVGP_name <- "MVGP_stat"
+    
+    if(length(s)){
+      MergedVGP <- list()
+      MergedVGP_t <- data.frame(matrix(ncol = 2,nrow = 0))
+      colnames(MergedVGP_t) <- c("Long","Lat")
+      for(i in s){
+        if(MVGP_list$vgps[i,8]!=""){
+          VGP <- VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][,1:2]
+          colnames(VGP) <- c("Long","Lat")
+          MergedVGP_t <- rbind(MergedVGP_t,VGP)
+          #fill the file name with all sites selected
+          MVGP_name <- paste(MVGP_name,MVGP_list$vgps[i,1],sep="_")
+        }
+      }
+      MergedVGP_t$Col <- rep(MrVGP$col_f)
+      MergedVGP_t$Sym <- rep(MrVGP$MVGPaversym)
+      MergedVGP[[1]] <- MergedVGP_t
+      #add fisher and Bootstrap statistics and bootstrapped data (to fix with condition if boot already exists) ######################!!!!!!!!!!
+      MergedVGP[[2]] <- plot_VGP_S(VGP = MergedVGP_t[,1:2],
+                                   A95 = T,
+                                   B95 = T,
+                                   nb = input$MVGPnb,
+                                   VGPint = 3,
+                                   plot=F)
+      #add to VGP saved list
+      VGP_saved$list[[input$fileN_MVGP]] <- MergedVGP
+      # }
+      
+      #add to interactive and preliminary tables
+      MVGP_list$vgps <- sites_list()
+    }
+  })
+  
+  #send Merged stereo figure to UI
+  output$MergeVGP_plot <- renderPlot({
+    all_poles_plotter(MVGP_ModalDialog = TRUE,Type=input$MVGPsPlotType)
+  },width = 710, height = 710)
+  
+  #########################MODAL DIALOG WITH APWP DETAILS##########
+  observeEvent(input$add_apwp,{
+    showModal(jqui_draggable(modalDialog(size = "m",
+                                         tags$h3('Add Apparent Polar Wander Path to the plot'),
+                                         br(),
+                                         fluidRow(
+                                           column(4,selectInput("APWP", label = "APWP",
+                                                                choices = list("None"=1,"V2023"=2,"T2012"=3,"Custom"=4),selected=1)),
+                                           column(4,selectInput("frameV23", label= "V2023 frames",
+                                                                choices= list("South Africa"=1,"North America"=2,
+                                                                              "South America"=3,"Europe"=4,
+                                                                              "India"=5,"Australia"=6,"Antarctica"=7,
+                                                                              "Pacific (0-80Ma)"=8,"Iberia (0-80Ma)"=9), selected=1)),
+                                           column(4,selectInput("frameT12", label= "T2012 frames",
+                                                                choices= list("South Africa"= 1,"North America"=2,
+                                                                              "Europe"=3,"India"=4,"Amazonia"=5,
+                                                                              "Australia"=6,"East Antarctica"=7), selected=1))
+                                         ),
+                                         fluidRow(
+                                           column(4,fileInput("customAPWP",label = "Custom APWP")),
+                                           column(4,numericInput("apwp_Y",label = "APWP min age",value = 0)),
+                                           column(4,numericInput("apwp_O",label = "APWP max age",value = 320))
+                                         ),
+                                         br(),
+                                         fluidRow(
+                                           column(12,h5("Compiled available global synthetic APWPs: "), tags$a(href="https://doi.org/10.1016/j.earscirev.2023.104547", 
+                                                                                                               "(V2023): Vaes, B. et al. (2023). Earth-Science Reviews, 245(104547), 1–35.", target="_blank")),
+                                           column(12, tags$a(href="http://linkinghub.elsevier.com/retrieve/pii/S0012825212000797", 
+                                                             "(T2012): Torsvik, T.H., et al. (2012). Earth-Science Reviews, 114(3–4), 325–368.", target="_blank"))
+                                         ),    
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))  
+  })
+  
+  #########################MODAL DIALOG WITH LOCALITY LIST#########
   #add localities to list for plotting
   #create list file
   localities <- reactiveValues(list=NULL)
@@ -5174,29 +5012,34 @@ server <- function(input, output){
   #open window with locality plot details
   observeEvent(input$localitydetails, {
     # display a modal dialog with a header, textinput and action buttons
-    showModal(modalDialog(
-      tags$h2('Enter Locality details'),
-      tags$h5('Default name and coordinates are from Direction display & average window'),
-      fluidRow(
-        column(4,textInput("LocName",label = "Name",value = input$fileN)),
-        column(4,numericInput("LocLat",label = "Latitude",value = input$lat,min = -90,max = 90)),
-        column(4,numericInput("LocLong",label = "Longitude",value = input$long,min = 0,max = 180))
-      ),
-      fluidRow(
-        column(4,selectInput("LocSymbol", label= "Symbol",
-                             choices = list("circle"=1, "square"=2, "diamond"=3,"Triangle"=4),selected=1)),
-        column(4,selectInput("LocColor", label= "Symbol color",
-                             choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=7)),
-        column(4,numericInput("LocSize",label = "Symbol size",value = 1))
-      ),
-      fluidRow(
-        column(12, actionButton("addlocality",label = "ADD TO LOCALITY LIST",width = "100%"))
-      ),
-      
-      footer=tagList(
-        modalButton('close')
-      )
-    ))
+    showModal(jqui_draggable(modalDialog(size = "m",
+                                         tags$h2('Enter Locality details'),
+                                         tags$h5('Default name and coordinates are from Direction display & average window'),
+                                         fluidRow(
+                                           column(4,textInput("LocName",label = "Name",value = input$fileN)),
+                                           column(4,numericInput("LocLat",label = "Latitude",value = input$lat,min = -90,max = 90)),
+                                           column(4,numericInput("LocLong",label = "Longitude",value = input$long,min = 0,max = 180))
+                                         ),
+                                         fluidRow(
+                                           column(4,selectInput("LocSymbol", label= "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"Triangle"=4),selected=1)),
+                                           column(4,selectInput("LocColor", label= "Symbol color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=7)),
+                                           column(4,numericInput("LocSize",label = "Symbol size",value = 1)),
+                                         ),
+                                         fluidRow(
+                                           column(6, actionButton("addlocality",label = "Add to list",width = "100%")),
+                                           column(6, actionButton("cutlocality",label = "Delete from list",width = "100%"))
+                                         ),
+                                         br(),
+                                         fluidRow(
+                                           column(12,DT::dataTableOutput("LocList"))
+                                         ),
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         )
+    ),options = list(cancel = ".shiny-input-container")))
   })
   
   #Add locality details to list
@@ -5242,11 +5085,26 @@ server <- function(input, output){
   #send table to UI and make it editable cell by cell
   output$LocList <- DT::renderDataTable({
     req(localities$list)  
-    datatable(localities$list, editable = TRUE,rownames = F)%>%
+    datatable(localities$list, editable = TRUE,rownames = F,
+              options = list(
+                dom = 't',  # 't' mostra solo la tabella, senza l'intestazione e ricerca
+                searching = T # Disabilita la ricerca
+              ))%>%
       formatStyle(
         columns = c("Name","Lat","Long","Sym","Col","Size"), 
         color = 'black'   # Colore del testo per le celle editabili
       )
+  })
+  
+  #modify locality table through UI
+  observeEvent(input$LocList_cell_edit, {
+    info <- input$LocList_cell_edit
+    #current values in table
+    modified_data <- localities$list  
+    #update values (plus one otherwise in paste to the wrong clumn. Do not ask me why, it's like a chopper flying without spinning blades)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    localities$list <- modified_data
   })
   
   #delete Locality from list
@@ -5258,198 +5116,720 @@ server <- function(input, output){
     if(nrow(localities$list)==0){localities$list <- NULL}
   })
   
-  #modify table through UI
-  observeEvent(input$LocList_cell_edit, {
-    info <- input$LocList_cell_edit
-    #current values in table
-    modified_data <- localities$list  
-    #update values (plus one otherwise in paste to the wrong clumn. Do not ask me why, it's like a chopper flying without spinning blades)
-    modified_data[info$row, (info$col+1)] <- info$value 
-    #update table
-    localities$list <- modified_data
+  #########################MODAL DIALOG WITH SMALL CIRCLE#########
+  #create list file
+  smallcircle <- reactiveValues(list=NULL)
+  
+  #open window
+  observeEvent(input$smCircle,{
+    # display a modal dialog with a header, textinput and action buttons
+    showModal(jqui_draggable(modalDialog(
+      tags$h2('Enter Small Circle details'),
+      tags$h5('If center of circle is requred, please define it using the Add Locality window'),
+      fluidRow(
+        column(4,textInput(inputId = "SCname",label = "Name",value = "Circle")),
+        column(4,numericInput(inputId = "SClat",label = "Latitude",value = 0,min = -90,max = 90)),
+        column(4,numericInput(inputId = "SClong",label = "Longitude",value = 0))
+      ),
+      fluidRow(
+        column(4,numericInput(inputId = "SCrad",label = "Radius",value = 0,min = 0,max = 180)),
+        column(4,selectInput(inputId = "SCstyle",label = "Circle style",
+                             choices = list("1-line"=1,"2-dashed"=2,"3-dotted"=3, "4-dotdash"=4),selected = 1)),
+        column(4,selectInput("SCcolor", label= "Circle color",
+                             choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10), selected=1)),
+      ),
+      fluidRow(
+        column(6, actionButton("addSC",label = "Add to list",width = "100%")),
+        column(6, actionButton("cutSC",label = "Delete from list",width = "100%"))
+      ),
+      br(),
+      fluidRow(
+        column(12,DT::dataTableOutput("SCList"))
+      ),
+      easyClose = TRUE,
+      footer=tagList(
+        modalButton('close')
+      )
+    ),options = list(cancel = ".shiny-input-container")))
+    
   })
   
+  #add circle to list
+  observeEvent(input$addSC,{
+    #check if list already exists
+    if(is.null(smallcircle$list)==T){
+      smallcircle$list <- data.frame(matrix(ncol=6,nrow = 0))
+      colnames(smallcircle$list) <- c("Name","Lat","Long","Radius","Col","Style")
+    }
+    #choose color of pole
+    if(input$SCcolor==1) SCcolor <- "black"
+    if(input$SCcolor==2) SCcolor <- "blue"
+    if(input$SCcolor==3) SCcolor <- "green"
+    if(input$SCcolor==4) SCcolor <- "pink"
+    if(input$SCcolor==5) SCcolor <- "purple"
+    if(input$SCcolor==6) SCcolor <- "brown"
+    if(input$SCcolor==7) SCcolor <- "red"
+    if(input$SCcolor==8) SCcolor <- "yellow"
+    if(input$SCcolor==9) SCcolor <- "cyan"
+    if(input$SCcolor==10) SCcolor <- "gray"
+    
+    
+    temp <- data.frame(matrix(ncol=6,nrow = 0))
+    colnames(temp) <- c("Name","Lat","Long","Radius","Col","Style")
+    temp[1,1] <- input$SCname
+    temp[1,2] <- input$SClat
+    temp[1,3] <- input$SClong
+    temp[1,4] <- input$SCrad
+    temp[1,5] <- SCcolor
+    temp[1,6] <- input$SCstyle
+    
+    smallcircle$list <- rbind(smallcircle$list,temp)
+    
+    if(nrow(smallcircle$list)==0){smallcircle$list <- NULL}
+  })
+  
+  #send table to UI and make it editable cell by cell
+  output$SCList <- DT::renderDataTable({
+    req(smallcircle$list)  
+    datatable(smallcircle$list, editable = TRUE,rownames = F,
+              options = list(
+                dom = 't',  # 't' mostra solo la tabella, senza l'intestazione e ricerca
+                searching = T # Disabilita la ricerca
+              ))%>%
+      formatStyle(
+        columns = c("Name","Lat","Long","Radius","Col","Style"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #Modify poles table throught UI               
+  observeEvent(input$SCList_cell_edit, {         
+    info <- input$SCList_cell_edit
+    #current values in table
+    modified_data <-  smallcircle$list  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    smallcircle$list <- modified_data
+  })
+  
+  #delete Circle from list
+  observeEvent(input$cutSC,{
+    if(!is.null(smallcircle$list)){
+      d <- input$SCList_rows_selected
+      if(length(d)){smallcircle$list <- smallcircle$list[-d,]}
+    }
+    if(nrow(smallcircle$list)==0){smallcircle$list <- NULL}
+  })
+  
+  #########################MODAL DIALOG WITH EXTERNAL PMAG POLE#########
+  
+  ######open modal window
+  observeEvent(input$add_PPole,{
+    #reset input file or it stays there
+    extpole$listfile <- NULL
+    # display a modal dialog with a header, textinput and action buttons
+    showModal(jqui_draggable(modalDialog(size = "m",
+                                         tags$h2('External paleomagnetic poles'),
+                                         tags$h5("Read only Magnetic-A exported (or same format) file"),
+                                         fluidRow(
+                                           column(4,fileInput("extrapolelist",label = "Load pole list"))
+                                         ),
+                                         fluidRow(
+                                           column(4,numericInput("extrapolelong",label = "Pole long",value = 0,min = -360,max = 360)),
+                                           column(4,numericInput("extrapolelat",label = "Pole lat",value = 0,min = -90,max = 90)),
+                                           column(4,numericInput("extrapoleA95",label = "95% confidence",value =0,min = 0,max = 180))
+                                         ),
+                                         fluidRow(
+                                           column(4,selectInput("extrapolecolor", label= "Pole color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10, "white"=11), selected=2)),
+                                           column(4,selectInput("extrapolesimbol", label= "Pole symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(4,textInput("extrapolename",label = " Manual pole name",value = "E-Pole"))
+                                         ),
+                                         br(),
+                                         fluidRow(
+                                           column(12, actionButton("addextrapole",label = "Add to list of loaded VGPs and Poles",width = "100%"))
+                                         ),
+                                         br(),
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         )
+    ),options = list(cancel = ".shiny-input-container")))
+  })
+  
+  #create reactive tab file
+  Added_poles <- reactiveValues(list=NULL)
+  
+  #creates reactive value for checking if file is uploaded and to append FISHER 
+  extpole <- reactiveValues(listfile = NULL)
+  #check for uploaded file
+  observeEvent(input$extrapolelist,{extpole$listfile <- "uploaded"})
+  #reset upload if requested
+  #observeEvent(input$delextrapolelist,{extpole$listfile <- "reset"})
+  #read file if present, reset if requested
+  #read only magnetica exported files
+  Extra_poles_list <- reactive({
+    if(is.null(extpole$listfile)){
+      return(NULL)
+    }else if(extpole$listfile == "uploaded"){    
+      temp <- read.csv(file = input$extrapolelist$datapath)
+      colnames(temp) <- c("Loc.","Col","Sym","N","Lon","Lat","A95","B95","K")
+      #remove N because there are not calculation, just copied values
+      return(temp)
+    }else if(extpole$listfile == "reset"){
+      return(NULL)
+    }
+  })
+  
+  #add MANUAL pole to list if exists
+  observeEvent(input$addextrapole,{
+    #check if list already exists
+    if(is.null(Added_poles$list)){
+      Added_poles$list <- data.frame(matrix(ncol=9,nrow = 0))
+      colnames(Added_poles$list) <- c("Loc.","Col","Sym","N","Lon","Lat","A95","B95","K")
+    }
+    #choose color of pole
+    if(input$extrapolecolor==1) EPcol <- "black"
+    if(input$extrapolecolor==2) EPcol <- "blue"
+    if(input$extrapolecolor==3) EPcol <- "green"
+    if(input$extrapolecolor==4) EPcol <- "pink"
+    if(input$extrapolecolor==5) EPcol <- "purple"
+    if(input$extrapolecolor==6) EPcol <- "brown"
+    if(input$extrapolecolor==7) EPcol <- "red"
+    if(input$extrapolecolor==8) EPcol <- "yellow"
+    if(input$extrapolecolor==9) EPcol <- "cyan"
+    if(input$extrapolecolor==10) EPcol <- "gray"
+    if(input$extrapolecolor==11) EPcol <- "white"
+    
+    #select symbol of pole
+    if(input$extrapolesimbol==1) EPsym <- "c"
+    if(input$extrapolesimbol==2) EPsym <- "s"
+    if(input$extrapolesimbol==3) EPsym <- "d"
+    if(input$extrapolesimbol==4) EPsym <- "t"
+    
+    temp <- data.frame(matrix(ncol=9,nrow = 0))
+    colnames(temp) <- c("Loc.","Col","Sym","N","Lon","Lat","A95","B95","K")
+    temp[1,1] <- input$extrapolename
+    temp[1,2] <- EPcol
+    temp[1,3] <- EPsym
+    temp[1,4] <- ""
+    temp[1,5] <- input$extrapolelong
+    temp[1,6] <- input$extrapolelat
+    temp[1,7] <- input$extrapoleA95
+    temp[1,8] <- ""
+    temp[1,9] <- ""
+    
+    if(input$extrapolename!="" && !is.na(input$extrapolelong) && !is.na(input$extrapolelat) && !is.na(input$extrapoleA95)) {
+      Added_poles$list <- rbind(Added_poles$list,temp)
+    }
+    
+    if(!is.null(extpole$listfile)){
+      temp_file <- Extra_poles_list()
+      temp_file[,8] <- rep("")
+      Added_poles$list <- rbind(Added_poles$list,temp_file)
+    }
+    
+    #eliminates duplicates
+    Added_poles$list <- dplyr::distinct(Added_poles$list)
+    if(nrow(Added_poles$list)==0){Added_poles$list <- NULL}
+    MVGP_list$vgps <- sites_list()
+  })
+  
+  #########################MODAL DIALOG WITH FISHER A95 DETAILS##########
+  #####open modal window
+  observeEvent(input$add_A95,{
+    # display a modal dialog with a header, text input and action buttons
+    showModal(jqui_draggable(modalDialog(size = "m",
+                                         tags$h3('Calculate A95 of selected poles'),
+                                         br(),
+                                         fluidRow(
+                                           column(4,textInput(inputId = "name_A95",label = "Pole name",value = "M-A95")),
+                                           column(4,selectInput("A95_sym", label = "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(4,selectInput("A95_color", label = "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10,"white"=11), selected=7)),
+                                         ),
+                                         br(),
+                                         fluidRow(
+                                           column(12,actionButton("add_FISHER",label = "Add to list of loaded VGPs and Poles",width = "100%")),
+                                         ),
+                                         #result of statistic 
+                                         h5(textOutput("Fisher_A95")),
+                                         #makes window deeper
+                                         br(),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))  
+  })
+  
+  #Calculate Fisher of selected poles, SENT TO UI within "all_poles_plotter"                
+  extfisher <- reactive({             
+    extlist <- data.frame(matrix(ncol=2,nrow=0))
+    colnames(extlist) <- c("Lon","Lat")
+    #selects entries
+    s <- input$VGPs_List_rows_selected
+    
+    if(length(s)){
+      lonlat_temp <- MVGP_list$vgps[s,5:6]
+      lonlat_temp$Lon <- as.numeric(lonlat_temp$Lon)
+      lonlat_temp$Lat <- as.numeric(lonlat_temp$Lat)
+      extlist <- rbind(extlist,lonlat_temp)
+    }
+    
+    #if something is selected operates
+    if(nrow(extlist)>1){
+      #calculate fisher of poles
+      Fisher <- PmagDiR::fisher(extlist)
+      Fisher <- Fisher[,-5]
+      colnames(Fisher) <- c("Long","Lat","A95","N","K")
+      extpole$Fisher <- Fisher
+    }
+    #if only one entry it makes it null, otherwise it stays memorised
+    if(nrow(extlist)==1){extpole$Fisher <- NULL}
+    #function return values used in all_poles_plotter
+    return(extpole$Fisher)
+  })
+  
+  #calculate fisher of poles and load it into list;
+  observeEvent(input$add_FISHER,{  
+    req(extfisher())
+    #color and symbol of average
+    if(input$A95_color==1) A95_col <- "black"
+    if(input$A95_color==2) A95_col <- "blue"
+    if(input$A95_color==3) A95_col <- "green"
+    if(input$A95_color==4) A95_col <- "pink"
+    if(input$A95_color==5) A95_col <- "purple"
+    if(input$A95_color==6) A95_col <- "brown"
+    if(input$A95_color==7) A95_col <- "red"
+    if(input$A95_color==8) A95_col <- "yellow"
+    if(input$A95_color==9) A95_col <- "cyan"
+    if(input$A95_color==10) A95_col <- "gray"
+    if(input$A95_color==11) A95_col <- "white"
+    #select symbol of average
+    if(input$A95_sym==1) A95_sym <- "c"
+    if(input$A95_sym==2) A95_sym <- "s"
+    if(input$A95_sym==3) A95_sym <- "d"
+    if(input$A95_sym==4) A95_sym <- "t"
+    #fisher
+    extfisher()
+    #temporary file for sendin fisher to table
+    temp <- data.frame(matrix(ncol=9,nrow = 0))
+    colnames(temp) <- c("Loc.","Col","Sym","N","Lon","Lat","A95","B95","K")
+    temp[1,1] <- input$name_A95
+    temp[1,2] <- A95_col
+    temp[1,3] <- A95_sym
+    temp[1,4] <- extpole$Fisher[1,4]
+    temp[1,5] <- round(extpole$Fisher[1,1],digits = 1)
+    temp[1,6] <- round(extpole$Fisher[1,2],digits=1)
+    temp[1,7] <- round(extpole$Fisher[1,3],digits=1)
+    temp[1,8] <- ""
+    temp[1,9] <- ""
+    
+    Added_poles$list <- rbind(Added_poles$list,temp)
+    #update UI table
+    MVGP_list$vgps <- sites_list()
+  })
+  
+  #send fisher to UI
+  output$Fisher_A95<- renderText({ 
+    #next is because otherwise it keeps old fisher in memory
+    s <- input$VGPs_List_rows_selected
+    if(length(s)){
+      extfisher()
+      #if(input$extrapolesfisher==2){
+      extpolefish <- paste("Fisher Average result: N: ",extpole$Fisher[1,4],",",
+                           " Long: ",round(as.numeric(extpole$Fisher[1,1]), digits = 1),",",
+                           " Lat: ", round(as.numeric(extpole$Fisher[1,2]), digits = 1),",",
+                           " A95: ",round(as.numeric(extpole$Fisher[1,3]),digits = 1),",",
+                           " K: ",round(as.numeric(extpole$Fisher[1,5]), digits = 1),
+                           sep = "")
+      extpolefish
+    }
+  })
+  
+  #########################MODAL DIALOG WITH GREAT CIRCLES DETAILS##########                          
+  #reactive file
+  greatcircle <- reactiveValues(list= NULL)
+  
+  #######OPEN MODAL WINDOW
+  observeEvent(input$add_GCircle,{
+    # display a modal dialog with a header, text input and action buttons
+    showModal(jqui_draggable(modalDialog(size = "m",
+                                         tags$h3('Calculate pole of plane through selected poles'),
+                                         br(),
+                                         fluidRow(
+                                           column(4,textInput(inputId = "name_GC",label = "Plane name",value = "GCircle")),
+                                           column(4,selectInput("GC_sym", label = "Symbol",
+                                                                choices = list("circle"=1, "square"=2, "diamond"=3,"triangle"=4),selected=1)),
+                                           column(4,selectInput("GC_color", label = "Color",
+                                                                choices= list("black"=1,"blue"=2,"green"=3,"pink"=4,"purple"=5,"brown"=6,"red"=7,"yellow"=8,"cyan"=9,"gray"=10), selected=7)),
+                                         ),
+                                         fluidRow(
+                                           column(6,selectInput(inputId = "GC_poleYN",label = "Plot pole",choices = list("Yes"=1,"No"=2),selected = 1,width = "100%")),
+                                           column(6,selectInput(inputId = "add_loc_to_plane",label = "Add locality to Plane",choices = list("No"=1,"Yes"=2),selected = 1,width = "100%"))          ######### #ancora non VA
+                                         ),
+                                         br(),
+                                         fluidRow(
+                                           column(6,actionButton("add_GCPole",label = "Add Plane to list",width = "100%")),
+                                           column(6,actionButton(inputId = "cut_GCPole",label = "Delete Plane from list",width = "100%"))
+                                         ),
+                                         #result of statistic 
+                                         h5(textOutput("GC_MAD")),
+                                         #makes window deeper
+                                         br(),
+                                         fluidRow(
+                                           column(12,DT::dataTableOutput("GCList"))
+                                         ),      
+                                         easyClose = TRUE,
+                                         footer=tagList(
+                                           modalButton('close')
+                                         ) 
+    ),options = list(cancel = ".shiny-input-container")))  
+  })
+  
+  #Calculate Great Circle Through of selected poles, SENT TO UI within "all_poles_plotter"             
+  extGCPole <- reactive({             
+    extlist <- data.frame(matrix(ncol=2,nrow=0))
+    colnames(extlist) <- c("Lon","Lat")
+    #selects entries
+    s <- input$VGPs_List_rows_selected
+    l <- input$LocList_rows_selected
+    
+    if(length(s)){
+      lonlat_temp <- MVGP_list$vgps[s,5:6]
+      lonlat_temp$Lon <- as.numeric(lonlat_temp$Lon)
+      lonlat_temp$Lat <- as.numeric(lonlat_temp$Lat)
+      extlist <- rbind(extlist,lonlat_temp)
+    }
+    if(length(l)){
+      if(input$add_loc_to_plane==2){
+        lonlat_temp <- localities$list[l,3:2]
+        colnames(lonlat_temp) <- c("Lon","Lat")
+        extlist <- rbind(extlist,lonlat_temp)
+      }
+    }
+    
+    #if something is selected operates
+    if(nrow(extlist)>1){
+      #calculate fisher of poles
+      #calculate great circles through poles and MAD following Kirschvink 1980        
+      circle <- PmagDiR::circle_DI(extlist)
+      #turn solution in data.frame
+      circle <- data.frame(t(circle))
+      colnames(circle) <- c("PoleLong","PoleLat","MAD")
+      greatcircle$circle <- circle
+    }
+    #if only one entry it makes it null, otherwise it stays memorised
+    if(nrow(extlist)==1){greatcircle$circle <- NULL}
+    #function return values used in all_poles_plotter
+    return(greatcircle$circle)
+  })
+  
+  #calculate GC of poles and localities and load it into list                  
+  observeEvent(input$add_GCPole,{
+    req(extGCPole())
+    #check if list already exists
+    if(is.null(greatcircle$list)==T){
+      greatcircle$list <- data.frame(matrix(ncol=6,nrow = 0))
+      colnames(greatcircle$list) <- c("Name","Lat","Long","MAD","Color","Symbol")
+    }
+    #color and symbol of average
+    if(input$GC_color==1) GC_col <- "black"
+    if(input$GC_color==2) GC_col <- "blue"
+    if(input$GC_color==3) GC_col <- "green"
+    if(input$GC_color==4) GC_col <- "pink"
+    if(input$GC_color==5) GC_col <- "purple"
+    if(input$GC_color==6) GC_col <- "brown"
+    if(input$GC_color==7) GC_col <- "red"
+    if(input$GC_color==8) GC_col <- "yellow"
+    if(input$GC_color==9) GC_col <- "cyan"
+    if(input$GC_color==10) GC_col <- "gray"
+    #select symbol of average
+    if(input$GC_sym==1) GC_sym <- "c"
+    if(input$GC_sym==2) GC_sym <- "s"
+    if(input$GC_sym==3) GC_sym <- "d"
+    if(input$GC_sym==4) GC_sym <- "t"
+    #does GC calculation
+    extGCPole()
+    #temporary file for sending GCircle to table
+    temp <- data.frame(matrix(ncol=6,nrow = 0))
+    colnames(temp) <- c("Name","Lat","Long","MAD","Color","Symbol")
+    temp[1,1] <- input$name_GC
+    temp[1,2] <- round(greatcircle$circle[1,2],digits=1)
+    temp[1,3] <- round(greatcircle$circle[1,1],digits=1)
+    temp[1,4] <- round(greatcircle$circle[1,3],digits=1)
+    temp[1,5] <- GC_col
+    temp[1,6] <- GC_sym
+    
+    greatcircle$list <- rbind(greatcircle$list,temp)
+    
+    if(nrow(greatcircle$list)==0){greatcircle$list <- NULL}
+  })
+  
+  #send table to UI and make it editable cell by cell
+  output$GCList <- DT::renderDataTable({
+    req(greatcircle$list)  
+    datatable(greatcircle$list, editable = list(target="cell", disable= list(columns=c(1,2,3))),
+              rownames = F,
+              options = list(
+                dom = 't',  # 't' mostra solo la tabella, senza l'intestazione e ricerca
+                searching = T # Disabilita la ricerca
+              ))%>%
+      formatStyle(
+        columns = c("Name","Lat","Long","MAD","Color","Symbol"), 
+        color = 'black'   # Colore del testo per le celle editabili
+      )
+  })
+  
+  #Modify GCircles table throught UI               
+  observeEvent(input$GCList_cell_edit, { 
+    info <- input$GCList_cell_edit
+    #current values in table
+    modified_data <-  greatcircle$list  
+    #update values (plus one otherwise in paste to the wrong column. Do not ask me why)
+    modified_data[info$row, (info$col+1)] <- info$value 
+    #update table
+    greatcircle$list <- modified_data
+  })
+  
+  #delete Circle from list
+  observeEvent(input$cut_GCPole,{
+    req(greatcircle$list)
+    if(!is.null(greatcircle$list)){
+      d <- input$GCList_rows_selected
+      if(length(d)){greatcircle$list <- greatcircle$list[-d,]}
+    }
+    if(nrow(greatcircle$list)==0){greatcircle$list <- NULL}
+  })
+  
+  ######## FUNCTIONS FOR PLOTTING MULTIPLE VGP PARTS #########
+  #plot VGPs selected from list
+  plot_selected_VGP <- function(s,lat0,lon0,Type=1){
+    #set bootfile name
+    for(i in s){
+      #selects what to plot
+      if(Type==1){                                             #QUESTA PARTE è MODIFICATA PER PRENDERE COL E SYM DALLA TABELLA!!!
+        plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][,1:2],
+                   lat = lat0,
+                   long = lon0,
+                   auto_cent = F, on_plot = T,
+                   col = MVGP_list$vgps[i,2],
+                   symbol = MVGP_list$vgps[i,3])
+      }else if(Type==2){
+        #plot fisher means and not VGPs if requested
+        PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,2],
+                           lat = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,3],
+                           A = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,4],
+                           lat0 = lat0,lon0 = lon0,
+                           col_A = rgb(0,0,1,0.15),
+                           symbol = MVGP_list$vgps[i,3],
+                           col_f = VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1,3],
+                           on_plot = T)
+      }else if(Type==3){
+        plot_VGP_S(VGP=VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[3]][,1:2],
+                   lat = lat0,long = lon0,
+                   auto_cent = F, on_plot = T,
+                   col = rgb(1,0,0,0.1),col_sym_out = rgb(1,0,0,0.1),
+                   symbol = "c")
+        PmagDiR::plot_PA95(lon = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,2],
+                           lat = VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,3],
+                           A = 0,
+                           lon0 = lon0,lat0 = lat0,
+                           col_f = MVGP_list$vgps[i,2],
+                           symbol = MVGP_list$vgps[i,3],
+                           size = 1.2,on_plot = T)
+      }
+      
+    }
+  }
+  
+  #create reactive file for merged VGPs color and symbol
+  MrVGP <- reactiveValues(col_f=NULL)
   
   #function that creates plots for Multiple VGP analysis
-  all_poles_plotter <- function(){
-    #functions converting long & lat to xy
-    #convert to spherical coordinates using center Long and Lat as defined above
-    c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-centerLong))}
-    c2y <- function(lon,lat) {(cos(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
-    #cut is cosin of c, when negative is behind projections, needs to be cut
-    cut <- function(lon,lat) {(sin(PmagDiR::d2r(centerLat))*sin(PmagDiR::d2r(lat)))+(cos(PmagDiR::d2r(centerLat))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-centerLong)))}
+  all_poles_plotter <- function(MVGP_ModalDialog=FALSE,Type=1){
     
-    s <- input$MVGPlist_rows_selected
-    ext <- input$EP_list_rows_selected
-    #if no pole is selected from list, read center from input always
-    if(length(s)==0 && length(ext)==0){
+    #select elements from VGP and Poles table
+    s <- input$VGPs_List_rows_selected
+    
+    #replicate list internally to use data
+    VGPs_List <- sites_list()
+    
+    #check if VGPs or Poles exist
+    if(length(s) && !is.null(VGPs_List)){ #s stays, this avoid error if no list exists
+      centerLat = ifelse(input$MVGP_center==1, as.numeric(VGPs_List[s,6]),input$MVGP_clat)
+      centerLong = ifelse(input$MVGP_center==1, as.numeric(VGPs_List[s,5]),input$MVGP_clong)
+    }else{
       centerLat <- input$MVGP_clat
       centerLong <- input$MVGP_clong
-    }else if(length(s)){
-      centerLat = ifelse(input$MVGP_center==1, VGP_saved$list[[MVGP_list$vgps[s[1],1]]][[2]][[1]][1,3],input$MVGP_clat)
-      centerLong = ifelse(input$MVGP_center==1, VGP_saved$list[[MVGP_list$vgps[s[1],1]]][[2]][[1]][1,2],input$MVGP_clong)
-    } else if(length(ext)!=0 && length(s)==0){
-      centerLat= ifelse(input$MVGP_center==1,Added_poles$list[ext[1],5] ,input$MVGP_clat)
-      centerLong= ifelse(input$MVGP_center==1,Added_poles$list[ext[1],4] ,input$MVGP_clong)
     }
+    
     #plot empty spherical orthographic
     PmagDiR::sph_ortho(lat = centerLat,long = centerLong,
                        coast = ifelse(input$MVGP_coast==1,TRUE,FALSE),
                        grid = input$MultiVGPGrid)
     
-    #Add Localities
-    #check if list exists
-    if(!is.null(localities$list)){
-      d <- input$LocList_rows_selected
-      if(length(d)){
-        for(i in d){
-          PmagDiR::plot_PA95(lon = localities$list[i,3],
-                             lat = localities$list[i,2],
-                             lon0 = centerLong,lat0 = centerLat,A = NA,
-                             symbol = localities$list[i,4],
-                             col_f = localities$list[i,5],
-                             size = localities$list[i,6],
-                             on_plot = T)
-          locname <- localities$list[i,1]
-          text(x=c2x(localities$list[i,3],localities$list[i,2]),
-               y=c2y(localities$list[i,3],localities$list[i,2]),
-               pos=3,cex=1.2,substitute(paste(bold(locname))))
+    #NEXT IS only for main window, not Multi VGPs modal dialog window, add loaclities and APWP, and fisher Poles
+    if(MVGP_ModalDialog==FALSE){
+      #Add Localities
+      #check if list exists
+      if(!is.null(localities$list)){
+        d <- input$LocList_rows_selected
+        if(length(d)){
+          for(i in d){
+            PmagDiR::plot_PA95(lon = localities$list[i,3],
+                               lat = localities$list[i,2],
+                               lon0 = centerLong,lat0 = centerLat,A = NA,
+                               symbol = localities$list[i,4],
+                               col_f = localities$list[i,5],
+                               size = localities$list[i,6],
+                               on_plot = T)
+            locname <- localities$list[i,1]
+            text(x=PmagDiR::c2x(localities$list[i,3],localities$list[i,2],centLon = centerLong),
+                 y=PmagDiR::c2y(localities$list[i,3],localities$list[i,2],centLon = centerLong,centLat = centerLat),
+                 pos=3,cex=1.2,substitute(paste(bold(locname))))
+          }
         }
       }
-    }
-    
-    #add APWP
-    #read custom apwp file avoiding warning if not existing
-    customAPWP <- reactive({
-      #avoid warning if file is not loaded
-      if (is.null(input$customAPWP)) {
-        return(NULL)
-      }
-      # actually read the file
-      read.csv(file = input$customAPWP$datapath)
-    })
-    
-    #select APWP, either Vaes+2023 or Torsvik+2012
-    if(input$APWP==2) {
-      apwp <- "V23"
-      frame <- as.numeric(input$frameV23)
-    }
-    if(input$APWP==3) {
-      apwp <- "T12"
-      frame <- as.numeric(input$frameT12)
-    }
-    
-    #round to 10 if T12 or V23 are selected, to avoid problems in plotting pole using PmagDiR::plot_APWP
-    if(input$APWP==2 || input$APWP==3){
-      Y <- round(input$apwp_Y,-1)
-      O <- round(input$apwp_O,-1)
-    }else{
-      Y <- input$apwp_Y
-      O <- input$apwp_O
-    }
-    
-    #plot apwp either Vaes+2023 or Torsvik+2012
-    if(input$APWP==2 || input$APWP==3){
-      PmagDiR::plot_APWP(APWP = apwp,
-                         lat0 = centerLat,
-                         lon0 = centerLong,
-                         frame = frame,Shiny = T,Y = Y,O = O,size = 1.2,
-                         coast = ifelse(input$MVGP_coast==1,TRUE,FALSE),Age_size = 1.5,on_plot = TRUE)
-    }
-    
-    #plot custom APWP,
-    if(input$APWP==4){        
-      lat0 <-  centerLat
-      lon0 <-  centerLong
-      #functions converting long & lat to xy
-      c2x <- function(lon,lat) {cos(PmagDiR::d2r(lat))*sin(PmagDiR::d2r(lon-lon0))}
-      c2y <- function(lon,lat) {(cos(PmagDiR::d2r(lat0))*sin(PmagDiR::d2r(lat)))-(sin(PmagDiR::d2r(lat0))*cos(PmagDiR::d2r(lat))*cos(PmagDiR::d2r(lon-lon0)))}
-      req(customAPWP())
-      c_apwp <- customAPWP()
-      #select age interval depending on slide select
-      c_apwp <- c_apwp[(c_apwp[,1]>=Y & c_apwp[,1]<=O),]
-      #plot line connecting poles
-      lin <- as.data.frame(c2x(c_apwp[,2],c_apwp[,3]))
-      colnames(lin) <- "lx"
-      lin$ly <- c2y(c_apwp[,2],c_apwp[,3])
-      lines(lin$lx,lin$ly,cex=1)
-      #plot poles
-      for(i in 1:nrow(c_apwp)){
-        PmagDiR::plot_PA95(lon = c_apwp[i,2],lat = c_apwp[i,3],A = c_apwp[i,4],
-                           lon0 = centerLong,lat0 = centerLat,
-                           col_f ="gray",col_A = rgb(1,0.9,0,0.30),on_plot = TRUE)
-      }
-      #plot min and max age
-      text1 <- paste(c_apwp[1,1],"Ma")
-      text2 <- paste(c_apwp[nrow(c_apwp),1], "Ma")
-      text(x=lin[1,1], y=lin[1,2],pos=4,substitute(paste(bold(text1))), cex= 1.5)
-      text(x=lin[nrow(lin),1], y=lin[nrow(lin),2],pos=4,substitute(paste(bold(text2))), cex= 1.5)
-    }
-    
-    
-    #if any vgp in table is selected it plots them, and the statistic,
-    if(length(s)){
-      #choose color of average
-      if(input$MVGP_aver_color==1) MrVGP$col_f <- "black"
-      if(input$MVGP_aver_color==2) MrVGP$col_f <- "blue"
-      if(input$MVGP_aver_color==3) MrVGP$col_f <- "green"
-      if(input$MVGP_aver_color==4) MrVGP$col_f <- "pink"
-      if(input$MVGP_aver_color==5) MrVGP$col_f <- "purple"
-      if(input$MVGP_aver_color==6) MrVGP$col_f <- "brown"
-      if(input$MVGP_aver_color==7) MrVGP$col_f <- "red"
-      if(input$MVGP_aver_color==8) MrVGP$col_f <- "yellow"
-      if(input$MVGP_aver_color==9) MrVGP$col_f <- "cyan"
-      if(input$MVGP_aver_color==10) MrVGP$col_f <- "gray"
-      if(input$MVGP_aver_color==11) MrVGP$col_f <- "white"
-      
-      #select symbol of average
-      if(input$MVGP_aver_sym==1) MrVGP$MVGPaversym <- "c"
-      if(input$MVGP_aver_sym==2) MrVGP$MVGPaversym <- "s"
-      if(input$MVGP_aver_sym==3) MrVGP$MVGPaversym <- "d"
-      if(input$MVGP_aver_sym==4) MrVGP$MVGPaversym <- "t"
-      
-      
-      #no statistic
-      if(input$MVGP_Pole_Stat==1){plot_selected_VGP(s=s,lat0 = centerLat,lon0 = centerLong)}
-      
-      #Fisher on Fisher algorithm                       #this must be transferred to next page and keep only VGPs work on this page
-      if(input$MVGP_Pole_Stat==5){
-        VGP_LonLat <- data.frame(matrix(ncol=2,nrow=0))
-        colnames(VGP_LonLat) <- c("Long","Lat")
-        for(i in s){
-          LonLat_t <- VGP_saved$list[[MVGP_list$vgps[i,1]]][[2]][[1]][1,2:3]
-          colnames(LonLat_t) <- c("Long","Lat")
-          VGP_LonLat <- rbind(VGP_LonLat,LonLat_t)
-        }
-        MVGP_Fish_on_Fish <- fisher(VGP_LonLat)
-        #rebuild results for table
-        MVGP_ALL_Fisher <- data.frame(matrix(ncol=5, nrow = 1),row.names = input$fileN_MVGP)    #this table is not be sent to UI anymore
-        colnames(MVGP_ALL_Fisher) <- c("N","Long","Lat","A95","K")
-        MVGP_ALL_Fisher[1,1] <- MVGP_Fish_on_Fish[1,4]
-        MVGP_ALL_Fisher[1,2] <- MVGP_Fish_on_Fish[1,1]
-        MVGP_ALL_Fisher[1,3] <- MVGP_Fish_on_Fish[1,2]
-        MVGP_ALL_Fisher[1,4] <- MVGP_Fish_on_Fish[1,3]
-        MVGP_ALL_Fisher[1,5] <- MVGP_Fish_on_Fish[1,6]
+      #add APWP
+      if(!is.null(input$APWP)){
+        #add APWP
+        #read custom apwp file avoiding warning if not existing
+        customAPWP <- reactive({
+          #avoid warning if file is not loaded
+          if (is.null(input$customAPWP)) {
+            return(NULL)
+          }
+          # actually read the file
+          read.csv(file = input$customAPWP$datapath)
+        })
         
-        plot_selected_VGP(s=s,lat0 = centerLat,lon0 = centerLong)
-        PmagDiR::plot_PA95(lon = MVGP_Fish_on_Fish[1,1],lat = MVGP_Fish_on_Fish[1,2],A = MVGP_Fish_on_Fish[1,3],
-                           lat0 = centerLat,
-                           lon0 = centerLong,
-                           on_plot = T,size = 1.5,col_f = col_f,symbol = MVGPaversym)
-        #average pole name
-        if(input$MVGP_names_YN==2){
-          N_MVGP <- input$fileN_MVGP
-          #add name
-          text(x = c2x(MVGP_Fish_on_Fish[1,1],MVGP_Fish_on_Fish[1,2]),
-               y = c2y(MVGP_Fish_on_Fish[1,1],MVGP_Fish_on_Fish[1,2]),
-               pos=3,
-               substitute(paste(bold(N_MVGP))), cex= 1.5)
+        #select APWP, either Vaes+2023 or Torsvik+2012
+        if(input$APWP==2) {
+          apwp <- "V23"
+          frame <- as.numeric(input$frameV23)
+        }
+        if(input$APWP==3) {
+          apwp <- "T12"
+          frame <- as.numeric(input$frameT12)
         }
         
-        #fisher or bootstrap on VGP
+        #round to 10 if T12 or V23 are selected, to avoid problems in plotting pole using PmagDiR::plot_APWP
+        if(input$APWP==2 || input$APWP==3){
+          Y <- round(input$apwp_Y,-1)
+          O <- round(input$apwp_O,-1)
+        }else{
+          Y <- input$apwp_Y
+          O <- input$apwp_O
+        }
+        
+        #plot apwp either Vaes+2023 or Torsvik+2012
+        if(input$APWP==2 || input$APWP==3){
+          PmagDiR::plot_APWP(APWP = apwp,
+                             lat0 = centerLat,
+                             lon0 = centerLong,
+                             frame = frame,Shiny = T,Y = Y,O = O,size = 1.2,
+                             coast = ifelse(input$MVGP_coast==1,TRUE,FALSE),Age_size = 1.5,on_plot = TRUE)
+        }
+        
+        #plot custom APWP,
+        if(input$APWP==4){        
+          lat0 <-  centerLat
+          lon0 <-  centerLong
+          req(customAPWP())
+          c_apwp <- customAPWP()
+          #select age interval depending on slide select
+          c_apwp <- c_apwp[(c_apwp[,1]>=Y & c_apwp[,1]<=O),]
+          #plot line connecting poles
+          lin <- as.data.frame(PmagDiR::c2x(c_apwp[,2],c_apwp[,3],centLon = lon0))
+          colnames(lin) <- "lx"
+          lin$ly <- PmagDiR::c2y(c_apwp[,2],c_apwp[,3],centLon = lon0,centLat = lat0)
+          lines(lin$lx,lin$ly,cex=1)
+          #plot poles
+          for(i in 1:nrow(c_apwp)){
+            PmagDiR::plot_PA95(lon = c_apwp[i,2],lat = c_apwp[i,3],A = c_apwp[i,4],
+                               lon0 = centerLong,lat0 = centerLat,
+                               col_f ="gray",col_A = rgb(1,0.9,0,0.30),on_plot = TRUE)
+          }
+          #plot min and max age
+          text1 <- paste(c_apwp[1,1],"Ma")
+          text2 <- paste(c_apwp[nrow(c_apwp),1], "Ma")
+          text(x=lin[1,1], y=lin[1,2],pos=4,substitute(paste(bold(text1))), cex= 1.5)
+          text(x=lin[nrow(lin),1], y=lin[nrow(lin),2],pos=4,substitute(paste(bold(text2))), cex= 1.5)
+        }
       }
-      #Fisher on VGPS or Boots on VGPs algorithm
-      else if(input$MVGP_Pole_Stat==2|input$MVGP_Pole_Stat==3){
+      if(!is.null(greatcircle$list)){
+        l <- input$GCList_rows_selected
+        for(i in l){
+          PmagDiR::plot_plane_sph(P_long = greatcircle$list[i,3],
+                                  P_lat = greatcircle$list[i,2],
+                                  lon0 = centerLong,
+                                  lat0 = centerLat,
+                                  plot_pole =  ifelse(input$GC_poleYN==1,TRUE,FALSE),
+                                  on_plot = TRUE,
+                                  col_f = greatcircle$list[i,5],
+                                  symbol= greatcircle$list[i,6],
+                                  lwd=1.2)
+        }
+      }
+    }
+    
+    #if any vgp in table is selected it plots them, and the statistic,          
+    if(length(s) && !is.null(VGPs_List)){
+      #plot selected VGPS
+      for(i in s){
+        if(VGPs_List[i,8]!=""){
+          plot_selected_VGP(s=i,lat0 = centerLat,lon0 = centerLong,Type = Type)
+        }else{
+          if(MVGP_ModalDialog==F){
+            PmagDiR::plot_PA95(lon = as.numeric(VGPs_List[i,5]),
+                               lat = as.numeric(VGPs_List[i,6]),
+                               lon0 = centerLong, 
+                               lat0 = centerLat,
+                               A =as.numeric(VGPs_List[i,7]),
+                               col_f = VGPs_List[i,2],
+                               symbol = VGPs_List[i,3],on_plot = T)
+          }
+        }
+        #plot names
+        if(input$MVGP_names_YN==2 && MVGP_ModalDialog==F){
+          #define coordinate for name of pole
+          x <- PmagDiR::c2x(as.numeric(VGPs_List[i,5]),as.numeric(VGPs_List[i,6]),centLon = centerLong)
+          y <- PmagDiR::c2y(as.numeric(VGPs_List[i,5]),as.numeric(VGPs_List[i,6]),centLon = centerLong,centLat = centerLat)
+          name <- VGPs_List[i,1]
+          #plot names
+          text(x=x, y=y,pos=3,substitute(paste(bold(name))), cex= 1.2)
+        }
+      }
+      
+      #if this has to go to the Merge VGPS modal dialog, activate the statistic option
+      if(MVGP_ModalDialog==TRUE){
+        #Fisher on VGPS or Boots on VGPs algorithm
+        # if(input$MVGP_Pole_Stat==2||input$MVGP_Pole_Stat==3){
+        
+        #choose color of average
+        if(input$MVGP_aver_color==1) MrVGP$col_f <- "black"
+        if(input$MVGP_aver_color==2) MrVGP$col_f <- "blue"
+        if(input$MVGP_aver_color==3) MrVGP$col_f <- "green"
+        if(input$MVGP_aver_color==4) MrVGP$col_f <- "pink"
+        if(input$MVGP_aver_color==5) MrVGP$col_f <- "purple"
+        if(input$MVGP_aver_color==6) MrVGP$col_f <- "brown"
+        if(input$MVGP_aver_color==7) MrVGP$col_f <- "red"
+        if(input$MVGP_aver_color==8) MrVGP$col_f <- "yellow"
+        if(input$MVGP_aver_color==9) MrVGP$col_f <- "cyan"
+        if(input$MVGP_aver_color==10) MrVGP$col_f <- "gray"
+        if(input$MVGP_aver_color==11) MrVGP$col_f <- "white"
+        
+        #select symbol of average
+        if(input$MVGP_aver_sym==1) MrVGP$MVGPaversym <- "c"
+        if(input$MVGP_aver_sym==2) MrVGP$MVGPaversym <- "s"
+        if(input$MVGP_aver_sym==3) MrVGP$MVGPaversym <- "d"
+        if(input$MVGP_aver_sym==4) MrVGP$MVGPaversym <- "t"
+        
         #calculate fisher or bootstrap of all VGPS
         VGP_LonLat <- data.frame(matrix(ncol=2,nrow=0))
         colnames(VGP_LonLat) <- c("Long","Lat")
@@ -5457,209 +5837,72 @@ server <- function(input, output){
         #set bootsfile name for not repeating statistic
         MVGP_name <- "MVGP_stat"
         for(i in s){
-          #fill the file name with all sites selected
-          MVGP_name <- paste(MVGP_name,MVGP_list$vgps[i,1],sep="_")
-          #combine all VGPs of selected sets
-          LonLat_t <- VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1:nrow(VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]]),1:2]
-          colnames(LonLat_t) <- c("Long","Lat")
-          VGP_LonLat <- rbind(VGP_LonLat,LonLat_t)
-        }
-        #calculate fisher
-        if(input$MVGP_Pole_Stat==2){
-          MVGP_Fish_on_VGP <- fisher(VGP_LonLat)
-          #rebuild results for table
-          MVGP_ALL_Fisher <- data.frame(matrix(ncol=5, nrow = 1),row.names = input$fileN_MVGP)
-          colnames(MVGP_ALL_Fisher) <- c("N","Long","Lat","A95","K")
-          MVGP_ALL_Fisher[1,1] <- MVGP_Fish_on_VGP[1,4]
-          MVGP_ALL_Fisher[1,2] <- MVGP_Fish_on_VGP[1,1]
-          MVGP_ALL_Fisher[1,3] <- MVGP_Fish_on_VGP[1,2]
-          MVGP_ALL_Fisher[1,4] <- MVGP_Fish_on_VGP[1,3]
-          MVGP_ALL_Fisher[1,5] <- MVGP_Fish_on_VGP[1,6]
-          
-          plot_selected_VGP(s=s,lat0 = centerLat,lon0 = centerLong)
-          PmagDiR::plot_PA95(lon = MVGP_Fish_on_VGP[1,1],lat = MVGP_Fish_on_VGP[1,2],A = MVGP_Fish_on_VGP[1,3],
-                             lat0 = centerLat,
-                             lon0 = centerLong,
-                             on_plot = T,size = 1.5,col_f = MrVGP$col_f, symbol = MrVGP$MVGPaversym)
-          #add name if requested
-          if(input$MVGP_names_YN==2){
-            N_MVGP <- input$fileN_MVGP
-            #add name
-            text(x = c2x(MVGP_Fish_on_VGP[1,1],MVGP_Fish_on_VGP[1,2]),
-                 y = c2y(MVGP_Fish_on_VGP[1,1],MVGP_Fish_on_VGP[1,2]),
-                 pos=3,
-                 substitute(paste(bold(N_MVGP))), cex= 1.5)
+          if(VGPs_List[i,8]!=""){
+            #fill the file name with all sites selected
+            MVGP_name <- paste(MVGP_name,MVGP_list$vgps[i,1],sep="_")
+            #combine all VGPs of selected sets
+            LonLat_t <- VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][1:nrow(VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]]),1:2]
+            colnames(LonLat_t) <- c("Long","Lat")
+            VGP_LonLat <- rbind(VGP_LonLat,LonLat_t)
           }
         }
-        #calculate bootstrap
-        #build verifying name for existing bootstrap
-        MVGP_temp_stat_name <- paste(MVGP_name,"_stat_temp_",nrow(VGP_LonLat),"_nb_",input$MVGPnb,sep = "")
-        #if bootstrap is selected asks if file exists already in MVGP_temp envir
-        if(input$MVGP_Pole_Stat==3 && exists(MVGP_temp_stat_name, envir = MVGP_temp)==FALSE){
-          plot_selected_VGP(s=s,lat0 = centerLat,lon0 = centerLong)
-          MVGP_boot_on_VGP <- plot_VGP_S(VGP = VGP_LonLat,
-                                         lat = centerLat,
-                                         lon = centerLong,
-                                         plot_vgp = F,col_f = MrVGP$col_f,on_plot = T,B95 = T,nb =  input$MVGPnb,
-                                         col_boot = rgb(0,0,1,0.15),auto_cent = F,symbol = MrVGP$MVGPaversym,VGPint=3)
-          assign(x = MVGP_temp_stat_name,value = MVGP_boot_on_VGP,envir = MVGP_temp)
-        }else if(input$MVGP_Pole_Stat==3 && exists(MVGP_temp_stat_name, envir = MVGP_temp)==TRUE){
-          plot_selected_VGP(s=s,lat0 = centerLat,lon0 = centerLong)
-          plot_VGP_S(VGP = MVGP_temp[[MVGP_temp_stat_name]][[3]][,1:2],
-                     lat = centerLat,
-                     lon = centerLong,
-                     auto_cent = F,
-                     on_plot = TRUE, col = rgb(0,0,1,0.15),col_sym_out = rgb(0,0,1,0.15))
-          PmagDiR::plot_PA95(lon = MVGP_temp[[MVGP_temp_stat_name]][[2]][1,2],
-                             lat = MVGP_temp[[MVGP_temp_stat_name]][[2]][1,3],
-                             A = 0,
-                             lat0 = centerLat,
-                             lon0 = centerLong,
-                             col_f = MrVGP$col_f,symbol = MrVGP$MVGPaversym,size = 1.5,on_plot = T)
-        }
-        if(input$MVGP_Pole_Stat==3){
-          #extract result and assign name for export table and plot statistics on figure as line
-          MVGP_ALLVGPS_boot <- MVGP_temp[[MVGP_temp_stat_name]][[2]]
-          rownames(MVGP_ALLVGPS_boot) <- input$fileN_MVGP
-          
-          #add name on plot if requested
-          if(input$MVGP_names_YN==2){
-            N_MVGP <- input$fileN_MVGP
-            #add name
-            text(x = c2x(MVGP_temp[[MVGP_temp_stat_name]][[2]][1,2],MVGP_temp[[MVGP_temp_stat_name]][[2]][1,3]),
-                 y = c2y(MVGP_temp[[MVGP_temp_stat_name]][[2]][1,2],MVGP_temp[[MVGP_temp_stat_name]][[2]][1,3]),
-                 pos=3,
-                 substitute(paste(bold(N_MVGP))), cex= 1.5)
-          }
-        }
-      }
-      #populate and plot CURRENT VGP pole statistic as text on top of sphere
-      output$MVGP_ALLVGPS_stat <- renderText({
-        if(input$MVGP_Pole_Stat==1) {MVGP_ALLVGPS_stat <- NULL}
-        if(input$MVGP_Pole_Stat==2) {
-          MVGP_ALLVGPS_stat <- paste("N: ",MVGP_ALL_Fisher[1,1],",",
+        # #calculate fisher
+        # if(input$MVGP_Pole_Stat==2){
+        MVGP_Fish_on_VGP <- PmagDiR::fisher(VGP_LonLat)
+        #rebuild results for table
+        MVGP_ALL_Fisher <- data.frame(matrix(ncol=5, nrow = 1),row.names = input$fileN_MVGP)
+        colnames(MVGP_ALL_Fisher) <- c("N","Long","Lat","A95","K")
+        MVGP_ALL_Fisher[1,1] <- MVGP_Fish_on_VGP[1,4]
+        MVGP_ALL_Fisher[1,2] <- MVGP_Fish_on_VGP[1,1]
+        MVGP_ALL_Fisher[1,3] <- MVGP_Fish_on_VGP[1,2]
+        MVGP_ALL_Fisher[1,4] <- MVGP_Fish_on_VGP[1,3]
+        MVGP_ALL_Fisher[1,5] <- MVGP_Fish_on_VGP[1,6]
+        #populate and plot CURRENT VGP pole statistic as text on top of sphere
+        output$MVGP_ALLVGPS_stat <- renderText({
+          MVGP_ALLVGPS_stat <- paste("Average pole: N: ",MVGP_ALL_Fisher[1,1],",",
                                      " Long: ",round(MVGP_ALL_Fisher[1,2], digits = 1),",",
                                      " Lat: ", round(MVGP_ALL_Fisher[1,3], digits = 1),",",
                                      " A95: ",round(MVGP_ALL_Fisher[1,4],digits = 1),",",
                                      " K: ",round(MVGP_ALL_Fisher[1,5], digits = 1),
                                      sep = "")
-          
-        }
-        if(input$MVGP_Pole_Stat==3) {
-          MVGP_ALLVGPS_stat <- paste("N: ",MVGP_ALLVGPS_boot[1,1],",",
-                                     " Long: ",round(MVGP_ALLVGPS_boot[1,2], digits = 1),",",
-                                     " Lat: ", round(MVGP_ALLVGPS_boot[1,3], digits = 1),",",
-                                     " B95: ",round(MVGP_ALLVGPS_boot[1,4],digits = 1),
-                                     sep = "")
-        }
-        MVGP_ALLVGPS_stat
-      })
-    }
-    
-    #Add external Poles from list
-    if(length(ext)){
-      for(i in ext){
-        PmagDiR::plot_PA95(lon = Added_poles$list[i,4],
-                           lat = Added_poles$list[i,5],
-                           A = Added_poles$list[i,6],
-                           col_A = rgb(0,1,1,0.15),
-                           lon0 = centerLong,
-                           lat0 = centerLat,
-                           col_f = Added_poles$list[i,2],
-                           symbol = Added_poles$list[i,3],
-                           on_plot = TRUE
-        )
-        #add external poles name if requested
-        if(input$addextreanames==2){
-          polename <- Added_poles$list[i,1]
-          #add name
-          text(x = c2x(Added_poles$list[i,4],Added_poles$list[i,5]),
-               y = c2y(Added_poles$list[i,4],Added_poles$list[i,5]),
-               pos=3,
-               substitute(paste(bold(polename))), cex= 1.2)
-        }
+        })
       }
     }
-    if(length(ext) || length(s)){
-      #Add Fisher of internal+manually added poles, if they are selected
-      if(input$extrapolesfisher!=1){
-        #select color of average
-        if(input$extrameansymbol==1) extrameansymbol <- "c"
-        if(input$extrameansymbol==2) extrameansymbol <- "s"
-        if(input$extrameansymbol==3) extrameansymbol <- "d"
-        if(input$extrameansymbol==4) extrameansymbol <- "t"
+    if(!is.null(smallcircle$list)){
+      sc <- input$SCList_rows_selected
+      for(i in sc){
+        PmagDiR::plot_SCircle(lon = smallcircle$list[i,3],
+                              lat = smallcircle$list[i,2],
+                              radius = smallcircle$list[i,4],
+                              lon0 = centerLong,
+                              lat0 = centerLat,
+                              col_l = smallcircle$list[i,5],
+                              lty = as.integer(smallcircle$list[i,6]),
+                              lwd=1.2,
+                              on_plot = TRUE)
         
-        #select color of average
-        if(input$extrameancolor==1) extrameancolor <- "black"
-        if(input$extrameancolor==2) extrameancolor <- "blue"
-        if(input$extrameancolor==3) extrameancolor <- "green"
-        if(input$extrameancolor==4) extrameancolor <- "pink"
-        if(input$extrameancolor==5) extrameancolor <- "purple"
-        if(input$extrameancolor==6) extrameancolor <- "brown"
-        if(input$extrameancolor==7) extrameancolor <- "red"
-        if(input$extrameancolor==8) extrameancolor <- "yellow"
-        if(input$extrameancolor==9) extrameancolor <- "cyan"
-        if(input$extrameancolor==10) extrameancolor <- "gray"
-        if(input$extrameancolor==11) extrameancolor <- "white"
-        
-        #add color and symbol to reactive file for saving in table
-        extpole$extrameansymbol <- extrameansymbol
-        extpole$extrameancolor <- extrameancolor
-        
-        #ask if it is null or not
-        if(!is.null(extfisher())){
-          #the extfisher reactive function is above
-          Ext_P_fisher <- extfisher()
-          if(input$extrapolesfisher==2){
-            PmagDiR::plot_PA95(lon = Ext_P_fisher[1,1],
-                               lat = Ext_P_fisher[1,2],
-                               A = Ext_P_fisher[1,3],
-                               lon0 = centerLong,
-                               lat0 = centerLat,
-                               col_A = rgb(1,0,0,0.2),
-                               symbol = extrameansymbol,
-                               col_f = extrameancolor,
-                               size = 1.2,
-                               on_plot = T)
-            if(input$addextreanames==2){
-              averpolename <- input$extreameanname
-              #add name
-              text(x = c2x(Ext_P_fisher[1,1],Ext_P_fisher[1,2]),
-                   y = c2y(Ext_P_fisher[1,1],Ext_P_fisher[1,2]),
-                   pos=3,
-                   substitute(paste(bold(averpolename))), cex= 1.5)
-            }
-          }else if(input$extrapolesfisher==3){
-            PmagDiR::plot_plane_sph(P_long = Ext_P_fisher[1,1],
-                                    P_lat = Ext_P_fisher[1,2],
-                                    lon0 = centerLong,
-                                    lat0 = centerLat,
-                                    plot_pole = T,on_plot = T)
-          }
-        }
       }
     }
-    
-    #add Rotated Paleomagnetic Pole if exists
-    if(!is.null(PPR$RotatedExtPole)){
-      PmagDiR::plot_PA95(lon = PPR$RotatedExtPole[1,4],
-                         lat = PPR$RotatedExtPole[1,5],
-                         A = PPR$RotatedExtPole[1,6],
-                         col_A = rgb(0,1,1,0.15),
-                         lon0 = centerLong,
-                         lat0 = centerLat,
-                         col_f = PPR$RotatedExtPole[1,2],
-                         symbol = PPR$RotatedExtPole[1,3],
-                         on_plot = TRUE)
-    }
-    
-    #record plot
+  }
+  
+  #next few lines make size of figure adjustable
+  Stereosize <- reactiveValues(size=710)
+  observeEvent(input$plusSize,{
+    Stereosize$size <- Stereosize$size+15
+  })
+  observeEvent(input$minusSize,{
+    Stereosize$size <- Stereosize$size-15
+  })
+  
+  #############SEND PLOTS TO VGP ANALYSIS FIGURES
+  output$MVGP_plot <- renderPlot({
+    all_poles_plotter(Type = input$VGPsType)
     MVGP_plot <- recordPlot()
     
     #Export graphic
-    output$MVGP_G <- downloadHandler(
+    output$VGPs_G <- downloadHandler(
       filename = function() {
-        paste(input$fileN_MVGP,"_Poles_", Sys.Date(), ".pdf", sep="")
+        paste(input$fileN_VGP, Sys.Date(), ".pdf", sep="")
       },
       content = function(file) {
         pdf(file, onefile = TRUE,width = 11,height = 11)
@@ -5667,74 +5910,35 @@ server <- function(input, output){
         dev.off()
       }
     )
-    output$MVGP_G2 <- downloadHandler(
-      filename = function() {
-        paste(input$fileN_MVGP,"_Poles_", Sys.Date(), ".pdf", sep="")
-      },
-      content = function(file) {
-        pdf(file, onefile = TRUE,width = 11,height = 11)
-        replayPlot(MVGP_plot)
-        dev.off()
-      }
-    )
-    output$MVGP_G3 <- downloadHandler(
-      filename = function() {
-        paste(input$fileN_MVGP,"_Poles_", Sys.Date(), ".pdf", sep="")
-      },
-      content = function(file) {
-        pdf(file, onefile = TRUE,width = 11,height = 11)
-        replayPlot(MVGP_plot)
-        dev.off()
-      }
-    )
-    
-    
     #export Poles list and stat
-    output$MVGP_list <- downloadHandler(
+    output$VGPs_table <- downloadHandler(
       filename = function() {
-        paste("Loaded_VGPs_list_", Sys.Date(), ".csv", sep="")
+        paste(input$fileN_VGP, Sys.Date(), ".csv", sep="")
       },
       content = function(file) {
         write.csv(MVGP_list$vgps,file,row.names = F)
       }
     )
     
-    #export all VGPs stat
-    #export locality level stat
-    output$VGP_ALL_stat <- downloadHandler(
+    #this download the selected VGPs files, zipped if more than one
+    output$VGPs_Sets <- downloadHandler(
       filename = function() {
-        paste(input$fileN_MVGP,"_POLE_", Sys.Date(), ".csv", sep="")
-      },
-      content = function(file) {
-        if(input$MVGP_Pole_Stat==1){write.csv(NULL,file)}
-        # else if(input$MVGP_Pole_Stat==5){
-        #   write.csv(round(MVGP_ALL_Fisher, digits = 2),file)
-        # }
-        else if(input$MVGP_Pole_Stat==2){
-          colnames(MVGP_Fish_on_VGP) <- c("Long","Lat","A95","N","R","K")
-          write.csv(round(MVGP_Fish_on_VGP, digits = 2),file,row.names = F)
-        }
-        else if(input$MVGP_Pole_Stat==3){
-          write.csv(round(MVGP_ALLVGPS_boot, digits = 2),file,row.names = F)
-        }
-      }
-    )
-    
-    #this download the selected VGPs files, zipped if more than one, selected in analysis page 1
-    output$Down_ALL_VGPs <- downloadHandler(
-      filename = function() {
+        s <- input$VGPs_List_rows_selected
         #name is of the file if only one, generic if more
-        paste(ifelse(length(s)>1,"Selected_VGPs_",paste(MVGP_list$vgps[s,1],"_",sep = "")), 
+        paste(ifelse(length(s)>1,input$fileN_VGP,paste(MVGP_list$vgps[s,1],"_",sep = "")), 
               Sys.Date(), 
               ifelse(length(s)>1,".zip",".csv"), sep="")
       },
       content = function(file){
+        s <- input$VGPs_List_rows_selected
         # if more VGPs are selected, create a list and make a zip file with all list. Zipping strategy copied from online geek
         if(length(s)>1){
           to_download <- list()
           for(i in s){
-            VGPs_name <- MVGP_list$vgps[i,1]
-            to_download[[VGPs_name]] <- round(VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][,1:2],digits = 2)
+            if(MVGP_list$vgps[i,8]!=""){
+              VGPs_name <- MVGP_list$vgps[i,1]
+              to_download[[VGPs_name]] <- round(VGP_saved$list[[MVGP_list$vgps[i,1]]][[1]][,1:2],digits = 2)
+            }
           }
           #next is from online user
           temp_directory <- file.path(tempdir(), as.integer(Sys.time()))
@@ -5753,31 +5957,36 @@ server <- function(input, output){
             root = temp_directory
           )
         }else{
-          #if only one is selected just copies long and lat from file
-          write.csv(round(VGP_saved$list[[MVGP_list$vgps[s,1]]][[1]][,1:2], digits = 2),file,row.names = F)
+          if(MVGP_list$vgps[s,8]!=""){
+            #if only one is selected just copies long and lat from file
+            write.csv(round(VGP_saved$list[[MVGP_list$vgps[s,1]]][[1]][,1:2], digits = 2),file,row.names = F)
+          }
         }
       },
       contentType = "application/zip"
     )
-  }
-  
-  #############################################################
-  
-  #############SEND PLOTS TO VGP ANALYSIS FIGURES
-  
-  #send figure to ui of Multi VGP
-  output$MVGP_plot <- renderPlot({all_poles_plotter()},width = 700, height = 700)
-  
-  #send figure to ui of Multi VGP2 equal as above
-  output$MVGP_plot2 <- renderPlot({all_poles_plotter()},width = 700, height = 700)
-  
-  #send figure to ui of Multi VGP3 equal as above
-  output$MVGP_plot3 <- renderPlot({all_poles_plotter()},width = 700, height = 700)
+    
+    output$VGPs_stats <- downloadHandler(
+      filename = function() {
+        paste(input$fileN_VGP, Sys.Date(), ".csv", sep="")
+      },
+      content = function(file){
+        s <- input$VGPs_List_rows_selected
+        statistics <- data.frame(matrix(nrow=length(s),ncol=7))
+        colnames(statistics) <- c("Pole","N","Long","Lat","A95","K","B95")
+        statistics[s,1] <- MVGP_list$vgps[s,1]
+        statistics[s,2:5] <- MVGP_list$vgps[s,4:7]
+        statistics[s,6] <- MVGP_list$vgps[s,9]
+        statistics[s,7] <- MVGP_list$vgps[s,8]
+        write.csv(statistics,file,row.names = F)
+      }
+    )
+  },width = reactive({Stereosize$size}), height = reactive({Stereosize$size}))
   
   ############ END OF VIRTUAL GEOMAGNETIC POLES MODULE
   
   
-  ############ MAGNETIC POLARITY MODULE
+  ############ MAGNETIC POLARITY MODULE##################
   #read file if present, reset if requested
   depthfile <- reactive({
     read.csv(file = input$depth_file$datapath)
@@ -5877,7 +6086,7 @@ server <- function(input, output){
   },width = 900,height = 800)
   ############ END OF MAGNETIC POLARITY MODULE
   
-  ############ MAPPING MODULE
+  ############ MAPPING MODULE#################
   #creates reactive value for checking if file is uploaded
   values <- reactiveValues(mapsites = NULL)
   #check for uploaded file
@@ -6004,4 +6213,6 @@ server <- function(input, output){
     geo_point_plot()
   },height = 700)
   ############ END OF MAPPING MODULE
+  
+  ###################################END OF ALL SCRIPTS SO FAR
 }
