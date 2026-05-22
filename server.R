@@ -382,7 +382,7 @@ server <- function(input, output){
       return(NULL)
     }
     if(input$Zijd_f_type==1){
-      read.csv(file = input$All_Zijd$datapath)
+      dat_PmagDiR <- read.csv(file = input$All_Zijd$datapath)
     }
     #LASA file
     else if(input$Zijd_f_type==2){
