@@ -378,7 +378,7 @@ server <- function(input, output){
   #read file if present, reset if requested
   #reads files depending on the format selected, and normalise with NRMnorm
   sample_list <- reactive({
-    if (is.null(input$All_Zijd) && input$Zijd_f_type!=7){
+    if (is.null(input$All_Zijd) && input$Zijd_f_type!=8){
       return(NULL)
     }
     if(input$Zijd_f_type==1){
@@ -456,7 +456,7 @@ server <- function(input, output){
       }
       #return(dat_PmagDiR)
     }else if(input$Zijd_f_type==6){
-      #Longyun multisamples
+      #Longyun multisamples pmd file
       dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
       #must read all selected file
@@ -480,6 +480,36 @@ server <- function(input, output){
       #return(dat_PmagDiR)
       #example file
     }else if(input$Zijd_f_type==7){
+      #rs3 files exported from JR6
+      dat_PmagDiR <- data.frame(matrix(ncol = 11,nrow = 0))
+      colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
+      for(i in 1:length(input$All_Zijd[,1])){
+        #read name
+        samp_name <- read.table(input$All_Zijd[[i, 'datapath']],skip = 1,nrows = 1)[,1]
+        #read data
+        dat <- read.fwf(file = input$All_Zijd[[i, 'datapath']],widths = c(3,12,13,6,6,6,6,6,6,100),skip = 3)
+        #put name in first column
+        dat[,1] <- samp_name
+        #eliminate useless column
+        dat <- dat[,-10]
+        #fill possible empty column with geo and TC data copying from Sample coord
+        for(i in 1:nrow(dat)){
+          if(is.na(dat[i,6])){dat[i,6] <- dat[i,4]}
+          if(is.na(dat[i,7])){dat[i,7] <- dat[i,5]}
+          if(is.na(dat[i,8])){dat[i,8] <- dat[i,6]}
+          if(is.na(dat[i,9])){dat[i,9] <- dat[i,7]}
+        }
+        #create temporary Magnetic-A file
+        temp_file <- data.frame(matrix(ncol = 11,nrow = nrow(dat)))
+        colnames(temp_file) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
+        temp_file[,1] <- dat[,1]
+        temp_file[,2] <- dat[,2]
+        temp_file[,3:5] <- PmagDiR::s2c(DI = dat[,4:5],J = dat[,3])
+        temp_file[,6:8] <- PmagDiR::s2c(DI = dat[,6:7],J = dat[,3])
+        temp_file[,9:11] <- PmagDiR::s2c(DI = dat[,8:9],J = dat[,3])
+        dat_PmagDiR <- rbind(dat_PmagDiR,temp_file)
+      }
+    }else if(input$Zijd_f_type==8){
       dat_PmagDiR <- PmagDiR::Ardo_diRs_example
       #file is in emu e-4, next convert in Am2
       dat_PmagDiR[,3:11] <- dat_PmagDiR[,3:11]*(10**-7)
@@ -623,7 +653,7 @@ server <- function(input, output){
     req(sample_list())
     req(specimens())
     #defined some pre-compiled parameters
-    if(input$Zijd_f_type==2 || input$Zijd_f_type==7){
+    if(input$Zijd_f_type==2 || input$Zijd_f_type==8){
       normtext <- "This window is pre-compiled for LASA file type. NRM is in A/m assuming standard 11.15 cm^3 samples"
       Svolume <- 11.15
       StepUnit <- "°C"

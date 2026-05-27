@@ -76,7 +76,7 @@ ui <- fluidPage(
                                        fluidRow(
                                          column(6,fileInput("All_Zijd",label = "Load demag data",multiple = T)),
                                          column(6,selectInput("Zijd_f_type",label = "File type",
-                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"Example data"=7),selected = 1) %>%
+                                                              choices = list("Magnetic-A"=1,"LASA"=2,"Bremen (.cor)"=3,"IODP JR6A Expanded"=4,"CIT multi-samples"=5,"pmd multi-samples"=6,"rs3 multi-samples"=7,"Example data"=8),selected = 1) %>%
                                                   helper(type = "inline",
                                                          title = "Format file",
                                                          content = c(
@@ -149,6 +149,7 @@ ui <- fluidPage(
                               actionButton(inputId = "runVEPstat",label = "Run interpolation"),
                               actionButton(inputId = "save_PCA",label = "Save interpolation"),
                               downloadButton("export_PCA",label = "Export all saved directions")
+                              
                             ),
                             fluidRow(column(3,textOutput("Zijd_Unit")),
                                      column(9,textOutput("PCA_result"))
@@ -1001,4 +1002,3 @@ ui <- fluidPage(
     )
   )
 )
-
