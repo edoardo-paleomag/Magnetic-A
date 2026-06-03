@@ -485,7 +485,8 @@ server <- function(input, output){
       colnames(dat_PmagDiR) <- c("Sample","Step","Sx","Sy","Sz","Gx","Gy","Gz","Bx","By","Bz")
       for(i in 1:length(input$All_Zijd[,1])){
         #read name
-        samp_name <- read.table(input$All_Zijd[[i, 'datapath']],skip = 1,nrows = 1)[,1]
+        #samp_name <- read.table(input$All_Zijd[[i, 'datapath']],skip = 1,nrows = 1)[,1]
+        samp_name <- read.fwf(file = input$All_Zijd[[i, 'datapath']],widths = c(10,120),skip = 1)[1,1]
         #read data
         dat <- read.fwf(file = input$All_Zijd[[i, 'datapath']],widths = c(3,12,13,6,6,6,6,6,6,100),skip = 3)
         #put name in first column
