@@ -1116,6 +1116,17 @@ server <- function(input, output){
     }
   )
   
+  #save demagnetization file format Magnetic-A .csv text
+  output$export_Mag_file <- downloadHandler(
+    filename = function() {
+      paste("Demagnetization_file_", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      to_export <- sample_list()
+      write.csv(to_export, file,row.names = FALSE)                       
+    }
+  )
+  
   #reactive name of sample for saving figure
   sampleName <- reactive({
     if(input$Zijd_Stereo_shift==1 || input$Zijd_Stereo_shift==2){samplename <- paste(specim$specim[1,1],"_VEP_")}
@@ -2954,6 +2965,68 @@ server <- function(input, output){
   
   ############ END OF CMDT OF TWO DATASETS MODULE
   
+  ############ FOLD TEST MODULE#############
+  #read bedding file if present
+  beddingfile <- reactive({
+    read.csv(file = input$bedding_file$datapath)
+  })
+  
+  foldtest_plot <- eventReactive(input$foldgo,{
+    #Dirs$dat is the imported raw file set at line 2543
+    req(Dirs$dat)
+    #request either file with bedding or magnetic-A file with sample code
+    req(input$filetype==2 || input$filetype==4 || input$filetype==5)
+    #if file has bedding, no problem
+    if(input$filetype==2){
+      DIAP <- Dirs$dat
+    }
+    #if magnetic-A, sample with Geo dirs and bedding must be built
+    else if(input$filetype==4 || input$filetype==5){
+      #direction file
+      SampFile <- Dirs$dat
+      #bedding file
+      BedFile <- beddingfile()
+      DI_temp <- SampFile[,c(1,5:6)]
+      DI_temp <- na.omit(DI_temp)
+      DI_temp$B_az <- rep(NA)
+      DI_temp$B_plunge <- rep(NA)
+      for(i in 1:nrow(DI_temp)){
+        for(l in 1:nrow(BedFile)){
+          if(BedFile[l,1]==DI_temp[i,1]){
+            DI_temp[i,4] <- BedFile[l,2]
+            DI_temp[i,5] <- BedFile[l,3]
+          }
+        }
+      }
+      if(sum(is.na(DI_temp[,4]))){output$warndepth <- renderText({"WARNING: Some bedding parameters are missing!"})}
+      #cut code and file is now ready
+      DIAP <- DI_temp[,-1]
+    }
+    #reversal test
+    foldtest_funct <- function(){
+      PmagDiR::fold_test(DIAP = DIAP,boots_num=input$foldnb,min_untilt = input$FT_min_max[1],max_untilt = input$FT_min_max[2],shiny=T)
+    }
+    foldtest_funct()
+    #record plot
+    foldPlot <- recordPlot()
+    #Export reversal test graphic
+    output$foldexpG <- downloadHandler(
+      filename = function() {
+        paste(input$fileN_FT,"_foldtest_", Sys.Date(), ".pdf", sep="")
+      },
+      content = function(file) {
+        pdf(file, onefile = TRUE,width = 11,height = 9)
+        replayPlot(foldPlot)
+        dev.off()
+      }
+    )
+  })
+  output$foldtest <- renderPlot({
+    foldtest_plot()
+  },width = 900,height = 700)
+  
+  
+  ############ END OF CMDT OF FOLD TEST MODULE
   
   ##################### SVEI MODULE ###################
   # Restituisce la lista con i parametri del modello GGP richiesto 
@@ -4685,7 +4758,6 @@ server <- function(input, output){
           temp$Lon <- as.numeric(temp$Lon)
           temp$Lat <- as.numeric(temp$Lat)
           temp$A95 <- as.numeric(temp$A95)
-          assign("butta",input$eul_long,.GlobalEnv)
           temp[1,5:6] <- round(PmagDiR::rot_DI(temp[1,5:6],               
                                                P_long = input$eul_long,
                                                P_lat = input$eul_lat,
@@ -4916,7 +4988,6 @@ server <- function(input, output){
       names(VGP_saved$list)[names(VGP_saved$list)==old_Loc_name] <- MVGP_list$vgps[info$row,1]
       VGP_saved$list[[MVGP_list$vgps[info$row,1]]][[1]][["color"]] <- MVGP_list$vgps[info$row,2]
       VGP_saved$list[[MVGP_list$vgps[info$row,1]]][[1]][["symbol"]] <- MVGP_list$vgps[info$row,3]
-      assign("butta",VGP_saved$list,.GlobalEnv)
     }
   })
   
@@ -6018,7 +6089,7 @@ server <- function(input, output){
   
   
   ############ MAGNETIC POLARITY MODULE##################
-  #read file if present, reset if requested
+  #read depth file if present
   depthfile <- reactive({
     read.csv(file = input$depth_file$datapath)
   })

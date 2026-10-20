@@ -148,7 +148,8 @@ ui <- fluidPage(
                               actionButton(inputId = "PPCA",label = "Run Probabilistic PCA test"),
                               actionButton(inputId = "runVEPstat",label = "Run interpolation"),
                               actionButton(inputId = "save_PCA",label = "Save interpolation"),
-                              downloadButton("export_PCA",label = "Export all saved directions")
+                              downloadButton("export_PCA",label = "Export all saved directions"),
+                              downloadButton("export_Mag_file",label = "Export Magnetic-A file")
                               
                             ),
                             fluidRow(column(3,textOutput("Zijd_Unit")),
@@ -206,7 +207,8 @@ ui <- fluidPage(
                tabPanel("Directions display & average",
                         sidebarLayout(
                           sidebarPanel(width = 5,
-                                       h4("Please assign different Site names to different datasets!"),
+                                       h4("Plots paleomagetic direction and calculate parametric average"),
+                                       br(),
                                        fluidRow(
                                          column(6,fileInput("file", label= "Load directions file")),
                                          column(6,textInput("fileN",label = "Site name",value = "Site"))
@@ -464,7 +466,7 @@ ui <- fluidPage(
                )
              )
     ),
-    tabPanel("Bootstrap statistics",
+    tabPanel("Non-parametric statistics",
              tabsetPanel(
                tabPanel("Confidence ellipse",      
                         sidebarLayout(              
@@ -611,7 +613,61 @@ ui <- fluidPage(
                             plotOutput("revtest2")
                           )
                         )
-               )
+               ),
+               tabPanel("Fold test",         
+                        sidebarLayout(
+                          sidebarPanel(width=3,
+                                       fluidRow(
+                                         column(12,h4("Fold Test"))
+                                       ),
+                                       fluidRow(
+                                         column(12,h5("Perform the fold test based on the eigen analysis approach of Tauxe and Watson (1994)."))
+                                       ),
+                                       fluidRow(
+                                         column(12,h5("NOTE: first test the data with a low number (e.g. 10) of simulations, because the process can be time demanding."))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,h5("Please cite: "), tags$a(href="https://doi.org/10.1016/0012-821X(94)90006-X", 
+                                                                               "Tauxe, L., Watson, G., (1994). Earth and Planetary Science Letters, 122(3-4), 331-341", target="_blank"))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(12,fileInput(inputId = "bedding_file",label = "Upload bedding file",width = "100%") %>%
+                                                  helper(type = "inline",
+                                                         title = "Format file",
+                                                         content = c(
+                                                           "In case of directions file uploaded within the 'Directions display & average' page, the file must be of the type G_dec, G_inc, B_az, B_plunge. See format help within the 'Directions display & average' page.",
+                                                           "",
+                                                           "In case of direction analysis performed with Magnetic-A (both Internal directions and externally uploaded Magnetic-A file; see 'Directions file type' help within the 'Directions display & average' page), the bedding of the samples is not included in the direction result file. A bedding file can be uploaded here.",
+                                                           "",
+                                                           "File type: three columns with sample code, azimuth of bedding dip, and plunge, comma-separated values (.csv). The sample code MUST be the same of the Magnetic-A file."),
+                                                         size = "l",fade = T))
+                                       ),
+                                       fluidRow(
+                                         column(12,sliderInput("FT_min_max",label = "Unfolding %",min = -50, max = 150, value = c(-10,120)))
+                                       ),
+                                       br(),
+                                       fluidRow(
+                                         column(6,textInput("fileN_FT",label = "Export name",value = "Fold test")),
+                                         column(6,numericInput("foldnb", label="Bootstraps n.",value=1000))),
+                                       fluidRow(
+                                         column(12,actionButton("foldgo", label= "Perform",width = "100%"))),
+                                       br(),
+                                       fluidRow(
+                                         column(12,progressBar(
+                                           id = "fold_test_b",
+                                           value = 0,total=1000,
+                                           title = "Bootstrap",
+                                           display_pct = TRUE))),
+                          ),
+                          mainPanel(
+                            fluidRow(downloadButton("foldexpG","Export graph")
+                            ),
+                            plotOutput("foldtest")
+                          )
+                        )
+               ),
              )
     ),
     tabPanel("SVEI test",
@@ -859,6 +915,9 @@ ui <- fluidPage(
                             br(),
                             h4("List of loaded VGPs and Poles:"),
                             fluidRow(
+                              column(12,h4("Use a different name for each dataset, otherwise they will be overwritten!")),
+                            ),
+                            fluidRow(
                               column(12,DT::dataTableOutput("VGPs_List")),
                             ),
                             fluidRow(
@@ -892,7 +951,7 @@ ui <- fluidPage(
                                        helper(type = "inline",
                                               title = "Format file",
                                               content = c(
-                                                "In case of direction analysis performed with this platform, the depth of the samples is not included in the direction result file. A depth file can be uploaded here.",
+                                                "In case of direction analysis performed with Magnetic-A, the depth of the samples is not included in the direction result file. A depth file can be uploaded here.",
                                                 "",
                                                 "Type 1: two columns with sample code and depth, comma-separated values (.csv). Samples code MUST be the same",
                                                 "",
