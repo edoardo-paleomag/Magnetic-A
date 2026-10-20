@@ -51,7 +51,7 @@ ui <- fluidPage(
                    column(12,h3("• Draggable interactive pop-up windows"))
                  ),
                  fluidRow(
-                   column(12,h4("Non-parametric fold test is under development"))
+                   column(12,h3("• Non-parametric fold test is now available"))
                  ),
                  fluidRow(
                    column(12,h4("Version 1.0 still available at ",tags$a(href="https://edoardodallanave.shinyapps.io/MagneticA/", 
